@@ -1,5 +1,3 @@
-## About this project (中文描述)
-
 # 🚀 Domain-Driven-Kit: 基于 Java 的 DDD 分层架构脚手架
 
 `domain-driven-kit` 🛠️ 是一个基于 Java 的开源脚手架项目，旨在帮助开发者快速构建基于 DDD (领域驱动设计) 思想的分层架构应用，**专注于解决 DDD 概念抽象、难以落地的问题，并提供一套标准、可复用的架构模式，帮助团队统一开发规范。**

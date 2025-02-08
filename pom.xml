@@ -28,6 +28,7 @@
     <modules>
         <module>ddk-core</module>
         <module>ddk-samples</module>
+        <module>ddk-templates</module>
     </modules>
 
     <dependencyManagement>
