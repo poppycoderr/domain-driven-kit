@@ -3,6 +3,8 @@ package io.github.ddk.core.exception;
 import lombok.Getter;
 
 /**
+ * 异常基类
+ *
  * @author Elijah Du
  * @date 2025/2/7
  */

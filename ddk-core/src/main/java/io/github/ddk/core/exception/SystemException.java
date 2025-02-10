@@ -1,6 +1,8 @@
 package io.github.ddk.core.exception;
 
 /**
+ * 系统异常
+ *
  * @author Elijah Du
  * @date 2025/2/8
  */

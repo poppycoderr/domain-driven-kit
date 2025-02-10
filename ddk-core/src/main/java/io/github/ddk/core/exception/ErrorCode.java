@@ -3,6 +3,8 @@ package io.github.ddk.core.exception;
 import java.text.MessageFormat;
 
 /**
+ * 错误码接口
+ *
  * @author Elijah Du
  * @date 2025/2/7
  */
