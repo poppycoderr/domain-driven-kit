@@ -21,7 +21,7 @@ public class Sort {
     private String sortField;
 
     // 排序方向
-    @Pattern(regexp = "^(ASC|DESC)$", message = "排序方向必须为ASC或DESC")
+    @Pattern(regexp = "^(ASC|DESC)$", message = "排序方向必须为 ASC 或 DESC")
     private String sortOrder;
 
     public static Sort of(String sortField, String sortOrder) {

@@ -16,7 +16,15 @@ import java.util.stream.Collectors;
  */
 public class PageConverter {
 
-    // MyBatis-Plus 的 IPage 转换为 PageResult
+    /**
+     * IPage 转换为 PageResponse
+     *
+     * @param page   IPage 对象
+     * @param mapper 转换函数
+     * @param <T>    IPage 对象中的记录类型
+     * @param <R>    PageResponse 中的记录类型
+     * @return PageResponse
+     */
     public static <T, R> PageResponse<R> toPageResponse(IPage<T> page, Function<List<T>, List<R>> mapper) {
         return PageResponse.<R>builder()
                 .records(mapper.apply(page.getRecords()))
@@ -29,7 +37,13 @@ public class PageConverter {
                 .build();
     }
 
-    // PageQuery 转换为 MyBatis-Plus 的 Page 对象
+    /**
+     * PageQuery 转换为 MyBatis-Plus 的 Page 对象
+     *
+     * @param query PageQuery 对象
+     * @param <T>   Page 对象中的记录类型
+     * @return MyBatis-Plus 的 Page 对象
+     */
     public static <T> Page<T> toPage(PageQuery query) {
         Page<T> page = new Page<>(query.getPageNum(), query.getPageSize());
 

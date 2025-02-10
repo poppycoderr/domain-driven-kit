@@ -4,6 +4,8 @@ import io.github.ddk.core.exception.ErrorCode;
 import lombok.Data;
 
 /**
+ * 统一 API 响应结果封装
+ *
  * @author Elijah Du
  * @date 2025/2/8
  */
