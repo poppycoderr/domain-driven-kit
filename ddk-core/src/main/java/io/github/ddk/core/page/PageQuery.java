@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * 分页查询对象
+ *
  * @author Elijah Du
  * @date 2025/2/8
  */
@@ -19,10 +21,8 @@ public class PageQuery {
     @Min(value = 1, message = "每页数量不能小于1")
     private Long pageSize = 10L;
 
-    // 多重排序
     private List<Sort> sorts;
 
-    // 添加排序条件的便捷方法
     public PageQuery addSort(String field, String order) {
         if (sorts == null) {
             sorts = new ArrayList<>();

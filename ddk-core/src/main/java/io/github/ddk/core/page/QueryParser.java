@@ -14,7 +14,7 @@ import java.util.List;
  * @author Elijah Du
  * @date 2025/2/10
  */
-public class QueryAnnotationParser {
+public class QueryParser {
 
     /**
      * 解析查询条件

@@ -7,15 +7,10 @@
         <groupId>io.github.poppycoding</groupId>
         <artifactId>domain-driven-kit</artifactId>
         <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../../../domain-driven-kit</relativePath>
     </parent>
-    <packaging>pom</packaging>
 
-    <artifactId>ddk-templates</artifactId>
-
-    <modules>
-        <module>ddk-layer3-template</module>
-        <module>ddk-layer4-template</module>
-    </modules>
+    <artifactId>ddk-layer4-archetype</artifactId>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>

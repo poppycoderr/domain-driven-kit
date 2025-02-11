@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.function.Function;
 
 /**
+ * 分页转换器
+ *
  * @author Elijah Du
  * @date 2025/2/8
  */

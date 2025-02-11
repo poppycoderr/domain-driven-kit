@@ -10,7 +10,7 @@
         <relativePath>../../../domain-driven-kit</relativePath>
     </parent>
 
-    <artifactId>ddk-layer3-template</artifactId>
+    <artifactId>ddk-layer3-archetype</artifactId>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>

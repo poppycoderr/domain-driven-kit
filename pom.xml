@@ -28,7 +28,8 @@
     <modules>
         <module>ddk-core</module>
         <module>ddk-samples</module>
-        <module>ddk-templates</module>
+        <module>ddk-starters</module>
+        <module>ddk-archetypes</module>
     </modules>
 
     <dependencyManagement>
@@ -84,17 +85,6 @@
                 <version>2.0.42</version>
             </dependency>
 
-            <dependency>
-                <groupId>com.google.guava</groupId>
-                <artifactId>guava</artifactId>
-                <version>32.1.3-jre</version>
-            </dependency>
-
-            <dependency>
-                <groupId>org.mapstruct</groupId>
-                <artifactId>mapstruct</artifactId>
-                <version>1.6.0.Beta1</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -109,6 +99,25 @@
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
             <version>5.8.24</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.4.14</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>32.1.3-jre</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>1.6.0.Beta1</version>
         </dependency>
     </dependencies>
     <build>
