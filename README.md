@@ -1,56 +1,99 @@
-# domain-driven-kit
+<p align="center">
+    <img src="./logo.png" alt="ddk logo" width=200 height=200 />
+</p>
+<h1 align="center">Domain Driven Kit</h1>
+<p align="center">
+    <em >🧩 — DDD 的模块化、分层架构和领域建模</em>
+</p>
+<p align="center">
+    <em>⚡ — 脚手架能高效加速项目构建，提高开发效率</em>
+</p>
+<p align="center">
+    <em>📦 — 可复用的 DDD 代码库和基础设施</em>
+</p>
+<p align="right"><a href="README_en.md">🇺🇸英文</a></p>
 
-<p align="right"><a href="./README_zh.md">🇨🇳 中文</a></p>
+### 🚀 项目简介：
 
-# 🚀 Domain-Driven-Kit: Java-Based DDD Layered Architecture Scaffolding
+`domain-driven-kit` 🛠️ 是一个基于 Java 的开源脚手架项目，旨在帮助开发者快速构建基于 DDD (领域驱动设计) 思想的分层架构应用，**专注于解决 DDD 概念抽象、难以落地的问题，并提供一套标准、可复用的架构模式，帮助团队统一开发规范。**
 
-`domain-driven-kit` 🛠️ is an open-source scaffolding project built with Java, designed to help developers quickly construct layered applications based on Domain-Driven Design (DDD) principles. **It focuses on addressing the abstraction and implementation challenges of DDD, providing a standard and reusable architectural pattern to help teams unify their development practices.**
+### ✨ 主要特性：
 
-### ✨ Key Features:
+*   **🧱 标准 DDD 四层项目结构:** 基于经典的四层架构（用户接口层、应用层、领域层、基础设施层），提供清晰的职责划分和依赖管理。
+*   **🎈 轻量 DDD 三层项目结构:** 保留四层架构中的用户接口层和基础设施层，将应用层和领域层合并成业务逻辑层，三层架构将更适用于简单项目的构建。
+*   **📦 预配置的 Spring Boot Starter:** 方便快速集成常用的组件，包括：数据访问、事务管理、日志、验证等，并提供默认配置方案，简化开发配置。
+*   **💡 最佳实践的 DDD 架构示例:** 提供一个基于用户管理的示例，展示 DDD 的核心概念：实体、值对象、聚合、领域服务、仓储等，帮助开发者快速理解和应用 DDD 思想。
+*   **⚡  快速原型开发:** 可以基于脚手架快速生成 DDD 项目骨架，用于快速原型验证。
+*   **🤝 统一团队规范:** 提供标准架构模式，帮助团队统一开发规范。
+*   **⚙️ 可扩展性:** 可以根据实际业务需求进行自定义扩展。
 
-*   **🧱 Standard DDD Layered Project Structure:** Based on the classic four-layer architecture (User Interface, Application, Domain, and Infrastructure), providing clear responsibility separation and dependency management.
-*   **📦 Pre-configured Spring Boot Starter:** Facilitates the rapid integration of common components, including data access, transaction management, logging, and validation, with default configurations to simplify development setup.
-*   **💡 Best Practices DDD Architectural Example:** Offers a user management example showcasing core DDD concepts such as Entities, Value Objects, Aggregates, Domain Services, and Repositories, helping developers quickly understand and apply DDD principles.
-*   **⚡ Rapid Prototyping:** Enables the quick generation of a DDD project skeleton for rapid prototype verification.
-*   **🤝 Unified Team Standards:** Provides a standard architectural pattern to help teams unify their development standards.
-*   **⚙️ Extensibility:** Allows for custom extensions based on specific business needs.
+```mermaid
+graph TB
+    subgraph "四层架构 (Classic DDD Layers)"
+        UI[Adapter Layer<br/>适配层]
+        AL[Application Layer<br/>应用层]
+        DL[Domain Layer<br/>领域层]
+        IL[Infrastructure Layer<br/>基础设施层]
+        
+        UI --> AL
+        AL --> DL
+        UI -.-> DL
+        UI -.-> IL
+        AL -.-> IL
+        IL --> DL
+    end
 
-### 🎯 Project Goals:
+    subgraph "三层架构 (Simplified DDD Layers)"
+        UI2[Adapter Layer<br/>适配层]
+        BL[Business Layer<br/>业务层]
+        IL2[Infrastructure Layer<br/>基础设施层]
+        
+        UI2 --> BL
+        UI2 -.-> IL2
+        IL2 --> BL
+    end
 
-*   **🌱 Lower the Barrier to DDD Practice:** Empowering DDD beginners to quickly get started and apply it to real-world projects.
-*   **🚀 Increase Development Efficiency:** Reduce repetitive development through pre-configurations and code examples, thus enhancing efficiency.
-*   **👨‍💻 Unify Team Standards:** Provide a standardized DDD architecture to help teams establish uniform development practices.
+    classDef default fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef layer fill:#bbf,stroke:#333,stroke-width:2px;
+    class UI,AL,DL,IL,UI2,BL,IL2 layer;
+```
 
-### 🤔 Pain Points Addressed:
+### 🎯 项目目标：
 
-*   😫  DDD concepts are abstract and difficult to implement?
-*   😵‍💫 Layered architecture is cumbersome and requires extensive configuration?
-*   🧐  Finding appropriate DDD practical examples is challenging?
+*   **🌱 降低 DDD 实践门槛：** 让 DDD 初学者也能快速上手，并应用于实际项目。
+*   **🚀 提高开发效率：** 通过预配置和代码示例，减少重复开发，提高开发效率。
+*   **👨‍💻 统一团队规范：** 提供一套标准的 DDD 架构，帮助团队统一开发规范。
 
-### 🛠️ How to Use:
+### 🤔 解决的痛点：
 
-1.  [Provide detailed quick start steps]
-2.  [Provide code examples]
-3.  [Provide Spring Boot Starter configuration instructions]
+*   😫 DDD 概念抽象，难以落地？
+*   😵‍💫 分层架构繁琐，需要大量配置？
+*   🧐 找不到合适的 DDD 实践案例？
 
-### 🏛️ Architectural Example:
+### 🛠️ 如何使用：
 
-[Provide example code or link]
+1.  [提供详细的快速入门步骤]
+2.  [提供代码示例]
+3.  [提供 Spring Boot Starter 的配置说明]
 
-### 📚 Documentation:
+### 🏛️ 架构示例：
 
-*   [Link to detailed documentation]
+[提供示例代码或链接]
 
-### 🤝 Contributing:
+### 📚 文档：
 
-*   Contributions and feedback are welcome! Feel free to submit PRs and issues.
+*   [链接到详细文档]
 
-### 💬 Community:
+### 🤝 贡献：
 
-*   [Link to discussion forum]
+*   欢迎提交 PR 和反馈问题！
 
-### 🗓️ Maintenance Plan:
+### 💬 社区：
 
-*   [Describe the maintenance plan]
+*   [链接到讨论区]
 
-`domain-driven-kit` is committed to lowering the learning curve and implementation challenges of DDD, allowing developers to focus more on business logic and improve development efficiency. 🚀
+### 🗓️ 维护计划：
+
+
+
+`domain-driven-kit` 致力于降低 DDD 的学习和实践门槛，让开发者能够更专注于业务逻辑的实现，并提升开发效率。🚀
