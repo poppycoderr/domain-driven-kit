@@ -5,6 +5,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.GenericTypeResolver;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -25,7 +26,23 @@ public class MapperProvider<L, R> {
         loadCustomMapper(context);
     }
 
-    public ObjectMapper<L, R> lookup() {
+    public L mapToLeft(R source) {
+        return lookup().mapToLeft(source);
+    }
+
+    public List<L> mapToLeft(List<R> sources) {
+        return lookup().mapToLeft(sources);
+    }
+
+    public R mapToRight(L source) {
+        return lookup().mapToRight(source);
+    }
+
+    public List<R> mapToRight(List<L> sources) {
+        return lookup().mapToRight(sources);
+    }
+
+    private ObjectMapper<L, R> lookup() {
         Class<?>[] types = GenericTypeResolver.resolveTypeArguments(this.getClass(), MapperProvider.class);
         assert types != null;
         MappingKey key = new MappingKey(types[0], types[1]);

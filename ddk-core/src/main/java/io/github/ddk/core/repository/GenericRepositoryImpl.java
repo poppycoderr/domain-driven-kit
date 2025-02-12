@@ -25,24 +25,24 @@ public class GenericRepositoryImpl<E, ID extends Serializable, P, M extends Base
 
     @Override
     public boolean create(E entity) {
-        P po = mappers.lookup().mapToRight(entity);
+        P po = mappers.mapToRight(entity);
         return super.save(po);
     }
 
     @Override
     public boolean create(List<E> entities) {
-        List<P> pos = mappers.lookup().mapToRight(entities);
+        List<P> pos = mappers.mapToRight(entities);
         return super.saveBatch(pos);
     }
 
     @Override
     public E find(ID id) {
-        return mappers.lookup().mapToLeft(super.getById(id));
+        return mappers.mapToLeft(super.getById(id));
     }
 
     @Override
     public List<E> find(List<ID> ids) {
-        return mappers.lookup().mapToLeft(super.listByIds(ids));
+        return mappers.mapToLeft(super.listByIds(ids));
     }
 
     @Override
@@ -57,13 +57,13 @@ public class GenericRepositoryImpl<E, ID extends Serializable, P, M extends Base
 
     @Override
     public boolean update(E entity) {
-        P po = mappers.lookup().mapToRight(entity);
+        P po = mappers.mapToRight(entity);
         return super.updateById(po);
     }
 
     @Override
     public boolean update(List<E> entities) {
-        List<P> pos = mappers.lookup().mapToRight(entities);
+        List<P> pos = mappers.mapToRight(entities);
         return super.updateBatchById(pos);
     }
 
@@ -71,7 +71,7 @@ public class GenericRepositoryImpl<E, ID extends Serializable, P, M extends Base
     public PageResponse<E> page(PageQuery query) {
         Page<P> page = query.page();
         super.page(page, QueryParser.parse(query));
-        return PageResponse.of(page, mappers.lookup()::mapToLeft);
+        return PageResponse.of(page, mappers::mapToLeft);
     }
 
     @Override

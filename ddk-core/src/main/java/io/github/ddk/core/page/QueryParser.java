@@ -3,9 +3,9 @@ package io.github.ddk.core.page;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import org.springframework.core.GenericTypeResolver;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
 import java.util.List;
 
 /**
@@ -20,8 +20,8 @@ public class QueryParser {
      * 解析查询条件
      *
      * @param query 查询条件对象
+     * @param <T>   查询条件对象类型
      * @return 查询条件包装器
-     * @param <T> 查询条件对象类型
      */
     public static <T> QueryWrapper<T> parse(Object query) {
         QueryWrapper<T> wrapper = new QueryWrapper<>();
@@ -47,12 +47,11 @@ public class QueryParser {
 
     @SuppressWarnings("unchecked")
     private static <T> void parseSort(QueryWrapper<T> wrapper, Field field, Object fieldValue) {
-        if (field.getGenericType() instanceof ParameterizedType type) {
-            if (type.getRawType().equals(List.class) && type.getActualTypeArguments()[0].equals(Sort.class)) {
-                for (Sort sort : (List<Sort>) fieldValue) {
-                    String column = StrUtil.toUnderlineCase(sort.getSortField());
-                    wrapper.orderBy(StrUtil.isNotEmpty(column), "ASC".equals(sort.getSortOrder()), column);
-                }
+        Class<?> argType = GenericTypeResolver.resolveTypeArgument(field.getType(), List.class);
+        if (Sort.class.equals(argType)) {
+            for (Sort sort : (List<Sort>) fieldValue) {
+                String column = StrUtil.toUnderlineCase(sort.getSortField());
+                wrapper.orderBy(StrUtil.isNotEmpty(column), "ASC".equals(sort.getSortOrder()), column);
             }
         }
     }
