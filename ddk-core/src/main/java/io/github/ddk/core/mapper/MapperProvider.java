@@ -2,6 +2,7 @@ package io.github.ddk.core.mapper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.GenericTypeResolver;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -13,22 +14,24 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 @Component
-public class MapperRegistry<S, T> {
+public class MapperProvider<L, R> {
 
-    private final Map<MappingKey, ObjectMapper<S, T>> mapperCache = new ConcurrentHashMap<>();
-    private final Map<MappingKey, ObjectMapper<S, T>> customMapperCache = new ConcurrentHashMap<>();
-    private final DefaultMapper<S, T> defaultMapper;
+    private final Map<MappingKey, ObjectMapper<L, R>> mapperCache = new ConcurrentHashMap<>();
+    private final Map<MappingKey, ObjectMapper<L, R>> customMapperCache = new ConcurrentHashMap<>();
+    private final DefaultMapper<L, R> defaultMapper;
 
-    public MapperRegistry(DefaultMapper<S, T> defaultMapper, ApplicationContext context) {
+    public MapperProvider(DefaultMapper<L, R> defaultMapper, ApplicationContext context) {
         this.defaultMapper = defaultMapper;
         loadCustomMapper(context);
     }
 
-    public ObjectMapper<S, T> lookupMapper(Class<S> sourceClass, Class<T> targetClass) {
-        MappingKey key = new MappingKey(sourceClass, targetClass);
+    public ObjectMapper<L, R> lookup() {
+        Class<?>[] types = GenericTypeResolver.resolveTypeArguments(this.getClass(), MapperProvider.class);
+        assert types != null;
+        MappingKey key = new MappingKey(types[0], types[1]);
         return mapperCache.computeIfAbsent(key, k -> {
             // 自定义转换器
-            ObjectMapper<S, T> customMapper = customMapperCache.get(key);
+            ObjectMapper<L, R> customMapper = customMapperCache.get(key);
             if (customMapper != null) {
                 return customMapper;
             }
@@ -42,8 +45,8 @@ public class MapperRegistry<S, T> {
         for (Object mapper : customMappers.values()) {
             Class<?> mapperClass = mapper.getClass();
             CustomMapper annotation = mapperClass.getAnnotation(CustomMapper.class);
-            MappingKey key = new MappingKey(annotation.source(), annotation.target());
-            customMapperCache.put(key, (ObjectMapper<S, T>) mapper);
+            MappingKey key = new MappingKey(annotation.left(), annotation.right());
+            customMapperCache.put(key, (ObjectMapper<L, R>) mapper);
             log.info("Registered custom mapper: {}", mapperClass.getSimpleName());
         }
     }

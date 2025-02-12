@@ -1,5 +1,6 @@
 package io.github.ddk.core.page;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.Data;
 
 import javax.validation.constraints.Min;
@@ -22,6 +23,10 @@ public class PageQuery {
     private Long pageSize = 10L;
 
     private List<Sort> sorts;
+
+    public <P> Page<P> page() {
+        return new Page<>(pageNum, pageSize);
+    }
 
     public PageQuery addSort(String field, String order) {
         if (sorts == null) {

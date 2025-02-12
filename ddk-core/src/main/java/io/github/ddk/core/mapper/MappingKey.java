@@ -13,6 +13,6 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode
 public class MappingKey {
 
-    private final Class<?> sourceClass;
-    private final Class<?> targetClass;
+    private final Class<?> left;
+    private final Class<?> right;
 }

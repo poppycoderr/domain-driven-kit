@@ -16,7 +16,9 @@ import java.lang.annotation.Target;
 @Component
 public @interface CustomMapper {
 
-    Class<?> source();
-    Class<?> target();
+    Class<?> left();
+
+    Class<?> right();
+
     String description() default "";
 }
