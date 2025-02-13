@@ -34,7 +34,7 @@ public class ApiResponse<T> {
         return new ApiResponse<>(SUCCESS, "Success", data);
     }
 
-    public static <T> ApiResponse<T> ofFailed(ErrorCode code, Object... args) {
+    public static <T> ApiResponse<T> ofFail(ErrorCode code, Object... args) {
         return new ApiResponse<>(code.getCode(), code.getMessage(args), null);
     }
 }

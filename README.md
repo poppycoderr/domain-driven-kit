@@ -27,37 +27,6 @@
 *   **🤝 统一团队规范:** 提供标准架构模式，帮助团队统一开发规范。
 *   **⚙️ 可扩展性:** 可以根据实际业务需求进行自定义扩展。
 
-```mermaid
-graph TB
-    subgraph "四层架构 (Classic DDD Layers)"
-        UI[Adapter Layer<br/>适配层]
-        AL[Application Layer<br/>应用层]
-        DL[Domain Layer<br/>领域层]
-        IL[Infrastructure Layer<br/>基础设施层]
-        
-        UI --> AL
-        AL --> DL
-        UI -.-> DL
-        UI -.-> IL
-        AL -.-> IL
-        IL --> DL
-    end
-
-    subgraph "三层架构 (Simplified DDD Layers)"
-        UI2[Adapter Layer<br/>适配层]
-        BL[Business Layer<br/>业务层]
-        IL2[Infrastructure Layer<br/>基础设施层]
-        
-        UI2 --> BL
-        UI2 -.-> IL2
-        IL2 --> BL
-    end
-
-    classDef default fill:#f9f,stroke:#333,stroke-width:2px;
-    classDef layer fill:#bbf,stroke:#333,stroke-width:2px;
-    class UI,AL,DL,IL,UI2,BL,IL2 layer;
-```
-
 ### 🎯 项目目标：
 
 *   **🌱 降低 DDD 实践门槛：** 让 DDD 初学者也能快速上手，并应用于实际项目。
@@ -76,13 +45,23 @@ graph TB
 2.  [提供代码示例]
 3.  [提供 Spring Boot Starter 的配置说明]
 
-### 🏛️ 架构示例：
+### 🏛️ 架构：
 
-[提供示例代码或链接]
+* 🧱[DDD 四层架构](./ddk-archetypes/ddk-layer4-archetype/README.md)
+
+<p align="center">
+    <img src="./ddk-archetypes/ddk-layer4-archetype/4-layer.png" alt="4-layer" width=500/>
+</p>
+
+* 🎈[DDD 三层架构](./ddk-archetypes/ddk-layer3-archetype/README.md)
+
+<p align="center">
+    <img src="./ddk-archetypes/ddk-layer3-archetype/3-layer.png" alt="3-layer" width=500/>
+</p>
 
 ### 📚 文档：
 
-*   [链接到详细文档]
+*   [详细文档](https://poppycoder.netlify.app)
 
 ### 🤝 贡献：
 

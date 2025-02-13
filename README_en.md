@@ -21,7 +21,15 @@
 ### ✨ Key Features:
 
 *   **🧱 Standard DDD 4-Layered Project Structure:** Based on the classic four-layer architecture (User Interface, Application, Domain, and Infrastructure), providing clear responsibility separation and dependency management.
-*   **🎈 Lightweight DDD 3-Layered Project Structure: Retains the user interface layer and infrastructure layer from the four-layer architecture, merging the application layer and domain layer into a business logic layer. This three-layer architecture is better suited for building simple projects.
+<p align="center">
+    <img src="./ddk-archetypes/ddk-layer4-archetype/4-layers.png" alt="4-layer" width=500/>
+</p>
+
+*   **🎈 Lightweight DDD 3-Layered Project Structure:** Retains the user interface layer and infrastructure layer from the four-layer architecture, merging the application layer and domain layer into a business logic layer. This three-layer architecture is better suited for building simple projects.
+<p align="center">
+    <img src="./ddk-archetypes/ddk-layer3-archetype/3-layers.png" alt="3-layer" width=500/>
+</p>
+
 *   **📦 Pre-configured Spring Boot Starter:** Facilitates the rapid integration of common components, including data access, transaction management, logging, and validation, with default configurations to simplify development setup.
 *   **💡 Best Practices DDD Architectural Example:** Offers a user management example showcasing core DDD concepts such as Entities, Value Objects, Aggregates, Domain Services, and Repositories, helping developers quickly understand and apply DDD principles.
 *   **⚡ Rapid Prototyping:** Enables the quick generation of a DDD project skeleton for rapid prototype verification.

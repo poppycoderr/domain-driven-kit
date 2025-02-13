@@ -28,6 +28,7 @@
         <module>ddk-core</module>
         <module>ddk-samples</module>
         <module>ddk-archetypes</module>
+        <module>ddk-starters</module>
     </modules>
 
     <dependencyManagement>
