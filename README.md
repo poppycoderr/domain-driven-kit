@@ -50,13 +50,13 @@
 * 🧱[DDD 四层架构](./ddk-archetypes/ddk-layer4-archetype/README.md)
 
 <p align="center">
-    <img src="./ddk-archetypes/ddk-layer4-archetype/4-layer.png" alt="4-layer" width=500/>
+    <img src="./ddk-archetypes/ddk-layer4-archetype/4-layer.png" alt="4-layer" width=350/>
 </p>
 
 * 🎈[DDD 三层架构](./ddk-archetypes/ddk-layer3-archetype/README.md)
 
 <p align="center">
-    <img src="./ddk-archetypes/ddk-layer3-archetype/3-layer.png" alt="3-layer" width=500/>
+    <img src="./ddk-archetypes/ddk-layer3-archetype/3-layer.png" alt="3-layer" width=340/>
 </p>
 
 ### 📚 文档：
@@ -69,10 +69,11 @@
 
 ### 💬 社区：
 
-*   [链接到讨论区]
+*   [TODO]
 
 ### 🗓️ 维护计划：
 
+*   [TODO]
 
 
 `domain-driven-kit` 致力于降低 DDD 的学习和实践门槛，让开发者能够更专注于业务逻辑的实现，并提升开发效率。🚀

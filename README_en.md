@@ -21,51 +21,12 @@
 ### ✨ Key Features:
 
 *   **🧱 Standard DDD 4-Layered Project Structure:** Based on the classic four-layer architecture (User Interface, Application, Domain, and Infrastructure), providing clear responsibility separation and dependency management.
-<p align="center">
-    <img src="./ddk-archetypes/ddk-layer4-archetype/4-layers.png" alt="4-layer" width=500/>
-</p>
-
 *   **🎈 Lightweight DDD 3-Layered Project Structure:** Retains the user interface layer and infrastructure layer from the four-layer architecture, merging the application layer and domain layer into a business logic layer. This three-layer architecture is better suited for building simple projects.
-<p align="center">
-    <img src="./ddk-archetypes/ddk-layer3-archetype/3-layers.png" alt="3-layer" width=500/>
-</p>
-
 *   **📦 Pre-configured Spring Boot Starter:** Facilitates the rapid integration of common components, including data access, transaction management, logging, and validation, with default configurations to simplify development setup.
 *   **💡 Best Practices DDD Architectural Example:** Offers a user management example showcasing core DDD concepts such as Entities, Value Objects, Aggregates, Domain Services, and Repositories, helping developers quickly understand and apply DDD principles.
 *   **⚡ Rapid Prototyping:** Enables the quick generation of a DDD project skeleton for rapid prototype verification.
 *   **🤝 Unified Team Standards:** Provides a standard architectural pattern to help teams unify their development standards.
 *   **⚙️ Extensibility:** Allows for custom extensions based on specific business needs.
-
-```mermaid
-graph TB
-    subgraph "四层架构 (Classic DDD Layers)"
-        UI[Adapter Layer<br/>适配层]
-        AL[Application Layer<br/>应用层]
-        DL[Domain Layer<br/>领域层]
-        IL[Infrastructure Layer<br/>基础设施层]
-        
-        UI --> AL
-        AL --> DL
-        UI -.-> DL
-        UI -.-> IL
-        AL -.-> IL
-        IL --> DL
-    end
-
-    subgraph "三层架构 (Simplified DDD Layers)"
-        UI2[Adapter Layer<br/>适配层]
-        BL[Business Layer<br/>业务层]
-        IL2[Infrastructure Layer<br/>基础设施层]
-        
-        UI2 --> BL
-        UI2 -.-> IL2
-        IL2 --> BL
-    end
-
-    classDef default fill:#f9f,stroke:#333,stroke-width:2px;
-    classDef layer fill:#bbf,stroke:#333,stroke-width:2px;
-    class UI,AL,DL,IL,UI2,BL,IL2 layer;
-```
 
 ### 🎯 Project Goals:
 
@@ -87,11 +48,20 @@ graph TB
 
 ### 🏛️ Architectural Example:
 
-[Provide example code or link]
+* 🧱[4-layer](./ddk-archetypes/ddk-layer4-archetype/README.md)
 
+<p align="center">
+    <img src="./ddk-archetypes/ddk-layer4-archetype/4-layer.png" alt="4-layer" width=350/>
+</p>
+
+* 🎈[3-layer](./ddk-archetypes/ddk-layer3-archetype/README.md)
+
+<p align="center">
+    <img src="./ddk-archetypes/ddk-layer3-archetype/3-layer.png" alt="3-layer" width=340/>
+</p>
 ### 📚 Documentation:
 
-*   [Link to detailed documentation]
+*   [ddk.doc](https://poppycoder.netlify.app)
 
 ### 🤝 Contributing:
 

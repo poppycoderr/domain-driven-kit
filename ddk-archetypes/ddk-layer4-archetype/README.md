@@ -4,14 +4,15 @@
 
 ## 🏛️ 架构设计 (Architecture)
 
-经典的四层架构：
+通过 `ACL (防腐层)` 实现了依赖倒置原则，使得高层模块不依赖于底层模块，两者都依赖于抽象。
 
-*   **Adapter Layer (适配层/表示层):** 用户交互和外部系统入口 🚪
-*   **Application Layer (应用层):** 逻辑编排和事务管理 ⚙️
-*   **Domain Layer (领域层):** 核心业务逻辑和领域模型 🧠
-*   **Infrastructure Layer (基础设施层):** 技术实现和外部依赖 🛠️
+*   应用层通过 `ACL` 接口与基础设施层交互。
+*   领域层通过 `ACL` 接口（Repository）与基础设施层交互。
+*   基础设施层实现应用层和领域层定义的 `ACL` 接口，从而实现依赖倒置。
 
-## 📦 包结构 (Package Structure)
+<img src="4-layer.png" alt="4-layer" width=400/>
+
+## 📦 项目结构 (Package Structure)
 
 ```text
 io.github.ddk
@@ -63,13 +64,3 @@ io.github.ddk
 *   **application:** 协调领域对象来完成特定的用例。
 *   **domain:** 包含核心业务逻辑和领域知识。
 *   **infrastructure:** 提供技术支持，如数据库访问、消息传递、缓存等。
-
-## 🛡️ 依赖倒置原则 (Dependency Inversion Principle)
-
-通过 `ACL (防腐层)` 实现了依赖倒置原则，使得高层模块不依赖于底层模块，两者都依赖于抽象。
-
-*   应用层通过 `ACL` 接口与基础设施层交互。
-*   领域层通过 `ACL` 接口（Repository）与基础设施层交互。
-*   基础设施层实现应用层和领域层定义的 `ACL` 接口，从而实现依赖倒置。
-
-<img src="4-layer.png" alt="4-layer" width=500/>
