@@ -8,6 +8,7 @@ import io.github.ddk.core.page.PageQuery;
 import io.github.ddk.core.page.PageResponse;
 import io.github.ddk.core.page.QueryParser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.GenericTypeResolver;
 
 import java.io.Serializable;
 import java.util.List;
@@ -16,33 +17,40 @@ import java.util.List;
  * @author Elijah Du
  * @date 2025/2/11
  */
+@SuppressWarnings({"unchecked", "DataFlowIssue"})
 public class GenericRepositoryImpl<ID extends Serializable, E, P, M extends BaseMapper<P>>
         extends ServiceImpl<M, P>
         implements GenericRepository<ID, E> {
 
+    protected final Class<?>[] typeArguments = GenericTypeResolver.resolveTypeArguments(this.getClass(), GenericRepositoryImpl.class);
+    protected final Class<E> eClass = (Class<E>) typeArguments[1];
+    protected final Class<P> pClass = (Class<P>) typeArguments[2];
+
     @Autowired
-    private MapperProvider<E, P> mappers;
+    private MapperProvider mappers;
 
     @Override
     public boolean create(E entity) {
-        P po = mappers.mapToRight(entity);
+        P po = mappers.lookup(eClass, pClass).map(entity);
         return super.save(po);
     }
 
     @Override
     public boolean create(List<E> entities) {
-        List<P> pos = mappers.mapToRight(entities);
+        List<P> pos = mappers.lookup(eClass, pClass).map(entities);
         return super.saveBatch(pos);
     }
 
     @Override
     public E find(ID id) {
-        return mappers.mapToLeft(super.getById(id));
+        P po = super.getById(id);
+        return mappers.lookup(pClass, eClass).map(po);
     }
 
     @Override
     public List<E> find(List<ID> ids) {
-        return mappers.mapToLeft(super.listByIds(ids));
+        List<P> pos = super.listByIds(ids);
+        return mappers.lookup(pClass, eClass).map(pos);
     }
 
     @Override
@@ -57,13 +65,13 @@ public class GenericRepositoryImpl<ID extends Serializable, E, P, M extends Base
 
     @Override
     public boolean update(E entity) {
-        P po = mappers.mapToRight(entity);
+        P po = mappers.lookup(eClass, pClass).map(entity);
         return super.updateById(po);
     }
 
     @Override
     public boolean update(List<E> entities) {
-        List<P> pos = mappers.mapToRight(entities);
+        List<P> pos = mappers.lookup(eClass, pClass).map(entities);
         return super.updateBatchById(pos);
     }
 
@@ -71,7 +79,7 @@ public class GenericRepositoryImpl<ID extends Serializable, E, P, M extends Base
     public PageResponse<E> page(PageQuery query) {
         Page<P> page = query.page();
         super.page(page, QueryParser.parse(query));
-        return PageResponse.of(page, mappers::mapToLeft);
+        return PageResponse.of(page, mappers.lookup(pClass, eClass)::map);
     }
 
     @Override

@@ -13,9 +13,9 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface EnhancedMapper {
 
-    Class<?> left();
+    Class<?> source();
 
-    Class<?> right();
+    Class<?> target();
 
     String description() default "";
 }

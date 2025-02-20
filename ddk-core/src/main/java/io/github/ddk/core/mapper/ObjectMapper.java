@@ -1,21 +1,14 @@
 package io.github.ddk.core.mapper;
 
-import org.mapstruct.InheritInverseConfiguration;
-
 import java.util.List;
 
 /**
  * @author Elijah Du
  * @date 2025/2/11
  */
-public interface ObjectMapper<L, R> {
+public interface ObjectMapper<S, T> {
 
-    R mapToRight(L source);
+    T map(S source);
 
-    List<R> mapToRight(List<L> sources);
-
-    @InheritInverseConfiguration
-    L mapToLeft(R source);
-
-    List<L> mapToLeft(List<R> sources);
+    List<T> map(List<S> sources);
 }

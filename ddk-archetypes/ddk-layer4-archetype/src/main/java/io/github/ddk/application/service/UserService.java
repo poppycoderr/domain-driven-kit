@@ -23,28 +23,35 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final MapperProvider<User, UserCreateCommand> provider;
+    private final MapperProvider provider;
 
     @Deprecated(since = "2025-02-19", forRemoval = true)
     public void create(UserCreateCommand command) {
-        userRepository.create(provider.mapToLeft(command));
+        User user = provider.lookup(UserCreateCommand.class, User.class).map(command);
+        userRepository.create(user);
     }
 
     public void create(List<UserCreateCommand> commands) {
-        userRepository.create(provider.mapToLeft(commands));
+        List<User> users = provider.lookup(UserCreateCommand.class, User.class).map(commands);
+        userRepository.create(users);
     }
 
     public UserDTO getById(Long id) {
-        return null;
+        User user = userRepository.find(id);
+        return provider.lookup(User.class, UserDTO.class).map(user);
     }
 
     public PageResponse<UserDTO> getByPage(@Valid UserPageQuery query) {
-        return null;
+        PageResponse<User> page = userRepository.page(query);
+        return page.of(provider.lookup(User.class, UserDTO.class)::map);
     }
 
     public void update(@Valid UserUpdateCommand command) {
+        User user = provider.lookup(UserUpdateCommand.class, User.class).map(command);
+        userRepository.update(user);
     }
 
     public void deleteById(Long id) {
+        userRepository.remove(id);
     }
 }
