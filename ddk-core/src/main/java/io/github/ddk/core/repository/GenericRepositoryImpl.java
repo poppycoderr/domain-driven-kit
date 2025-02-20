@@ -7,7 +7,7 @@ import io.github.ddk.core.mapper.MapperProvider;
 import io.github.ddk.core.page.PageQuery;
 import io.github.ddk.core.page.PageResponse;
 import io.github.ddk.core.page.QueryParser;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
 import java.util.List;
@@ -16,12 +16,12 @@ import java.util.List;
  * @author Elijah Du
  * @date 2025/2/11
  */
-@RequiredArgsConstructor
-public class GenericRepositoryImpl<E, ID extends Serializable, P, M extends BaseMapper<P>>
+public class GenericRepositoryImpl<ID extends Serializable, E, P, M extends BaseMapper<P>>
         extends ServiceImpl<M, P>
-        implements GenericRepository<E,ID> {
+        implements GenericRepository<ID, E> {
 
-    private final MapperProvider<E, P> mappers;
+    @Autowired
+    private MapperProvider<E, P> mappers;
 
     @Override
     public boolean create(E entity) {

@@ -10,11 +10,10 @@ import java.util.List;
  *
  * @param <E>  实体类型
  * @param <ID> 主键类型
- *
  * @author Elijah Du
  * @date 2025/2/11
  */
-public interface GenericRepository<E, ID> {
+public interface GenericRepository<ID, E> {
 
     /**
      * 保存实体

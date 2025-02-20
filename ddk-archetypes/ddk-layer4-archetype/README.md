@@ -17,13 +17,9 @@
 ```text
 io.github.ddk
 ├── adapter (适配层/表示层)
-│   ├── common          通用的适配器组件，例如类型转换、通用处理等
-│   ├── web             Web 相关的适配器
-│   │   ├── controller    REST 控制器，处理 HTTP 请求
-│   │   ├── config        Web 配置，例如 Spring MVC 配置
-│   │   └── exception     Web 相关的异常处理
-│   └── mq              消息事件相关的适配器
-│       └── consumer      消息消费者
+│   ├── config          适配层相关配置，例如：Spring MVC 配置, 异常处理等
+│   ├── Web             Web 相关的适配器，例如：REST 控制器，处理 HTTP 请求
+│   └── consumer        消息事件相关的适配器，例如：RabbitMQ
 ├── application (应用层)
 │   ├── service         应用服务，处理用例
 │   ├── command         命令对象，封装应用层的操作 （适用于更新相关的操作 xxxCommand）
@@ -34,11 +30,11 @@ io.github.ddk
 │   └── acl             防腐层接口，定义与基础设施层的交互接口 （通常是涉及到外部调用的接口 xxxGateway）
 ├── domain (领域层)
 │   ├── model           领域模型
-│   │   ├── entity        实体 （无需后缀）
-│   │   ├── valueobject   值对象 （无需后缀）
-│   │   ├── aggregate     聚合根 （xxxAggregate）
-│   │   ├── enum          枚举类型 （根据实际业务命名，需继承 BaseEnum 以获取自动映射能力，如：xxType，xxStatus）
-│   │   └── dto           领域层内部使用的数据传输对象（适用于实体构造时的中间参数组装类）
+│   │   ├── entity      实体 （无需后缀）
+│   │   ├── valueobject 值对象 （无需后缀）
+│   │   ├── aggregate   聚合根 （xxxAggregate）
+│   │   ├── enums        枚举类型 （根据实际业务命名，需继承 BaseEnum 以获取自动映射能力，如：xxType，xxStatus）
+│   │   └── dto         领域层内部使用的数据传输对象（适用于实体构造时的中间参数组装类 xxxDTO）
 │   ├── service         领域服务，处理复杂的领域逻辑（通常涉及到跨实体的逻辑）
 │   ├── event           领域事件，表示领域内发生的事件 （xxxEvent）
 │   ├── exception       领域特定的异常 （参考 AbstractException及其子类）
@@ -48,15 +44,15 @@ io.github.ddk
 │   │   └── impl        acl接口的实现类 （xxxGatewayImpl， xxxRepositoryImpl）
 │   ├── rabbitmq        RabbitMQ 相关配置实现
 │   ├── remote          与外部服务进行远程调用
-│   │   ├── client        远程服务客户端 （通常是 xxxClient）
-│   │   ├── config        远程服务配置
-│   │   ├── request       远程服务请求对象 （xxxRequest）
-│   │   └── response      远程服务响应对象 （可复用应用层 DTO）
+│   │   ├── client      远程服务客户端 （通常是 xxxClient）
+│   │   ├── config      远程服务配置
+│   │   ├── request     远程服务请求对象 （xxxRequest）
+│   │   └── response    远程服务响应对象 （可复用应用层 DTO）
 │   ├── redis           Redis 相关配置实现
 │   ├── orm             ORM 相关的实现
-│   │   ├── po            Persistent Object，数据库持久化对象 （xxxPO）
-│   │   ├── mapper        ORM 映射器，例如 MyBatis Mapper （xxxMapper）
-│   │   └── config        ORM 配置，例如 MyBatis 配置
+│   │   ├── po          Persistent Object，数据库持久化对象 （xxxPO）
+│   │   ├── mapper      ORM 映射器，例如 MyBatis Mapper （xxxMapper）
+│   │   └── config      ORM 配置，例如 MyBatis 配置
 └── util                通用工具类 （xxxUtils）
 ```
 
