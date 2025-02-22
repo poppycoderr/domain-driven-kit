@@ -27,30 +27,30 @@ public class GenericRepositoryImpl<ID extends Serializable, E, P, M extends Base
     protected final Class<P> pClass = (Class<P>) typeArguments[2];
 
     @Autowired
-    private MapperProvider mappers;
+    private MapperProvider mapperProvider;
 
     @Override
     public boolean create(E entity) {
-        P po = mappers.lookup(eClass, pClass).map(entity);
+        P po = mapperProvider.lookup(eClass, pClass).map(entity);
         return super.save(po);
     }
 
     @Override
     public boolean create(List<E> entities) {
-        List<P> pos = mappers.lookup(eClass, pClass).map(entities);
+        List<P> pos = mapperProvider.lookup(eClass, pClass).map(entities);
         return super.saveBatch(pos);
     }
 
     @Override
     public E find(ID id) {
         P po = super.getById(id);
-        return mappers.lookup(pClass, eClass).map(po);
+        return mapperProvider.lookup(pClass, eClass).map(po);
     }
 
     @Override
     public List<E> find(List<ID> ids) {
         List<P> pos = super.listByIds(ids);
-        return mappers.lookup(pClass, eClass).map(pos);
+        return mapperProvider.lookup(pClass, eClass).map(pos);
     }
 
     @Override
@@ -65,13 +65,13 @@ public class GenericRepositoryImpl<ID extends Serializable, E, P, M extends Base
 
     @Override
     public boolean update(E entity) {
-        P po = mappers.lookup(eClass, pClass).map(entity);
+        P po = mapperProvider.lookup(eClass, pClass).map(entity);
         return super.updateById(po);
     }
 
     @Override
     public boolean update(List<E> entities) {
-        List<P> pos = mappers.lookup(eClass, pClass).map(entities);
+        List<P> pos = mapperProvider.lookup(eClass, pClass).map(entities);
         return super.updateBatchById(pos);
     }
 
@@ -79,7 +79,7 @@ public class GenericRepositoryImpl<ID extends Serializable, E, P, M extends Base
     public PageResponse<E> page(PageQuery query) {
         Page<P> page = query.page();
         super.page(page, QueryParser.parse(query));
-        return PageResponse.of(page, mappers.lookup(pClass, eClass)::map);
+        return PageResponse.of(page, mapperProvider.lookup(pClass, eClass)::map);
     }
 
     @Override

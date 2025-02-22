@@ -23,31 +23,31 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final MapperProvider provider;
+    private final MapperProvider mapperProvider;
 
     @Deprecated(since = "2025-02-19", forRemoval = true)
     public void create(UserCreateCommand command) {
-        User user = provider.lookup(UserCreateCommand.class, User.class).map(command);
+        User user = mapperProvider.lookup(UserCreateCommand.class, User.class).map(command);
         userRepository.create(user);
     }
 
     public void create(List<UserCreateCommand> commands) {
-        List<User> users = provider.lookup(UserCreateCommand.class, User.class).map(commands);
+        List<User> users = mapperProvider.lookup(UserCreateCommand.class, User.class).map(commands);
         userRepository.create(users);
     }
 
     public UserDTO getById(Long id) {
         User user = userRepository.find(id);
-        return provider.lookup(User.class, UserDTO.class).map(user);
+        return mapperProvider.lookup(User.class, UserDTO.class).map(user);
     }
 
     public PageResponse<UserDTO> getByPage(@Valid UserPageQuery query) {
         PageResponse<User> page = userRepository.page(query);
-        return page.of(provider.lookup(User.class, UserDTO.class)::map);
+        return page.of(mapperProvider.lookup(User.class, UserDTO.class)::map);
     }
 
     public void update(@Valid UserUpdateCommand command) {
-        User user = provider.lookup(UserUpdateCommand.class, User.class).map(command);
+        User user = mapperProvider.lookup(UserUpdateCommand.class, User.class).map(command);
         userRepository.update(user);
     }
 
