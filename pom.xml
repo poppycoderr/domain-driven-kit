@@ -9,7 +9,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>io.github.poppycoding</groupId>
+    <groupId>com.ddk</groupId>
     <artifactId>domain-driven-kit</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
@@ -27,13 +27,21 @@
 
     <modules>
         <module>ddk-core</module>
-        <module>ddk-samples</module>
+        <module>ddk-examples</module>
         <module>ddk-archetypes</module>
         <module>ddk-starters</module>
     </modules>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
