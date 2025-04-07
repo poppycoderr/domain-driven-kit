@@ -13,6 +13,5 @@
     <artifactId>ddk-examples</artifactId>
 
     <modules>
-        <module>llm-langchain4j-example</module>
     </modules>
 </project>
