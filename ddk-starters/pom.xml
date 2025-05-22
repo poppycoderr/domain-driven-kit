@@ -14,6 +14,7 @@
 
     <modules>
         <module>ddk-web-starter</module>
+        <module>ddk-archguard-starter</module>
     </modules>
 
 </project>
