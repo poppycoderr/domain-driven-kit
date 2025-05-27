@@ -16,6 +16,7 @@
         <module>ddk-web-starter</module>
         <module>ddk-archguard-starter</module>
         <module>ddk-tracer-starter</module>
+        <module>ddk-cache-starter</module>
     </modules>
 
 </project>
