@@ -1,7 +1,6 @@
 <p align="center">
-    <img src="./logo.png" alt="ddk logo" width=200 height=200 />
+    <img src="./logo.png" alt="ddk logo" width=400 height=400 />
 </p>
-<h1 align="center">Domain Driven Kit</h1>
 <p align="center">
     <em >🧩 — DDD 的模块化、分层架构和领域建模</em>
 </p>
