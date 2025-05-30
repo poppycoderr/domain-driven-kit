@@ -17,6 +17,7 @@
         <module>ddk-archguard-starter</module>
         <module>ddk-tracer-starter</module>
         <module>ddk-cache-starter</module>
+        <module>ddk-db-starter</module>
     </modules>
 
 </project>
