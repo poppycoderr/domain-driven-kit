@@ -18,6 +18,7 @@
         <module>ddk-tracer-starter</module>
         <module>ddk-cache-starter</module>
         <module>ddk-db-starter</module>
+        <module>ddk-seata-starter</module>
     </modules>
 
 </project>
