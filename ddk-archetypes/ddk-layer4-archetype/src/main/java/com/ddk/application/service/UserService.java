@@ -8,13 +8,15 @@ import com.ddk.core.mapper.MapperProvider;
 import com.ddk.core.page.PageResponse;
 import com.ddk.domain.acl.UserRepository;
 import com.ddk.domain.model.entity.User;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import javax.validation.Valid;
 import java.util.List;
 
 /**
+ * 用户应用服务
+ *
  * @author Elijah Du
  * @date 2025/2/19
  */
@@ -24,12 +26,6 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final MapperProvider mapperProvider;
-
-    @Deprecated(since = "2025-02-19", forRemoval = true)
-    public void create(UserCreateCommand command) {
-        User user = mapperProvider.lookup(UserCreateCommand.class, User.class).map(command);
-        userRepository.create(user);
-    }
 
     public void create(List<UserCreateCommand> commands) {
         List<User> users = mapperProvider.lookup(UserCreateCommand.class, User.class).map(commands);
@@ -43,7 +39,7 @@ public class UserService {
 
     public PageResponse<UserDTO> getByPage(@Valid UserPageQuery query) {
         PageResponse<User> page = userRepository.page(query);
-        return page.of(mapperProvider.lookup(User.class, UserDTO.class)::map);
+        return page.map(mapperProvider.lookup(User.class, UserDTO.class)::map);
     }
 
     public void update(@Valid UserUpdateCommand command) {

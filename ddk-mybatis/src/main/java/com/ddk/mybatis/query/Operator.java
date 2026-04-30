@@ -1,4 +1,4 @@
-package com.ddk.core.page;
+package com.ddk.mybatis.query;
 
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -9,7 +9,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * 查询操作符
+ * 查询操作符（MyBatis-Plus 实现）
  *
  * @author Elijah Du
  * @date 2025/2/8
@@ -82,8 +82,7 @@ public enum Operator {
         @Override
         @SuppressWarnings("rawtypes")
         public <T> void apply(QueryWrapper<T> wrapper, String column, Object value) {
-            if (value instanceof Collection) {
-                Collection coll = (Collection<?>) value;
+            if (value instanceof Collection coll) {
                 wrapper.in(CollUtil.isNotEmpty(coll), column, coll);
             }
         }
@@ -92,8 +91,7 @@ public enum Operator {
         @Override
         @SuppressWarnings("rawtypes")
         public <T> void apply(QueryWrapper<T> wrapper, String column, Object value) {
-            if (value instanceof Collection) {
-                Collection coll = (Collection<?>) value;
+            if (value instanceof Collection coll) {
                 wrapper.notIn(CollUtil.isNotEmpty(coll), column, coll);
             }
         }
@@ -102,9 +100,8 @@ public enum Operator {
         @Override
         @SuppressWarnings("rawtypes")
         public <T> void apply(QueryWrapper<T> wrapper, String column, Object value) {
-            if (value instanceof Collection) {
-                List list = (List) value;
-                wrapper.between(CollUtil.isNotEmpty(list), column, list.getFirst(), list.getLast());
+            if (value instanceof List list && CollUtil.isNotEmpty(list)) {
+                wrapper.between(true, column, list.getFirst(), list.getLast());
             }
         }
     },
@@ -112,9 +109,8 @@ public enum Operator {
         @Override
         @SuppressWarnings("rawtypes")
         public <T> void apply(QueryWrapper<T> wrapper, String column, Object value) {
-            if (value instanceof Collection) {
-                List list = (List) value;
-                wrapper.notBetween(CollUtil.isNotEmpty(list), column, list.getFirst(), list.getLast());
+            if (value instanceof List list && CollUtil.isNotEmpty(list)) {
+                wrapper.notBetween(true, column, list.getFirst(), list.getLast());
             }
         }
     },
@@ -131,18 +127,8 @@ public enum Operator {
         }
     };
 
-    /**
-     * 描述
-     */
     private final String description;
 
-    /**
-     * 应用查询条件
-     *
-     * @param wrapper 查询包装器
-     * @param column  列名
-     * @param value   值
-     */
     public <T> void apply(QueryWrapper<T> wrapper, String column, Object value) {
     }
 }

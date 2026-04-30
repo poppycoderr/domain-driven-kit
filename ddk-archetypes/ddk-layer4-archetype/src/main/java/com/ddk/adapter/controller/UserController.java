@@ -7,13 +7,15 @@ import com.ddk.application.response.UserDTO;
 import com.ddk.application.service.UserService;
 import com.ddk.core.page.PageResponse;
 import com.ddk.core.response.ApiResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.util.List;
 
 /**
+ * 用户接口
+ *
  * @author Elijah Du
  * @date 2025/2/19
  */
@@ -35,13 +37,13 @@ public class UserController {
         return ApiResponse.ofSuccess(userService.getById(id));
     }
 
-    @PostMapping
+    @PostMapping("/page")
     public ApiResponse<PageResponse<UserDTO>> getByPage(@Valid @RequestBody UserPageQuery query) {
         return ApiResponse.ofSuccess(userService.getByPage(query));
     }
 
     @PutMapping("/{id}")
-    public ApiResponse<UserDTO> update(@PathVariable Long id, @Valid @RequestBody UserUpdateCommand command) {
+    public ApiResponse<Void> update(@PathVariable Long id, @Valid @RequestBody UserUpdateCommand command) {
         userService.update(command);
         return ApiResponse.ofSuccess();
     }

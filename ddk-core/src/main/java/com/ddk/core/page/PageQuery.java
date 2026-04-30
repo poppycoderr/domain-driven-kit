@@ -1,14 +1,13 @@
 package com.ddk.core.page;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import jakarta.validation.constraints.Min;
 import lombok.Data;
 
-import javax.validation.constraints.Min;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 分页查询对象
+ * 通用分页查询对象（纯 POJO，不依赖任何持久层框架）
  *
  * @author Elijah Du
  * @date 2025/2/8
@@ -23,10 +22,6 @@ public class PageQuery {
     private Long pageSize = 10L;
 
     private List<Sort> sorts;
-
-    public <P> Page<P> page() {
-        return new Page<>(pageNum, pageSize);
-    }
 
     public PageQuery addSort(String field, String order) {
         if (sorts == null) {

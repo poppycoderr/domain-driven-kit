@@ -1,9 +1,11 @@
-package com.ddk.core.page;
+package com.ddk.mybatis.query;
 
 import java.lang.annotation.*;
 
 /**
- * 查询条件注解
+ * 查询条件注解（MyBatis-Plus 实现）
+ * <p>
+ * 标注在 PageQuery 子类的字段上，用于自动构建 QueryWrapper 查询条件。
  *
  * @author Elijah Du
  * @date 2025/2/10
@@ -14,8 +16,7 @@ import java.lang.annotation.*;
 public @interface Query {
 
     /**
-     * 默认属性，对应数据库字段名
-     * 如果不设置则取字段名作为列名
+     * 对应数据库字段名。如果不设置则取字段名的下划线形式作为列名。
      */
     String value() default "";
 

@@ -1,12 +1,13 @@
 package com.ddk.application.command;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
-
 /**
+ * 用户更新命令
+ *
  * @author Elijah Du
  * @date 2025/2/19
  */

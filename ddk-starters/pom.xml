@@ -11,14 +11,17 @@
     <packaging>pom</packaging>
 
     <artifactId>ddk-starters</artifactId>
+    <name>DDK Starters</name>
 
     <modules>
         <module>ddk-web-starter</module>
-        <module>ddk-archguard-starter</module>
-        <module>ddk-tracer-starter</module>
+        <module>ddk-mybatis-starter</module>
+        <module>ddk-redis-starter</module>
         <module>ddk-cache-starter</module>
         <module>ddk-db-starter</module>
+        <module>ddk-tracer-starter</module>
         <module>ddk-seata-starter</module>
+        <module>ddk-archguard-starter</module>
     </modules>
 
 </project>

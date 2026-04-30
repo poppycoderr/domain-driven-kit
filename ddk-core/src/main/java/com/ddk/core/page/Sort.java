@@ -1,13 +1,14 @@
 package com.ddk.core.page;
 
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.Pattern;
-
 /**
+ * 排序配置
+ *
  * @author Elijah Du
  * @date 2025/2/8
  */
@@ -17,10 +18,10 @@ import javax.validation.constraints.Pattern;
 @AllArgsConstructor
 public class Sort {
 
-    // 排序字段
+    /** 排序字段 */
     private String sortField;
 
-    // 排序方向
+    /** 排序方向 */
     @Pattern(regexp = "^(ASC|DESC)$", message = "排序方向必须为 ASC 或 DESC")
     private String sortOrder;
 
