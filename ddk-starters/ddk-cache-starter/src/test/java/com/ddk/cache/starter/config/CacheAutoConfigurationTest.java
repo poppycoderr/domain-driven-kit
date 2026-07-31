@@ -2,7 +2,6 @@ package com.ddk.cache.starter.config;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration as SpringCacheAutoConfiguration;
 import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cache.CacheManager;
@@ -56,7 +55,7 @@ public class CacheAutoConfigurationTest {
     void whenCaffeineConfigured_thenCaffeineCacheManagerIsPrimary() {
         new ApplicationContextRunner()
                 .withConfiguration(AutoConfigurations.of(
-                        SpringCacheAutoConfiguration.class,
+                        org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration.class,
                         CacheAutoConfiguration.class, // Our custom auto-configuration
                         TestServiceConfiguration.class
                 ))
@@ -66,8 +65,10 @@ public class CacheAutoConfigurationTest {
                         "spring.cache.cache-names=testCache"
                 )
                 .run(context -> {
-                    assertThat(context).hasSingleBean(CacheManager.class);
-                    CacheManager manager = context.getBean(CacheManager.class);
+                    // 本配置会注册多个 CacheManager（caffeineCacheManager / redisCacheManager / cacheManager），
+                    // 因此只能断言 @Primary 的那个，不能用 hasSingleBean。
+                    assertThat(context).hasBean("cacheManager");
+                    CacheManager manager = context.getBean("cacheManager", CacheManager.class);
                     assertThat(manager).isInstanceOf(CaffeineCacheManager.class);
 
                     TestService service = context.getBean(TestService.class);
@@ -83,7 +84,7 @@ public class CacheAutoConfigurationTest {
         new ApplicationContextRunner()
                 .withConfiguration(AutoConfigurations.of(
                         RedisAutoConfiguration.class, // Needed for RedisConnectionFactory
-                        SpringCacheAutoConfiguration.class,
+                        org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration.class,
                         CacheAutoConfiguration.class,
                         TestServiceConfiguration.class
                 ))
@@ -96,8 +97,10 @@ public class CacheAutoConfigurationTest {
                 // This is a common strategy when a real Redis instance is not available for unit tests.
                 .withBean("redisConnectionFactory", RedisConnectionFactory.class, () -> mock(RedisConnectionFactory.class))
                 .run(context -> {
-                    assertThat(context).hasSingleBean(CacheManager.class);
-                    CacheManager manager = context.getBean(CacheManager.class);
+                    // 本配置会注册多个 CacheManager（caffeineCacheManager / redisCacheManager / cacheManager），
+                    // 因此只能断言 @Primary 的那个，不能用 hasSingleBean。
+                    assertThat(context).hasBean("cacheManager");
+                    CacheManager manager = context.getBean("cacheManager", CacheManager.class);
                     assertThat(manager).isInstanceOf(RedisCacheManager.class);
 
                     // Test @Cacheable functionality
@@ -141,7 +144,7 @@ public class CacheAutoConfigurationTest {
         new ApplicationContextRunner()
                 .withConfiguration(AutoConfigurations.of(
                         RedisAutoConfiguration.class,
-                        SpringCacheAutoConfiguration.class,
+                        org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration.class,
                         CacheAutoConfiguration.class,
                         TestServiceConfiguration.class
                 ))
@@ -152,8 +155,10 @@ public class CacheAutoConfigurationTest {
                 )
                 .withBean("redisConnectionFactory", RedisConnectionFactory.class, () -> mock(RedisConnectionFactory.class))
                 .run(context -> {
-                    assertThat(context).hasSingleBean(CacheManager.class);
-                    CacheManager manager = context.getBean(CacheManager.class);
+                    // 本配置会注册多个 CacheManager（caffeineCacheManager / redisCacheManager / cacheManager），
+                    // 因此只能断言 @Primary 的那个，不能用 hasSingleBean。
+                    assertThat(context).hasBean("cacheManager");
+                    CacheManager manager = context.getBean("cacheManager", CacheManager.class);
                     assertThat(manager).isInstanceOf(CompositeCacheManager.class);
 
                     // Test L1 (Caffeine) caching in composite setup
@@ -169,15 +174,17 @@ public class CacheAutoConfigurationTest {
     void whenNoSpecificCacheConfigured_thenConcurrentMapCacheManager() {
         new ApplicationContextRunner()
                 .withConfiguration(AutoConfigurations.of(
-                        SpringCacheAutoConfiguration.class,
+                        org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration.class,
                         CacheAutoConfiguration.class,
                         TestServiceConfiguration.class
                 ))
                 // No spring.cache.caffeine.spec or spring.data.redis.host
                 .withPropertyValues("spring.cache.cache-names=testCache") // still provide cache name for TestService
                 .run(context -> {
-                    assertThat(context).hasSingleBean(CacheManager.class);
-                    CacheManager manager = context.getBean(CacheManager.class);
+                    // 本配置会注册多个 CacheManager（caffeineCacheManager / redisCacheManager / cacheManager），
+                    // 因此只能断言 @Primary 的那个，不能用 hasSingleBean。
+                    assertThat(context).hasBean("cacheManager");
+                    CacheManager manager = context.getBean("cacheManager", CacheManager.class);
                     assertThat(manager).isInstanceOf(ConcurrentMapCacheManager.class); // Fallback
 
                     TestService service = context.getBean(TestService.class);

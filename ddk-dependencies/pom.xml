@@ -3,15 +3,82 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>com.ddk</groupId>
-        <artifactId>domain-driven-kit</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
-    </parent>
 
+    <!--
+        注意：这个 BOM 刻意不继承 domain-driven-kit 父 pom。
+
+        BOM 的用途是被下游项目 <scope>import</scope>，如果它继承了一个带
+        spring-boot-starter-parent 的父 pom，下游 import 时会连带引入父 pom 的
+        pluginManagement 与 dependencies，产生意料之外的约束。
+        独立的 BOM 只声明 dependencyManagement，是标准做法。
+    -->
+    <groupId>com.ddk</groupId>
     <artifactId>ddk-dependencies</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>DDK Dependencies (BOM)</name>
-    <description>Bill of Materials for Domain Driven Kit - centralizes all version management</description>
+    <description>Bill of Materials for Domain Driven Kit - 下游项目 import 后无需再写 DDK 模块的版本号</description>
+
+    <properties>
+        <ddk.version>1.0.0-SNAPSHOT</ddk.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- 核心抽象 -->
+            <dependency>
+                <groupId>com.ddk</groupId>
+                <artifactId>ddk-core</artifactId>
+                <version>${ddk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ddk</groupId>
+                <artifactId>ddk-mybatis</artifactId>
+                <version>${ddk.version}</version>
+            </dependency>
+
+            <!-- Starters -->
+            <dependency>
+                <groupId>com.ddk</groupId>
+                <artifactId>ddk-web-starter</artifactId>
+                <version>${ddk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ddk</groupId>
+                <artifactId>ddk-mybatis-starter</artifactId>
+                <version>${ddk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ddk</groupId>
+                <artifactId>ddk-redis-starter</artifactId>
+                <version>${ddk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ddk</groupId>
+                <artifactId>ddk-cache-starter</artifactId>
+                <version>${ddk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ddk</groupId>
+                <artifactId>ddk-db-starter</artifactId>
+                <version>${ddk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ddk</groupId>
+                <artifactId>ddk-tracer-starter</artifactId>
+                <version>${ddk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ddk</groupId>
+                <artifactId>ddk-seata-starter</artifactId>
+                <version>${ddk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ddk</groupId>
+                <artifactId>ddk-archguard-starter</artifactId>
+                <version>${ddk.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
 </project>

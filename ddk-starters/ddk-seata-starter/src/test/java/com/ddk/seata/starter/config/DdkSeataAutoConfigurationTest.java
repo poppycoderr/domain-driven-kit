@@ -1,94 +1,69 @@
 package com.ddk.seata.starter.config;
 
-import io.seata.rm.datasource.DataSourceProxy;
-import io.seata.spring.annotation.GlobalTransactionScanner;
-import io.seata.spring.boot.autoconfigure.properties.SeataProperties; // For checking Seata's own properties bean
+import org.apache.seata.spring.annotation.GlobalTransactionScanner;
+import org.apache.seata.spring.boot.autoconfigure.SeataAutoConfiguration;
+import org.apache.seata.spring.boot.autoconfigure.SeataCoreAutoConfiguration;
+import org.apache.seata.spring.boot.autoconfigure.SeataDataSourceAutoConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-
-import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class DdkSeataAutoConfigurationTest {
+/**
+ * 本测试只覆盖 DDK 自己的装配条件，不验证 Seata 内部 Bean。三点原因，避免后续维护者重复踩坑：
+ *
+ * <p>1. Seata 捐给 Apache 后包名从 {@code io.seata} 迁到 {@code org.apache.seata}。
+ * seata-all 里仍保留了部分 {@code io.seata} 兼容类，但自动配置注册的是
+ * {@code org.apache.seata} 下的实例，断言必须用后者。
+ *
+ * <p>2. {@link ApplicationContextRunner} 不读取 classpath 上的
+ * {@code AutoConfiguration.imports}，只处理显式传入的自动配置类。
+ *
+ * <p>3. 更关键的是，Seata 的 {@code GlobalTransactionScanner} 依赖由
+ * {@code spring.factories} 注册的 {@code ApplicationContextInitializer} 来初始化全局
+ * Environment 持有者，而 {@code ApplicationContextRunner} 不会执行这些初始化器，
+ * 直接实例化会抛 {@code NullPointerException: ... "environment" is null}。
+ * 因此「Seata 核心 Bean 是否正确注册」必须用 {@code @SpringBootTest} 做集成测试验证，
+ * 数据源代理（{@code DataSourceProxy}）同理，还需要一个可达的 TC 服务。
+ * 这部分留给集成测试补充，不在单元测试里假装能验证。
+ */
+class DdkSeataAutoConfigurationTest {
 
-    private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+    private final ApplicationContextRunner ddkOnly = new ApplicationContextRunner()
+            .withConfiguration(AutoConfigurations.of(DdkSeataAutoConfiguration.class));
+
+    private final ApplicationContextRunner withSeata = new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(
-                    // For tests needing a DataSource, DataSourceAutoConfiguration.class is added dynamically
-                    DdkSeataAutoConfiguration.class
-            ));
+                    SeataCoreAutoConfiguration.class,
+                    SeataAutoConfiguration.class,
+                    SeataDataSourceAutoConfiguration.class,
+                    DdkSeataAutoConfiguration.class));
 
     @Test
-    void whenSeataEnabled_thenCoreSeataBeansAreRegistered() {
-        contextRunner.withPropertyValues(
-                "seata.enabled=true",
-                "seata.application-id=test-app",
-                "seata.tx-service-group=my_test_tx_group",
-                // Minimal Seata server config for client initialization
-                "seata.service.vgroup-mapping.my_test_tx_group=default",
-                "seata.service.grouplist.default=127.0.0.1:8091", // Dummy address, won't connect
-                "seata.registry.type=file", // Use file based registry/config for tests
-                "seata.config.type=file"
-        ).run(context -> {
-            assertThat(context).hasSingleBean(DdkSeataAutoConfiguration.class);
-            // Check for Seata's own auto-configuration properties bean
-            assertThat(context).hasSingleBean(SeataProperties.class);
-            // Check for the GlobalTransactionScanner, a key component
-            assertThat(context).hasSingleBean(GlobalTransactionScanner.class);
-            // Check that Seata's main auto-configuration class was imported and processed
-            assertThat(context).hasSingleBean(io.seata.spring.boot.autoconfigure.SeataAutoConfiguration.class);
-        });
+    void 未配置时默认生效() {
+        ddkOnly.run(context ->
+                assertThat(context).hasSingleBean(DdkSeataAutoConfiguration.class));
     }
 
     @Test
-    void whenSeataEnabledAndDataSourcePresent_thenDataSourceIsProxied() {
-        new ApplicationContextRunner() // Use a fresh runner for different auto-config setup
-            .withConfiguration(AutoConfigurations.of(
-                DataSourceAutoConfiguration.class, // Standard Spring Boot DataSource config
-                DdkSeataAutoConfiguration.class  // Our Seata starter
-            ))
-            .withPropertyValues(
-                "seata.enabled=true",
-                "seata.application-id=test-app-ds",
-                "seata.tx-service-group=my_test_ds_group",
-                "seata.service.vgroup-mapping.my_test_ds_group=default",
-                "seata.service.grouplist.default=127.0.0.1:8091",
-                "seata.registry.type=file",
-                "seata.config.type=file",
-                // Configure a basic H2 data source
-                "spring.datasource.url=jdbc:h2:mem:testseatads;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE",
-                "spring.datasource.username=sa",
-                "spring.datasource.password=",
-                "spring.datasource.driver-class-name=org.h2.Driver"
-                // Seata's default is to auto-proxy.
-                // We can also explicitly set: "seata.data-source-proxy-mode=AT" (or XA)
-            ).run(context -> {
-                assertThat(context).hasSingleBean(DdkSeataAutoConfiguration.class);
-                assertThat(context).hasSingleBean(GlobalTransactionScanner.class);
-                assertThat(context).hasSingleBean(DataSource.class);
-                DataSource dataSourceInContext = context.getBean(DataSource.class);
-                // Verify that the DataSource bean is proxied by Seata
-                assertThat(dataSourceInContext).isInstanceOf(DataSourceProxy.class);
-            });
+    void 显式开启时生效() {
+        ddkOnly.withPropertyValues("seata.enabled=true").run(context ->
+                assertThat(context).hasSingleBean(DdkSeataAutoConfiguration.class));
     }
 
     @Test
-    void whenSeataDisabled_thenNoSeataBeansAreRegistered() {
-        contextRunner.withPropertyValues(
-                "seata.enabled=false"
-                // No other seata properties needed as it should be disabled
-        ).run(context -> {
-            // DdkSeataAutoConfiguration might still be present because its own conditions might pass
-            // but it imports SeataAutoConfiguration which is conditional on seata.enabled=true
-            assertThat(context).hasSingleBean(DdkSeataAutoConfiguration.class);
+    void 显式关闭时退让() {
+        // @ConditionalOnProperty(havingValue = "true") 在 enabled=false 时不匹配
+        ddkOnly.withPropertyValues("seata.enabled=false").run(context ->
+                assertThat(context).doesNotHaveBean(DdkSeataAutoConfiguration.class));
+    }
 
-            // Core Seata beans should NOT be present
+    @Test
+    void 关闭时Seata自身的Bean也不会被装配() {
+        withSeata.withPropertyValues("seata.enabled=false").run(context -> {
+            assertThat(context).doesNotHaveBean(DdkSeataAutoConfiguration.class);
             assertThat(context).doesNotHaveBean(GlobalTransactionScanner.class);
-            assertThat(context).doesNotHaveBean(SeataProperties.class);
-            // Seata's main auto-configuration should not be processed due to its own internal conditions
-            assertThat(context).doesNotHaveBean(io.seata.spring.boot.autoconfigure.SeataAutoConfiguration.class);
         });
     }
 }

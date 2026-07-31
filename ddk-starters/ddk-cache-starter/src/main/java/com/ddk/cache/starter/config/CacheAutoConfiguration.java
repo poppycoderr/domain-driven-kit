@@ -9,6 +9,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.caffeine.CaffeineCacheManager;
@@ -29,6 +31,11 @@ import java.util.stream.Collectors;
 @AutoConfiguration
 @EnableCaching
 @ConditionalOnClass({CacheManager.class, Caffeine.class, RedisConnectionFactory.class})
+// 本配置注册了 CacheManager，会让 Spring Boot 的 CacheAutoConfiguration 退让，
+// 导致它负责注册的 CacheProperties 缺失。这里显式启用，否则上下文无法启动。
+// 注：这只是恢复可用的最小修复，正确做法是改用独立的 ddk.cache 配置前缀，
+// 见 docs/ddk/starters/cache.md 与 docs/ddk/cache-starter-design.md。
+@EnableConfigurationProperties(CacheProperties.class)
 public class CacheAutoConfiguration {
 
     // --- Caffeine CacheManager (L1) ---
@@ -94,9 +101,14 @@ public class CacheAutoConfiguration {
     @Bean
     @Primary
     public CacheManager cacheManager(
-            @Autowired(required = false) @Qualifier("caffeineCacheManager") CacheManager caffeineCacheManager,
-            @Autowired(required = false) @Qualifier("redisCacheManager") CacheManager redisCacheManager,
-            CacheProperties cacheProperties) { // Inject CacheProperties for fallback CacheManager
+            // 参数级 @Autowired(required=false) 在 @Bean 方法上不是可靠的可选注入方式，
+            // 缺 Bean 时会直接抛 UnsatisfiedDependencyException。可选依赖要用 ObjectProvider。
+            @Qualifier("caffeineCacheManager") ObjectProvider<CacheManager> caffeineProvider,
+            @Qualifier("redisCacheManager") ObjectProvider<CacheManager> redisProvider,
+            CacheProperties cacheProperties) {
+
+        CacheManager caffeineCacheManager = caffeineProvider.getIfAvailable();
+        CacheManager redisCacheManager = redisProvider.getIfAvailable();
 
         List<CacheManager> managers = new ArrayList<>();
         if (caffeineCacheManager != null) {

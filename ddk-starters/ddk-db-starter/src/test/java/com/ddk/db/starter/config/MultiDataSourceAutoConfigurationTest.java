@@ -120,12 +120,12 @@ public class MultiDataSourceAutoConfigurationTest {
             assertThat(context).doesNotHaveBean("someDbTransactionManager");
             assertThat(context).doesNotHaveBean("someDbJdbcTemplate");
 
-            // Spring Boot's default DataSourceAutoConfiguration might still kick in if it finds
-            // enough properties for a single data source (e.g. if we set spring.datasource.url).
-            // Here, we are not setting spring.datasource.*, so it shouldn't create one either.
-            // If ddk.datasource.sources[0] was translated to spring.datasource by some other means,
-            // then a DataSource bean might exist. But our custom config shouldn't.
-            assertThat(context).doesNotHaveBean(DataSource.class); // Check no DataSource bean at all
+            // 注意：这里不能断言「完全没有 DataSource」。H2 在测试 classpath 上，
+            // Spring Boot 的 DataSourceAutoConfiguration 会自动创建一个内嵌数据源，
+            // 这与本 starter 是否生效无关。正确的断言是：存在的那个 DataSource
+            // 来自 Spring Boot（Bean 名为 dataSource），而不是本 starter 注册的。
+            assertThat(context).hasBean("dataSource");
+            assertThat(context.getBeanNamesForType(DataSource.class)).containsExactly("dataSource");
         });
     }
 }

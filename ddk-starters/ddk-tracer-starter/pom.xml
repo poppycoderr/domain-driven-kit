@@ -24,6 +24,13 @@
             <artifactId>spring-boot-starter</artifactId>
         </dependency>
 
+        <!-- 链路追踪的自动配置（MicrometerTracingAutoConfiguration、OpenTelemetryAutoConfiguration
+             等）都在 actuator 里，追踪 starter 必须依赖它才能真正生效 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-tracing-bridge-otel</artifactId>

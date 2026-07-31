@@ -1,91 +1,52 @@
 package com.ddk.db.starter.config;
 
 import com.ddk.db.starter.properties.MultiDataSourceProperties;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.beans.factory.config.RuntimeBeanReference;
-import org.springframework.beans.factory.support.BeanDefinitionRegistry;
-import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
-import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.jdbc.DataSourceBuilder;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 
-@AutoConfiguration
+/**
+ * 多数据源自动配置。
+ *
+ * <p>仅当显式配置了 {@code ddk.datasource.primary} 时生效，避免与 Spring Boot 自带的
+ * 单数据源自动配置产生歧义。实际的 Bean 注册工作由 {@link MultiDataSourceRegistrar} 完成。
+ *
+ * <p>配置示例：
+ * <pre>{@code
+ * ddk:
+ *   datasource:
+ *     primary: mainDb
+ *     sources:
+ *       - name: mainDb
+ *         url: jdbc:mysql://localhost:3306/main
+ *         username: root
+ *         password: secret
+ *         driver-class-name: com.mysql.cj.jdbc.Driver
+ *         type: com.zaxxer.hikari.HikariDataSource
+ *       - name: auditDb
+ *         url: jdbc:mysql://localhost:3306/audit
+ *         username: root
+ *         password: secret
+ *         driver-class-name: com.mysql.cj.jdbc.Driver
+ *         type: com.zaxxer.hikari.HikariDataSource
+ * }</pre>
+ *
+ * <p>每个 source 会注册三个 Bean：{@code <name>DataSource}、
+ * {@code <name>TransactionManager}、{@code <name>JdbcTemplate}，
+ * 其中与 {@code primary} 同名的那组被标记为 {@code @Primary}。
+ *
+ * @author Elijah Du
+ */
+@AutoConfiguration(before = DataSourceAutoConfiguration.class)
+@ConditionalOnClass({DataSource.class, JdbcTemplate.class})
+@ConditionalOnProperty(prefix = "ddk.datasource", name = "primary")
 @EnableConfigurationProperties(MultiDataSourceProperties.class)
-// Ensure configuration is active only if sources are defined.
-// Checking for primary is a good proxy, or sources[0].url for more directness.
-@ConditionalOnProperty(prefix = "ddk.datasource", name = "primary", matchIfMissing = false)
-// A more robust check could be:
-// @ConditionalOnProperty(prefix = "ddk.datasource.sources[0]", name = "url", matchIfMissing = false)
-public class MultiDataSourceAutoConfiguration implements BeanDefinitionRegistryPostProcessor {
-
-    private final MultiDataSourceProperties multiDataSourceProperties;
-
-    public MultiDataSourceAutoConfiguration(MultiDataSourceProperties multiDataSourceProperties) {
-        this.multiDataSourceProperties = multiDataSourceProperties;
-    }
-
-    @Override
-    public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
-        if (multiDataSourceProperties.getSources() == null || multiDataSourceProperties.getSources().isEmpty()) {
-            return;
-        }
-
-        for (MultiDataSourceProperties.DataSourceProperty sourceProperty : multiDataSourceProperties.getSources()) {
-            // 1. Register DataSource bean
-            GenericBeanDefinition dsBeanDefinition = new GenericBeanDefinition();
-            dsBeanDefinition.setBeanClass(DataSource.class); // Target type
-            // Use a supplier for DataSourceBuilder to create the instance
-            dsBeanDefinition.setInstanceSupplier(() ->
-                    DataSourceBuilder.create()
-                            .type(sourceProperty.getType())
-                            .url(sourceProperty.getUrl())
-                            .username(sourceProperty.getUsername())
-                            .password(sourceProperty.getPassword())
-                            .driverClassName(sourceProperty.getDriverClassName())
-                            .build()
-            );
-
-            if (sourceProperty.getName().equals(multiDataSourceProperties.getPrimary())) {
-                dsBeanDefinition.setPrimary(true);
-            }
-            String dataSourceBeanName = sourceProperty.getName() + "DataSource";
-            registry.registerBeanDefinition(dataSourceBeanName, dsBeanDefinition);
-
-            // 2. Register PlatformTransactionManager bean
-            GenericBeanDefinition txManagerDefinition = new GenericBeanDefinition();
-            txManagerDefinition.setBeanClass(DataSourceTransactionManager.class);
-            txManagerDefinition.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(dataSourceBeanName));
-
-            if (sourceProperty.getName().equals(multiDataSourceProperties.getPrimary())) {
-                txManagerDefinition.setPrimary(true);
-            }
-            String txManagerBeanName = sourceProperty.getName() + "TransactionManager";
-            registry.registerBeanDefinition(txManagerBeanName, txManagerDefinition);
-
-            // 3. Register JdbcTemplate bean
-            GenericBeanDefinition jdbcTemplateDefinition = new GenericBeanDefinition();
-            jdbcTemplateDefinition.setBeanClass(JdbcTemplate.class);
-            jdbcTemplateDefinition.getConstructorArgumentValues().addGenericArgumentValue(new RuntimeBeanReference(dataSourceBeanName));
-
-            if (sourceProperty.getName().equals(multiDataSourceProperties.getPrimary())) {
-                jdbcTemplateDefinition.setPrimary(true);
-            }
-            String jdbcTemplateBeanName = sourceProperty.getName() + "JdbcTemplate";
-            registry.registerBeanDefinition(jdbcTemplateBeanName, jdbcTemplateDefinition);
-        }
-    }
-
-    @Override
-    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        // No specific post-processing of bean factory needed for this configuration
-    }
+@Import(MultiDataSourceRegistrar.class)
+public class MultiDataSourceAutoConfiguration {
 }
