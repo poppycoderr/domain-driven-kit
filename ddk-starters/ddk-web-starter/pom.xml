@@ -11,7 +11,7 @@
 
     <artifactId>ddk-web-starter</artifactId>
     <name>DDK Web Starter</name>
-    <description>Web starter with global exception handling, Jackson config, CORS, validation, and OpenAPI docs</description>
+    <description>Web integration: global exception handling, Jackson config and CORS</description>
 
     <dependencies>
         <dependency>

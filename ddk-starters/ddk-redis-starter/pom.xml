@@ -11,7 +11,7 @@
 
     <artifactId>ddk-redis-starter</artifactId>
     <name>DDK Redis Starter</name>
-    <description>Redis starter with RedisTemplate utilities, distributed lock, and rate limiter</description>
+    <description>Redis integration: RedisTemplate serialization and utility helpers</description>
 
     <dependencies>
         <dependency>

@@ -13,16 +13,18 @@
     <name>DDK ArchGuard Starter</name>
     <description>Architecture governance with ArchUnit - predefined layered architecture rules</description>
 
-    <properties>
-        <archunit.version>1.3.0</archunit.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>com.ddk</groupId>
             <artifactId>ddk-core</artifactId>
         </dependency>
 
+        <!--
+            compile 作用域是刻意的：CommonArchRules 的公开 API 直接返回 ArchRule，
+            下游要使用这些常量就必须能看到 ArchUnit 类型。
+            前提是下游按文档用 <scope>test</scope> 引入本模块，
+            这样 ArchUnit 只会落在下游的测试类路径上。
+        -->
         <dependency>
             <groupId>com.tngtech.archunit</groupId>
             <artifactId>archunit-junit5-api</artifactId>

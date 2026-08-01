@@ -38,6 +38,10 @@
 
         <!-- AI -->
         <langchain.version>1.0.0-beta1</langchain.version>
+
+        <!-- Build Tooling -->
+        <jacoco.version>0.8.12</jacoco.version>
+        <archunit.version>1.3.0</archunit.version>
     </properties>
 
     <modules>
@@ -215,8 +219,38 @@
                             <artifactId>mapstruct-processor</artifactId>
                             <version>${mapstruct.version}</version>
                         </path>
+                        <!-- 生成 spring-configuration-metadata.json，让 @ConfigurationProperties
+                             的配置项在 IDE 里有补全和文档提示 -->
+                        <path>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-configuration-processor</artifactId>
+                            <version>${spring-boot.version}</version>
+                        </path>
                     </annotationProcessorPaths>
                 </configuration>
+            </plugin>
+
+            <!-- 测试覆盖率报告。当前只生成报告不设门槛，
+                 等 ddk-core / ddk-mybatis 补完测试后再加 check 规则 -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

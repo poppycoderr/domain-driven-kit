@@ -11,7 +11,7 @@
 
     <artifactId>ddk-cache-starter</artifactId>
     <name>DDK Cache Starter</name>
-    <description>Multi-level caching with Caffeine (L1) and Redis (L2)</description>
+    <description>Cache auto-configuration with Caffeine and Redis</description>
 
     <dependencies>
         <dependency>

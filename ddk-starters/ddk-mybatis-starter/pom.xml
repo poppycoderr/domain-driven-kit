@@ -11,7 +11,7 @@
 
     <artifactId>ddk-mybatis-starter</artifactId>
     <name>DDK MyBatis Starter</name>
-    <description>MyBatis-Plus auto-configuration with pagination, auto-fill, ID generation, and data permission</description>
+    <description>MyBatis-Plus auto-configuration: pagination and optimistic lock interceptors</description>
 
     <dependencies>
         <dependency>
