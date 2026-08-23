@@ -18,5 +18,5 @@ public final class CommonArchRules {
             .whereLayer("UI").mayNotBeAccessedByAnyLayer()
             .whereLayer("Application").mayOnlyBeAccessedByLayers("UI")
             .whereLayer("Domain").mayOnlyBeAccessedByLayers("Application", "Infrastructure") // Infrastructure can access Domain for repository implementations
-            .whereLayer("Infrastructure").mayOnlyBeAccessedByLayers("Application", "Domain");
+            .whereLayer("Infrastructure").mayOnlyBeAccessedByLayers("Application");
 }

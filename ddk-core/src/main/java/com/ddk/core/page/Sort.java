@@ -28,7 +28,11 @@ public class Sort {
     public static Sort of(String sortField, String sortOrder) {
         return Sort.builder()
                 .sortField(sortField)
-                .sortOrder(sortOrder)
+                .sortOrder(sortOrder == null ? "ASC" : sortOrder.toUpperCase())
                 .build();
+    }
+
+    public void setSortOrder(String sortOrder) {
+        this.sortOrder = sortOrder == null ? "ASC" : sortOrder.toUpperCase();
     }
 }

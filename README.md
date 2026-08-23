@@ -1,120 +1,160 @@
 <p align="center">
-    <img src="./logo.png" alt="ddk logo" width=400 height=400 />
+    <img src="./logo.png" alt="ddk logo" width="220" />
 </p>
-<p align="center">
-    <em >🧩 — DDD 的模块化、分层架构和领域建模</em>
-</p>
-<p align="center">
-    <em>⚡ — 脚手架能高效加速项目构建，提高开发效率</em>
-</p>
-<p align="center">
-    <em>📦 — 可复用的 DDD 代码库和基础设施</em>
-</p>
-<p align="right"><a href="README_en.md">🇺🇸英文</a></p>
 
-### 🚀 项目简介：
-
-`domain-driven-kit` 🛠️ 是一个基于 Java 的开源脚手架项目，旨在帮助开发者快速构建基于 DDD (领域驱动设计) 思想的分层架构应用，**专注于解决 DDD 概念抽象、难以落地的问题，并提供一套标准、可复用的架构模式，帮助团队统一开发规范。**
-
-### ✨ 主要特性：
-
-*   **🧱 标准 DDD 四层项目结构:** 基于经典的四层架构（用户接口层、应用层、领域层、基础设施层），提供清晰的职责划分和依赖管理。
-*   **🎈 轻量 DDD 三层项目结构:** 保留四层架构中的用户接口层和基础设施层，将应用层和领域层合并成业务逻辑层，三层架构将更适用于简单项目的构建。
-*   **📦 预配置的 Spring Boot Starter:** 方便快速集成常用的组件，包括：数据访问、事务管理、日志、验证等，并提供默认配置方案，简化开发配置。
-*   **💡 最佳实践的 DDD 架构示例:** 提供一个基于用户管理的示例，展示 DDD 的核心概念：实体、值对象、聚合、领域服务、仓储等，帮助开发者快速理解和应用 DDD 思想。
-*   **⚡  快速原型开发:** 可以基于脚手架快速生成 DDD 项目骨架，用于快速原型验证。
-*   **🤝 统一团队规范:** 提供标准架构模式，帮助团队统一开发规范。
-*   **⚙️ 可扩展性:** 可以根据实际业务需求进行自定义扩展。
-
-### 🎯 项目目标：
-
-*   **🌱 降低 DDD 实践门槛：** 让 DDD 初学者也能快速上手，并应用于实际项目。
-*   **🚀 提高开发效率：** 通过预配置和代码示例，减少重复开发，提高开发效率。
-*   **👨‍💻 统一团队规范：** 提供一套标准的 DDD 架构，帮助团队统一开发规范。
-
-### 🤔 解决的痛点：
-
-*   😫 DDD 概念抽象，难以落地？
-*   😵‍💫 分层架构繁琐，需要大量配置？
-*   🧐 找不到合适的 DDD 实践案例？
-
-### 🛠️ 如何使用：
-
-1.  [提供详细的快速入门步骤]
-2.  [提供代码示例]
-3.  [提供 Spring Boot Starter 的配置说明]
-
-### 🏛️ 架构：
-
-* 🧱[DDD 四层架构](./ddk-archetypes/ddk-layer4-archetype/README.md)
+<h1 align="center">Domain Driven Kit</h1>
 
 <p align="center">
-    <img src="./ddk-archetypes/ddk-layer4-archetype/4-layer.png" alt="4-layer" width=350/>
+    一个面向 Java / Spring Boot 的 DDD 脚手架与工程约定工具集。
 </p>
-
-* 🎈[DDD 三层架构](./ddk-archetypes/ddk-layer3-archetype/README.md)
 
 <p align="center">
-    <img src="./ddk-archetypes/ddk-layer3-archetype/3-layer.png" alt="3-layer" width=340/>
+    <a href="README_en.md">English</a> ·
+    <a href="https://poppycoder.netlify.app/#/docs/ddk/">文档站</a> ·
+    <a href="./ROADMAP.md">开发计划</a>
 </p>
 
-### 📚 文档：
+---
 
-*   [详细文档](https://poppycoder.netlify.app)
+## 项目定位
 
-### 🤝 贡献：
+`domain-driven-kit` 不是一个“大而全”的业务框架，而是一个持续演进的 **Java DDD 工程化工具箱**。它把分层架构、通用响应、异常体系、分页、对象映射、仓储抽象、Spring Boot starter 和架构守卫沉淀成可复用代码，帮助团队把 DDD 从概念落到项目结构和代码约束上。
 
-*   欢迎提交 PR 和反馈问题！
+适合这些场景：
 
-### 💬 社区：
+- 新项目想快速建立清晰的 DDD / 分层架构骨架
+- 团队需要统一 Controller、Application、Domain、Infrastructure 的职责边界
+- 希望把异常、响应、分页、仓储、对象映射这类重复代码标准化
+- 希望用 ArchUnit 把架构规则放进测试和 CI，而不是只写在文档里
 
-*   [TODO]
+## 当前状态
 
-### 🗓️ 维护计划：
+这是一个个人维护中的开源项目，目标是持续补齐工程基线、示例和 starter 能力。目前仓库更适合学习、参考和本地试用，暂未发布到 Maven Central。
 
-| 阶段                       | 任务                                                               | 状态 | 完成时间       | 备注 |
-|--------------------------|------------------------------------------------------------------|----|------------|----|
-| 项目初始化 (🐣)               | 创建基础项目结构和 Maven 配置 🏗️️                                          | ✅  | 2025-01-09 |    |
-|                          | 引入代码风格规范和质量检查，架构守护等工具 (如：Archunit，Checkstyle, PMD, SonarLint) 🎨 | ❌  |            |    |
-|                          | 基础依赖和工具库，统一相关依赖版本与结构 (如：Lombok, MapStruct) 📚                    | 🚧 |            |    |
-| 核心模块完善 (✨)               | 通用返回模块: 提供统一的 API 返回格式，包括状态码、消息和数据，方便客户端处理 📦                    | ✅  | 2025-02-08 |    |
-|                          | 异常模块: 定义统一的异常处理机制，包括自定义异常类、全局异常处理器等，提高系统的健壮性 ❗                   | ✅  | 2025-02-08 |    |
-|                          | 分页模块: 提供通用的分页查询功能，支持多种分页方式，简化分页逻辑的开发 📄                          | ✅  | 2025-02-10 |    |
-|                          | 映射模块: 基于 MapStruct 或其他映射框架，实现对象之间的自动转换，减少手动编写映射代码 🗺️            | 🚧 |            |    |
-|                          | 持久层模块: 封装常用的数据库操作，提供统一的数据访问接口，降低数据库访问的复杂度 🗄️                    | ✅  | 2025-02-11 |    |
-| 四层架构开发 (🏢)              | 适配层 (Adapter Layer)：以 User 为基础，实现 Web 增删改查接口 🌐                  | 🚧 |            |    |
-|                          | 应用层 (Application Layer)：实现领域层，基础设施层的编排调用 ⚙️                      | 🚧 |            |    |
-|                          | 领域层 (Domain Layer)：实现领域模型，以及业务规则的最佳实践 🧠                         | 🚧 |            |    |
-|                          | 基础设施层 (Infrastructure Layer)：实现数据访问、缓存、消息传递等 🛠️                 | 🚧 |            |    |
-| 三层架构开发 (🏢)              | 基于四层架构进行简化，合并应用层和领域层为业务逻辑层 🤝                                    | ❌  |            |    |
-| Starter 封装 (📦)          | 封装 Starters，以简化配置和使用，提升开发效率 ⚡                                    | 🚧 |            |    |
-| *ddk-web-starters*       | 简化 Web 的配置，提供常用的配置以及异常处理，通用返回等 🌐                                | 🚧 |            |    |
-| *ddk-archguard-starters* | 简化 ArchUnit 的配置和集成，预定义分层架构约束，轻松实现架构守护和合规检查 🛡️                   | ❌  |            |    |
-| *ddk-db-starters*        | 简化多数据源的配置和管理 🗄️                                                 | ❌  |            |    |
-| *ddk-seata-starters*     | 简化分布式事务 Seata 的配置和使用，提供分布式事务的解决方案 ⚙️                             | ❌  |            |    |
-| *ddk-remote-starters*    | 简化远程服务调用的配置和使用，集成 Feign，RestTemplate 等 📞                        | ❌  |            |    |
-| *ddk-cache-starters*     | 集成 Redis、Caffeine 实现多级缓存方案，提供缓存的简化配置和使用 ⚡                        | ❌  |            |    |
-| *ddk-locker-starters*    | 提供分布式锁的简化配置和使用，支持 Redis、ZooKeeper 等多种实现 🔒                       | ❌  |            |    |
-| *ddk-limiter-starters*   | 提供限流功能的简化配置和使用，支持计数器、令牌桶、漏桶等多种算法 🚦                              | ❌  |            |    |
-| *ddk-mq-starters*        | 简化消息队列的配置和使用，支持 RabbitMQ、Kafka 等多种消息队列 ✉️                        | ❌  |            |    |
-| *ddk-es-starters*        | 简化 Elasticsearch 客户端的配置和使用，提供常用的查询和索引操作 🔍                       | ❌  |            |    |
-| *ddk-monitor-starters*   | 简化监控指标的配置和集成，提供常用的监控面板和告警规则 📊                                   | ❌  |            |    |
-| *ddk-tracer-starters*    | 简化链路追踪的配置和集成，支持主流的链路追踪系统，如 SkyWalking、Jaeger、Zipkin 🔗           | ❌  |            |    |
-| *ddk-schedule-starters*  | 简化分布式任务调度的配置和使用，支持 Cron 表达式、定时任务管理等功能 ⏰                          | ❌  |            |    |
-| *ddk-auth-starters*      | 提供认证和授权的简化配置和使用，支持 OAuth2、JWT 等多种认证方式 🔑                         | ❌  |            |    |
-| *ddk-ai-starters*        | 简化 AI 框架配置，支持 SpringAI，Langchain 等多种模式 🤖                        | ❌  |            |    |
-| *to be continue*         | ...                                                              | ❌  |            |    |
-| 持续更新 (♻️)                | 根据最佳实践，优化代码结构和性能 👓                                              | 🔄 |            |    |
-|                          | 提升测试覆盖率，确保代码质量 ✅                                                 | 🔄 |            |    |
-|                          | 完善项目文档，确保开发者更好地理解项目 📜                                           | 🔄 |            |    |
-|                          | 持续优化项目依赖，保持项目依赖的最新状态 ⬆️                                          | 🔄 |            |    |
-|                          | 持续探索和集成 Spring Boot 生态系统中优秀的、常用的组件 🚀                            | 🔄 |            |    |
+| 模块 | 当前能力 | 状态 |
+|---|---|---|
+| `ddk-core` | `ApiResponse`、异常体系、分页对象、Mapper 抽象、仓储接口 | 可用，持续补测试 |
+| `ddk-mybatis` | MyBatis-Plus 通用仓储、查询条件解析、分页适配 | 可用，已补分页排序传递 |
+| `ddk-web-starter` | Jackson、CORS、全局异常处理 | 可用，已修复全局异常处理未生效问题 |
+| `ddk-archguard-starter` | DDD 分层 ArchUnit 规则 | 可用，已收紧 Domain -> Infrastructure 依赖 |
+| `ddk-db-starter` | 多数据源动态注册 | 可试用 |
+| `ddk-cache-starter` | 缓存 starter 草案 | 待重写 |
+| `ddk-archetypes` | 三层 / 四层示例骨架 | 待改造成真正 Maven archetype |
+| `ddk-examples` | 示例工程入口 | 待补完整可运行示例 |
 
-**状态说明：**
+## 最近更新
 
-*   ✅：完成
-*   🚧：开发中
-*   ❌：未开始
-*   🔄: 持续进行
+- 修复 `BaseExceptionHandler` 缺少 `@RestControllerAdvice` 导致全局异常处理不生效的问题
+- 为 `PageQuery.pageSize` 增加默认最大值，避免外部传入超大分页参数
+- 修复 `PageQuery.addSort()` 添加的排序未传递到 MyBatis-Plus 查询的问题
+- 收紧 `CommonArchRules`，避免领域层依赖基础设施层
+- 重写 README 与文档计划，明确当前状态、已知限制和下一步路线
 
-`domain-driven-kit` 致力于降低 DDD 的学习和实践门槛，让开发者能够更专注于业务逻辑的实现，并提升开发效率。🚀
+## 模块结构
+
+```text
+domain-driven-kit
+├── ddk-dependencies      依赖管理模块，计划补成真实 BOM
+├── ddk-core              核心抽象：异常、响应、分页、映射、仓储接口
+├── ddk-mybatis           MyBatis-Plus 仓储实现与查询适配
+├── ddk-starters          Spring Boot starter 集合
+│   ├── ddk-web-starter
+│   ├── ddk-mybatis-starter
+│   ├── ddk-redis-starter
+│   ├── ddk-cache-starter
+│   ├── ddk-db-starter
+│   ├── ddk-tracer-starter
+│   ├── ddk-seata-starter
+│   └── ddk-archguard-starter
+├── ddk-archetypes        三层 / 四层项目骨架
+└── ddk-examples          示例工程
+```
+
+## 快速开始
+
+环境要求：
+
+- JDK 21
+- Maven 3.9+
+- Spring Boot 3.4.x
+
+本地构建：
+
+```bash
+git clone https://github.com/poppycoderr/domain-driven-kit.git
+cd domain-driven-kit
+mvn -B -ntp verify
+mvn -B install
+```
+
+在业务项目中引入：
+
+```xml
+<properties>
+    <ddk.version>1.0.0-SNAPSHOT</ddk.version>
+</properties>
+
+<dependencies>
+    <dependency>
+        <groupId>com.ddk</groupId>
+        <artifactId>ddk-core</artifactId>
+        <version>${ddk.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>com.ddk</groupId>
+        <artifactId>ddk-mybatis</artifactId>
+        <version>${ddk.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>com.ddk</groupId>
+        <artifactId>ddk-web-starter</artifactId>
+        <version>${ddk.version}</version>
+    </dependency>
+</dependencies>
+```
+
+更多完整示例见：[快速开始](https://poppycoder.netlify.app/#/docs/ddk/quickstart)。
+
+## 推荐分层
+
+```text
+adapter          -> application -> domain
+infrastructure  --------------------^
+```
+
+核心约束：
+
+- `adapter` 只做协议适配，不写业务规则
+- `application` 负责编排用例、事务和领域对象调用
+- `domain` 保存业务规则，不依赖 Spring、MyBatis、Jackson 等框架
+- `infrastructure` 实现领域层定义的仓储和外部依赖接口
+
+可以通过 `ddk-archguard-starter` 把这些约束放进 ArchUnit 测试。
+
+## 开发计划
+
+短期优先级：
+
+1. 补齐 `ddk-core` 和 `ddk-mybatis` 的单元测试
+2. 把 `ddk-dependencies` 补成真实 BOM
+3. 实现 `Entity` / `ValueObject` / `AggregateRoot` / `DomainEvent` 等领域模型基类
+4. 规范化 starter 配置前缀、配置元数据和装配测试
+5. 补一个完整可运行的 `ddk-examples` 示例
+
+完整路线图见 [ROADMAP.md](./ROADMAP.md)。
+
+## 文档
+
+- [DDK 文档首页](https://poppycoder.netlify.app/#/docs/ddk/)
+- [快速开始](https://poppycoder.netlify.app/#/docs/ddk/quickstart)
+- [分层约定与架构守卫](https://poppycoder.netlify.app/#/docs/ddk/conventions)
+- [开发与重构计划](https://poppycoder.netlify.app/#/docs/ddk/contributing)
+
+## 贡献
+
+欢迎提交 issue 或 PR。当前项目仍在持续完善中，优先接受这几类贡献：
+
+- 修复 starter 装配和配置问题
+- 补测试和最小可运行示例
+- 改进 DDD 分层示例和文档
+- 对已有设计提出更清晰的工程取舍

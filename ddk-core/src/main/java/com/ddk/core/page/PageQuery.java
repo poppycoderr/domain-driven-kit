@@ -15,6 +15,8 @@ import java.util.List;
 @Data
 public class PageQuery {
 
+    public static final Long DEFAULT_MAX_PAGE_SIZE = 200L;
+
     @Min(value = 1, message = "页码不能小于1")
     private Long pageNum = 1L;
 
@@ -29,5 +31,13 @@ public class PageQuery {
         }
         sorts.add(Sort.of(field, order));
         return this;
+    }
+
+    public void setPageSize(Long pageSize) {
+        if (pageSize == null) {
+            this.pageSize = 10L;
+            return;
+        }
+        this.pageSize = Math.min(Math.max(pageSize, 1L), DEFAULT_MAX_PAGE_SIZE);
     }
 }

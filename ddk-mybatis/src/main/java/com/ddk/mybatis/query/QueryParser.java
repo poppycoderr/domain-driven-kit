@@ -4,9 +4,10 @@ import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.ddk.core.page.Sort;
-import org.springframework.core.GenericTypeResolver;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.List;
 
 /**
@@ -31,13 +32,14 @@ public class QueryParser {
 
         Field[] fields = ReflectUtil.getFields(query.getClass());
         for (Field field : fields) {
+            Object fieldValue = ReflectUtil.getFieldValue(query, field);
+            parseSort(wrapper, field, fieldValue);
+
             Query annotation = field.getAnnotation(Query.class);
             if (annotation == null) {
                 continue;
             }
-            Object fieldValue = ReflectUtil.getFieldValue(query, field);
             parseOperator(wrapper, annotation, field, fieldValue);
-            parseSort(wrapper, field, fieldValue);
         }
         return wrapper;
     }
@@ -49,13 +51,24 @@ public class QueryParser {
 
     @SuppressWarnings("unchecked")
     private static <T> void parseSort(QueryWrapper<T> wrapper, Field field, Object fieldValue) {
-        Class<?> argType = GenericTypeResolver.resolveTypeArgument(field.getType(), List.class);
-        if (Sort.class.equals(argType) && fieldValue != null) {
+        if (isSortList(field) && fieldValue != null) {
             for (Sort sort : (List<Sort>) fieldValue) {
                 String column = StrUtil.toUnderlineCase(sort.getSortField());
                 wrapper.orderBy(StrUtil.isNotEmpty(column), "ASC".equals(sort.getSortOrder()), column);
             }
         }
+    }
+
+    private static boolean isSortList(Field field) {
+        if (!List.class.isAssignableFrom(field.getType())) {
+            return false;
+        }
+        Type genericType = field.getGenericType();
+        if (!(genericType instanceof ParameterizedType parameterizedType)) {
+            return false;
+        }
+        Type[] actualTypes = parameterizedType.getActualTypeArguments();
+        return actualTypes.length == 1 && Sort.class.equals(actualTypes[0]);
     }
 
     private static String resolveColumn(Field field, Query annotation) {

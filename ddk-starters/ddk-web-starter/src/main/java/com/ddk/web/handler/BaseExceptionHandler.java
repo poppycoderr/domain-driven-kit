@@ -11,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.stream.Collectors;
 
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
  * @date 2025/2/13
  */
 @Slf4j
+@RestControllerAdvice
 public class BaseExceptionHandler {
 
     @ResponseBody
