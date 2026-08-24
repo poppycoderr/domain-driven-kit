@@ -1,0 +1,67 @@
+<svg width="1200" height="660" viewBox="0 0 1200 660" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">DDK module map</title>
+  <desc id="desc">DDK modules and their dependency directions from applications through starters and persistence support to core abstractions.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="660" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F8FAFC"/>
+      <stop offset="1" stop-color="#EEF2FF"/>
+    </linearGradient>
+    <style>
+      .title{font:800 36px Inter,Segoe UI,Arial,sans-serif;fill:#0F172A}
+      .sub{font:500 17px Inter,Segoe UI,Arial,sans-serif;fill:#475569}
+      .head{font:800 21px Inter,Segoe UI,Arial,sans-serif;fill:#0F172A}
+      .text{font:500 15px Inter,Segoe UI,Arial,sans-serif;fill:#475569}
+      .mono{font:700 14px SFMono-Regular,Consolas,monospace;fill:#1E40AF}
+      .box{fill:#FFFFFF;stroke:#CBD5E1;stroke-width:1.5}
+      .core{fill:#EFF6FF;stroke:#2563EB;stroke-width:2}
+      .starter{fill:#F0FDFA;stroke:#0F766E;stroke-width:1.5}
+      .planned{fill:#FEF3C7;stroke:#D97706;stroke-width:1.5}
+      .arrow{stroke:#64748B;stroke-width:2.4;marker-end:url(#arrow)}
+      .soft{stroke:#94A3B8;stroke-width:1.7;stroke-dasharray:7 7;marker-end:url(#arrow)}
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748B"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="660" rx="32" fill="url(#bg)"/>
+  <text x="64" y="70" class="title">Module Map</text>
+  <text x="64" y="103" class="sub">Keep framework concerns outside the domain while still giving Spring projects a fast starting point.</text>
+
+  <rect x="70" y="160" width="240" height="110" rx="18" class="box"/>
+  <text x="190" y="202" text-anchor="middle" class="head">Business App</text>
+  <text x="190" y="232" text-anchor="middle" class="text">Your codebase</text>
+  <text x="190" y="256" text-anchor="middle" class="mono">adapter / application / domain</text>
+
+  <rect x="420" y="145" width="320" height="140" rx="22" class="core"/>
+  <text x="580" y="192" text-anchor="middle" class="head">ddk-core</text>
+  <text x="580" y="224" text-anchor="middle" class="text">Pure contracts and helpers</text>
+  <text x="580" y="250" text-anchor="middle" class="mono">ApiResponse · PageQuery · Mapper</text>
+
+  <rect x="870" y="150" width="260" height="120" rx="18" class="starter"/>
+  <text x="1000" y="194" text-anchor="middle" class="head">ddk-starters</text>
+  <text x="1000" y="224" text-anchor="middle" class="text">Spring Boot integration</text>
+  <text x="1000" y="248" text-anchor="middle" class="mono">web · db · redis · cache</text>
+
+  <rect x="420" y="380" width="320" height="120" rx="20" class="box"/>
+  <text x="580" y="424" text-anchor="middle" class="head">ddk-mybatis</text>
+  <text x="580" y="454" text-anchor="middle" class="text">Persistence implementation</text>
+  <text x="580" y="478" text-anchor="middle" class="mono">GenericRepositoryImpl · QueryParser</text>
+
+  <rect x="70" y="400" width="240" height="100" rx="18" class="planned"/>
+  <text x="190" y="440" text-anchor="middle" class="head">ddk-archetypes</text>
+  <text x="190" y="470" text-anchor="middle" class="text">Project skeletons</text>
+
+  <rect x="870" y="400" width="260" height="100" rx="18" class="planned"/>
+  <text x="1000" y="440" text-anchor="middle" class="head">ddk-examples</text>
+  <text x="1000" y="470" text-anchor="middle" class="text">Runnable reference apps</text>
+
+  <path d="M310 215 L420 215" class="arrow"/>
+  <path d="M740 215 L870 215" class="arrow"/>
+  <path d="M580 285 L580 380" class="arrow"/>
+  <path d="M310 450 L420 450" class="soft"/>
+  <path d="M740 450 L870 450" class="soft"/>
+  <path d="M1000 270 C1000 330 730 325 650 380" class="soft"/>
+
+  <rect x="70" y="560" width="1060" height="52" rx="18" fill="#0F172A"/>
+  <text x="600" y="592" text-anchor="middle" style="font:700 17px Inter,Segoe UI,Arial,sans-serif;fill:#E2E8F0">Rule of thumb: domain depends on contracts, infrastructure depends on domain, starters depend on Spring.</text>
+</svg>

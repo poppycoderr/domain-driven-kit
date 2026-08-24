@@ -2,6 +2,10 @@
 
 This roadmap keeps the repository honest: what already works, what was recently fixed, and what should be improved next.
 
+<p align="center">
+  <img src="./assets/diagrams/ddk-roadmap.svg" alt="DDK roadmap" />
+</p>
+
 ## Done Recently
 
 - Added CI with Maven verify

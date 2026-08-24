@@ -20,6 +20,10 @@
 
 `domain-driven-kit` 不是一个“大而全”的业务框架，而是一个持续演进的 **Java DDD 工程化工具箱**。它把分层架构、通用响应、异常体系、分页、对象映射、仓储抽象、Spring Boot starter 和架构守卫沉淀成可复用代码，帮助团队把 DDD 从概念落到项目结构和代码约束上。
 
+<p align="center">
+    <img src="./assets/diagrams/ddk-system-overview.svg" alt="DDK system overview" />
+</p>
+
 适合这些场景：
 
 - 新项目想快速建立清晰的 DDD / 分层架构骨架
@@ -51,6 +55,10 @@
 - 重写 README 与文档计划，明确当前状态、已知限制和下一步路线
 
 ## 模块结构
+
+<p align="center">
+    <img src="./assets/diagrams/ddk-module-map.svg" alt="DDK module map" />
+</p>
 
 ```text
 domain-driven-kit
@@ -117,6 +125,10 @@ mvn -B install
 
 ## 推荐分层
 
+<p align="center">
+    <img src="./assets/diagrams/ddk-layer-flow.svg" alt="DDK four-layer request flow" />
+</p>
+
 ```text
 adapter          -> application -> domain
 infrastructure  --------------------^
@@ -132,6 +144,10 @@ infrastructure  --------------------^
 可以通过 `ddk-archguard-starter` 把这些约束放进 ArchUnit 测试。
 
 ## 开发计划
+
+<p align="center">
+    <img src="./assets/diagrams/ddk-roadmap.svg" alt="DDK roadmap" />
+</p>
 
 短期优先级：
 

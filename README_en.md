@@ -20,6 +20,10 @@
 
 `domain-driven-kit` is not a heavy business framework. It is an evolving **Java DDD engineering toolkit** that turns layered architecture, response contracts, exception handling, pagination, object mapping, repository abstractions, Spring Boot starters and architecture rules into reusable code.
 
+<p align="center">
+    <img src="./assets/diagrams/ddk-system-overview.svg" alt="DDK system overview" />
+</p>
+
 It is designed for teams that want to:
 
 - Start a Java project with a clear DDD / layered architecture baseline
@@ -51,6 +55,10 @@ This is a personally maintained open-source project. It is useful for learning, 
 - Reworked the README and roadmap to make the current state and future work explicit
 
 ## Module Layout
+
+<p align="center">
+    <img src="./assets/diagrams/ddk-module-map.svg" alt="DDK module map" />
+</p>
 
 ```text
 domain-driven-kit
@@ -117,6 +125,10 @@ See the full guide: [Quick Start](https://poppycoder.netlify.app/#/docs/ddk/quic
 
 ## Recommended Layering
 
+<p align="center">
+    <img src="./assets/diagrams/ddk-layer-flow.svg" alt="DDK four-layer request flow" />
+</p>
+
 ```text
 adapter          -> application -> domain
 infrastructure  --------------------^
@@ -132,6 +144,10 @@ Core constraints:
 `ddk-archguard-starter` provides ArchUnit rules to make these boundaries executable in tests.
 
 ## Roadmap
+
+<p align="center">
+    <img src="./assets/diagrams/ddk-roadmap.svg" alt="DDK roadmap" />
+</p>
 
 Short-term priorities:
 

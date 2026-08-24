@@ -1,0 +1,68 @@
+<svg width="1200" height="620" viewBox="0 0 1200 620" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">DDK roadmap</title>
+  <desc id="desc">Roadmap phases from engineering baseline to domain model, repository safety, starter normalization, examples and release readiness.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="620" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F1F5F9"/>
+    </linearGradient>
+    <style>
+      .title{font:800 36px Inter,Segoe UI,Arial,sans-serif;fill:#0F172A}
+      .sub{font:500 17px Inter,Segoe UI,Arial,sans-serif;fill:#475569}
+      .phase{font:800 20px Inter,Segoe UI,Arial,sans-serif;fill:#0F172A}
+      .text{font:500 14px Inter,Segoe UI,Arial,sans-serif;fill:#475569}
+      .num{font:900 26px Inter,Segoe UI,Arial,sans-serif;fill:#FFFFFF}
+      .card{fill:#FFFFFF;stroke:#CBD5E1;stroke-width:1.5}
+      .line{stroke:#CBD5E1;stroke-width:5;stroke-linecap:round}
+    </style>
+  </defs>
+  <rect width="1200" height="620" rx="32" fill="url(#bg)"/>
+  <text x="64" y="70" class="title">Roadmap</text>
+  <text x="64" y="103" class="sub">The project is intentionally incremental: make the foundation reliable before publishing it widely.</text>
+
+  <path d="M135 300 H1065" class="line"/>
+
+  <g transform="translate(75 185)">
+    <rect width="170" height="210" rx="22" class="card"/>
+    <circle cx="85" cy="55" r="31" fill="#2563EB"/>
+    <text x="85" y="64" text-anchor="middle" class="num">1</text>
+    <text x="85" y="112" text-anchor="middle" class="phase">Baseline</text>
+    <text x="85" y="145" text-anchor="middle" class="text">BOM · style</text>
+    <text x="85" y="169" text-anchor="middle" class="text">metadata · CI</text>
+  </g>
+  <g transform="translate(275 185)">
+    <rect width="170" height="210" rx="22" class="card"/>
+    <circle cx="85" cy="55" r="31" fill="#059669"/>
+    <text x="85" y="64" text-anchor="middle" class="num">2</text>
+    <text x="85" y="112" text-anchor="middle" class="phase">DDD Model</text>
+    <text x="85" y="145" text-anchor="middle" class="text">Entity · VO</text>
+    <text x="85" y="169" text-anchor="middle" class="text">Aggregate · Event</text>
+  </g>
+  <g transform="translate(475 185)">
+    <rect width="170" height="210" rx="22" class="card"/>
+    <circle cx="85" cy="55" r="31" fill="#7C3AED"/>
+    <text x="85" y="64" text-anchor="middle" class="num">3</text>
+    <text x="85" y="112" text-anchor="middle" class="phase">Safety</text>
+    <text x="85" y="145" text-anchor="middle" class="text">Mapper fail-fast</text>
+    <text x="85" y="169" text-anchor="middle" class="text">repository tests</text>
+  </g>
+  <g transform="translate(675 185)">
+    <rect width="170" height="210" rx="22" class="card"/>
+    <circle cx="85" cy="55" r="31" fill="#EA580C"/>
+    <text x="85" y="64" text-anchor="middle" class="num">4</text>
+    <text x="85" y="112" text-anchor="middle" class="phase">Starters</text>
+    <text x="85" y="145" text-anchor="middle" class="text">config prefix</text>
+    <text x="85" y="169" text-anchor="middle" class="text">context tests</text>
+  </g>
+  <g transform="translate(875 185)">
+    <rect width="170" height="210" rx="22" class="card"/>
+    <circle cx="85" cy="55" r="31" fill="#0F766E"/>
+    <text x="85" y="64" text-anchor="middle" class="num">5</text>
+    <text x="85" y="112" text-anchor="middle" class="phase">Examples</text>
+    <text x="85" y="145" text-anchor="middle" class="text">archetypes</text>
+    <text x="85" y="169" text-anchor="middle" class="text">runnable apps</text>
+  </g>
+
+  <rect x="245" y="465" width="710" height="70" rx="20" fill="#0F172A"/>
+  <text x="600" y="507" text-anchor="middle" style="font:700 18px Inter,Segoe UI,Arial,sans-serif;fill:#F8FAFC">Release readiness comes after contracts, tests and examples are boringly reliable.</text>
+</svg>
