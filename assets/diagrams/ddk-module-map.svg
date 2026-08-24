@@ -25,12 +25,13 @@
   </defs>
   <rect width="1200" height="660" rx="32" fill="url(#bg)"/>
   <text x="64" y="70" class="title">Module Map</text>
-  <text x="64" y="103" class="sub">Keep framework concerns outside the domain while still giving Spring projects a fast starting point.</text>
+  <text x="64" y="103" class="sub">Keep frameworks out of the domain; give Spring projects a fast start.</text>
 
-  <rect x="70" y="160" width="240" height="110" rx="18" class="box"/>
+  <rect x="70" y="150" width="240" height="140" rx="18" class="box"/>
   <text x="190" y="202" text-anchor="middle" class="head">Business App</text>
   <text x="190" y="232" text-anchor="middle" class="text">Your codebase</text>
-  <text x="190" y="256" text-anchor="middle" class="mono">adapter / application / domain</text>
+  <text x="190" y="252" text-anchor="middle" class="mono">adapter / application</text>
+  <text x="190" y="274" text-anchor="middle" class="mono">domain</text>
 
   <rect x="420" y="145" width="320" height="140" rx="22" class="core"/>
   <text x="580" y="192" text-anchor="middle" class="head">ddk-core</text>
@@ -47,11 +48,11 @@
   <text x="580" y="454" text-anchor="middle" class="text">Persistence implementation</text>
   <text x="580" y="478" text-anchor="middle" class="mono">GenericRepositoryImpl · QueryParser</text>
 
-  <rect x="70" y="400" width="240" height="100" rx="18" class="planned"/>
+  <rect x="70" y="400" width="240" height="104" rx="18" class="planned"/>
   <text x="190" y="440" text-anchor="middle" class="head">ddk-archetypes</text>
   <text x="190" y="470" text-anchor="middle" class="text">Project skeletons</text>
 
-  <rect x="870" y="400" width="260" height="100" rx="18" class="planned"/>
+  <rect x="870" y="400" width="260" height="104" rx="18" class="planned"/>
   <text x="1000" y="440" text-anchor="middle" class="head">ddk-examples</text>
   <text x="1000" y="470" text-anchor="middle" class="text">Runnable reference apps</text>
 
@@ -62,6 +63,7 @@
   <path d="M740 450 L870 450" class="soft"/>
   <path d="M1000 270 C1000 330 730 325 650 380" class="soft"/>
 
-  <rect x="70" y="560" width="1060" height="52" rx="18" fill="#0F172A"/>
-  <text x="600" y="592" text-anchor="middle" style="font:700 17px Inter,Segoe UI,Arial,sans-serif;fill:#E2E8F0">Rule of thumb: domain depends on contracts, infrastructure depends on domain, starters depend on Spring.</text>
+  <rect x="70" y="548" width="1060" height="76" rx="18" fill="#0F172A"/>
+  <text x="600" y="582" text-anchor="middle" style="font:700 16px Inter,Segoe UI,Arial,sans-serif;fill:#E2E8F0">Rule of thumb: domain depends on contracts; infrastructure implements domain ports.</text>
+  <text x="600" y="607" text-anchor="middle" style="font:700 16px Inter,Segoe UI,Arial,sans-serif;fill:#E2E8F0">Starters are the only Spring-facing modules.</text>
 </svg>

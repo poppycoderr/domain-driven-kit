@@ -10,7 +10,7 @@
 
 <p align="center">
     <a href="README.md">中文</a> ·
-    <a href="https://poppycoder.netlify.app/#/docs/ddk/">Documentation</a> ·
+    <a href="https://poppycoder.netlify.app/#/docs/ddk/index.md">Documentation</a> ·
     <a href="./ROADMAP.md">Roadmap</a>
 </p>
 
@@ -121,7 +121,7 @@ Use in another project:
 </dependencies>
 ```
 
-See the full guide: [Quick Start](https://poppycoder.netlify.app/#/docs/ddk/quickstart).
+See the full guide: [Quick Start](https://poppycoder.netlify.app/#/docs/ddk/quickstart.md).
 
 ## Recommended Layering
 
@@ -161,10 +161,10 @@ See [ROADMAP.md](./ROADMAP.md) for the full plan.
 
 ## Documentation
 
-- [DDK documentation](https://poppycoder.netlify.app/#/docs/ddk/)
-- [Quick Start](https://poppycoder.netlify.app/#/docs/ddk/quickstart)
-- [Layering and Architecture Guard](https://poppycoder.netlify.app/#/docs/ddk/conventions)
-- [Development and Refactoring Plan](https://poppycoder.netlify.app/#/docs/ddk/contributing)
+- [DDK documentation](https://poppycoder.netlify.app/#/docs/ddk/index.md)
+- [Quick Start](https://poppycoder.netlify.app/#/docs/ddk/quickstart.md)
+- [Layering and Architecture Guard](https://poppycoder.netlify.app/#/docs/ddk/conventions.md)
+- [Development and Refactoring Plan](https://poppycoder.netlify.app/#/docs/ddk/contributing.md)
 
 ## Contributing
 

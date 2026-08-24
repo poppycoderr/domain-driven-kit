@@ -10,7 +10,7 @@
 
 <p align="center">
     <a href="README_en.md">English</a> ·
-    <a href="https://poppycoder.netlify.app/#/docs/ddk/">文档站</a> ·
+    <a href="https://poppycoder.netlify.app/#/docs/ddk/index.md">文档站</a> ·
     <a href="./ROADMAP.md">开发计划</a>
 </p>
 
@@ -121,7 +121,7 @@ mvn -B install
 </dependencies>
 ```
 
-更多完整示例见：[快速开始](https://poppycoder.netlify.app/#/docs/ddk/quickstart)。
+更多完整示例见：[快速开始](https://poppycoder.netlify.app/#/docs/ddk/quickstart.md)。
 
 ## 推荐分层
 
@@ -161,10 +161,10 @@ infrastructure  --------------------^
 
 ## 文档
 
-- [DDK 文档首页](https://poppycoder.netlify.app/#/docs/ddk/)
-- [快速开始](https://poppycoder.netlify.app/#/docs/ddk/quickstart)
-- [分层约定与架构守卫](https://poppycoder.netlify.app/#/docs/ddk/conventions)
-- [开发与重构计划](https://poppycoder.netlify.app/#/docs/ddk/contributing)
+- [DDK 文档首页](https://poppycoder.netlify.app/#/docs/ddk/index.md)
+- [快速开始](https://poppycoder.netlify.app/#/docs/ddk/quickstart.md)
+- [分层约定与架构守卫](https://poppycoder.netlify.app/#/docs/ddk/conventions.md)
+- [开发与重构计划](https://poppycoder.netlify.app/#/docs/ddk/contributing.md)
 
 ## 贡献
 

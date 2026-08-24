@@ -18,7 +18,7 @@
   </defs>
   <rect width="1200" height="620" rx="32" fill="url(#bg)"/>
   <text x="64" y="70" class="title">Roadmap</text>
-  <text x="64" y="103" class="sub">The project is intentionally incremental: make the foundation reliable before publishing it widely.</text>
+  <text x="64" y="103" class="sub">Build a reliable foundation before publishing widely.</text>
 
   <path d="M135 300 H1065" class="line"/>
 
@@ -64,5 +64,5 @@
   </g>
 
   <rect x="245" y="465" width="710" height="70" rx="20" fill="#0F172A"/>
-  <text x="600" y="507" text-anchor="middle" style="font:700 18px Inter,Segoe UI,Arial,sans-serif;fill:#F8FAFC">Release readiness comes after contracts, tests and examples are boringly reliable.</text>
+  <text x="600" y="507" text-anchor="middle" style="font:700 18px Inter,Segoe UI,Arial,sans-serif;fill:#F8FAFC">Release after contracts, tests and examples are reliable.</text>
 </svg>

@@ -1,6 +1,6 @@
 <svg width="1200" height="620" viewBox="0 0 1200 620" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
   <title id="title">DDK system overview</title>
-  <desc id="desc">Domain Driven Kit connects application code, core abstractions, MyBatis support, Spring Boot starters, architecture guard rules, project archetypes and documentation.</desc>
+  <desc id="desc">Domain Driven Kit connects application code, core abstractions, starters, persistence support, architecture rules and examples.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="620" gradientUnits="userSpaceOnUse">
       <stop stop-color="#0F172A"/>
@@ -31,7 +31,7 @@
   <circle cx="140" cy="545" r="190" fill="#14B8A6" opacity="0.12"/>
 
   <text x="70" y="72" class="title">Domain Driven Kit</text>
-  <text x="70" y="105" class="subtitle">Practical Java DDD scaffolding, backend contracts and executable architecture rules.</text>
+  <text x="70" y="105" class="subtitle">Java DDD scaffolding, backend contracts and executable architecture rules.</text>
 
   <rect x="430" y="225" width="340" height="170" rx="26" class="core"/>
   <text x="600" y="285" text-anchor="middle" class="label">DDK Core</text>
@@ -67,5 +67,5 @@
   <rect x="420" y="132" width="360" height="48" rx="24" fill="url(#blue)" opacity="0.92"/>
   <text x="600" y="163" text-anchor="middle" class="small" fill="#FFFFFF">Visible · Reusable · Testable DDD conventions</text>
 
-  <text x="70" y="560" class="tiny">Current emphasis: stable core contracts, starter normalization, domain primitives, runnable examples.</text>
+  <text x="70" y="560" class="tiny">Current focus: core contracts · starter normalization · domain primitives · runnable examples</text>
 </svg>
