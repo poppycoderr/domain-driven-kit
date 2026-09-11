@@ -22,6 +22,7 @@
         <module>ddk-tracer-starter</module>
         <module>ddk-seata-starter</module>
         <module>ddk-archguard-starter</module>
+        <module>ddk-event-starter</module>
     </modules>
 
 </project>

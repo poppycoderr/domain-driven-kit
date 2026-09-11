@@ -36,4 +36,18 @@ public interface DomainEventPublisher {
         }
         events.forEach(this::publish);
     }
+
+    /**
+     * 排空并发布一个聚合上累积的领域事件。
+     * <p>
+     * 这是仓储实现最常写的三行样板，收在这里避免每个仓储各写一遍：
+     * 判空、{@code drainDomainEvents()}（复制 + 清空一步完成）、逐个发布。
+     *
+     * @param aggregate 可以为 null，此时什么都不做
+     */
+    default void publishEventsOf(AggregateRoot<?> aggregate) {
+        if (aggregate != null && aggregate.hasDomainEvents()) {
+            publishAll(aggregate.drainDomainEvents());
+        }
+    }
 }

@@ -115,6 +115,11 @@
                 <artifactId>ddk-archguard-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.ddk</groupId>
+                <artifactId>ddk-event-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <!-- LangChain4j BOM -->
             <dependency>
