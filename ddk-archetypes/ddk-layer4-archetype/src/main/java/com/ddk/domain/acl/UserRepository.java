@@ -3,6 +3,8 @@ package com.ddk.domain.acl;
 import com.ddk.core.repository.GenericRepository;
 import com.ddk.domain.model.entity.User;
 
+import java.util.Optional;
+
 /**
  * 用户仓储契约。
  * <p>
@@ -17,17 +19,10 @@ import com.ddk.domain.model.entity.User;
 public interface UserRepository extends GenericRepository<User, Long> {
 
     /**
-     * 保存新用户，回填数据库生成的标识，并发布聚合上累积的领域事件。
+     * 按用户名查找。
      * <p>
-     * 为什么不直接用继承来的 {@code create(User)}：它返回 {@code boolean}，
-     * 拿不回自增主键，聚合也就无法完成 {@code onPersisted} 这一步。
-     *
-     * @return 已带上标识的同一个聚合实例
+     * 通用仓储只提供按标识和分页查询；这种「领域里有名字的查询」应当显式声明在
+     * 领域层的契约上，而不是让应用层自己拼条件。
      */
-    User save(User user);
-
-    /**
-     * 更新已有用户，并发布聚合上累积的领域事件。
-     */
-    User saveChanges(User user);
+    Optional<User> findByUsername(String username);
 }

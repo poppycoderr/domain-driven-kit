@@ -20,7 +20,11 @@ import lombok.Data;
 @TableName("user")
 public class UserPO {
 
-    @TableId(type = IdType.AUTO)
+    /**
+     * 标识由领域层的 UserIdGenerator 预先生成，所以是 INPUT 而不是 AUTO——
+     * 数据库不再参与身份的分配。
+     */
+    @TableId(type = IdType.INPUT)
     private Long id;
 
     private String username;

@@ -39,22 +39,23 @@ public class User extends AggregateRoot<UserId> {
     /**
      * 注册一个新用户。
      * <p>
-     * 此时还没有 ID（数据库自增），{@code isNew()} 为 true，由仓储保存后调用
-     * {@link #onPersisted} 回填。注册事件也在那时才登记——事件要带上用户 ID，
-     * 而这里 ID 还不存在。这是自增主键方案必须付出的代价，
-     * 想在工厂方法里就发事件，得改用 UUID / 雪花提前生成标识。
+     * 标识由调用方通过 {@code UserIdGenerator} 预先生成传入，而不是等数据库自增。
+     * 好处是聚合从诞生起就有身份，注册事件在这里就能带上用户 ID——
+     * 换成自增主键的话，事件只能推迟到写入成功之后才登记。
      *
      * @param encryptedPassword 已加密的密码，加密由领域服务完成，聚合根不碰明文
      */
-    public static User register(String username, String encryptedPassword, Gender gender,
+    public static User register(UserId id, String username, String encryptedPassword, Gender gender,
                                 PhoneNumber phoneNumber, Email email) {
         User user = new User();
+        user.id = Objects.requireNonNull(id, "注册用户必须有标识");
         user.username = requireUsername(username);
         user.encryptedPassword = Objects.requireNonNull(encryptedPassword, "密码不能为空");
         user.gender = Objects.requireNonNull(gender, "性别不能为空");
         user.phoneNumber = Objects.requireNonNull(phoneNumber, "手机号不能为空");
         user.email = email;
         user.enabled = true;
+        user.registerEvent(new UserRegisteredEvent(id, username));
         return user;
     }
 
@@ -76,14 +77,6 @@ public class User extends AggregateRoot<UserId> {
         user.enabled = enabled;
         user.assignVersion(version);
         return user;
-    }
-
-    /**
-     * 由仓储在插入成功后回填数据库自增主键，并在此时登记注册事件。
-     */
-    public void onPersisted(UserId id) {
-        assignId(id);
-        registerEvent(new UserRegisteredEvent(id, username));
     }
 
     public void rename(String newUsername) {
