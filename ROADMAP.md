@@ -62,12 +62,17 @@ Goal: fail early when mapping is unsafe.
 
 Goal: make every starter predictable in production projects.
 
-- [ ] Give every starter a dedicated `ddk.*` configuration prefix
-- [ ] Add `additional-spring-configuration-metadata.json`
-- [ ] Replace hard-coded CORS defaults with configurable properties
-- [ ] Remove `logback-spring.xml` from `ddk-web-starter` or move it to examples
+- [x] Give Web and MyBatis a dedicated `ddk.*` configuration prefix
+- [x] Ship configuration metadata (generated from `@ConfigurationProperties` javadoc by the annotation processor, so no hand-written file is needed)
+- [x] Replace hard-coded CORS defaults with configurable properties, disabled by default
+- [x] Remove `logback-spring.xml` from `ddk-web-starter`
+- [x] Contribute Jackson defaults through a builder customizer instead of replacing the `ObjectMapper` bean
+- [x] Stop the catch-all exception handler from turning 405/415 responses into 500s
+- [x] Add tests for the Web and MyBatis starters
+- [ ] Give Redis, Cache, DB, Tracer and Seata a dedicated `ddk.*` prefix
+- [ ] Restrict polymorphic deserialization in `ddk-redis-starter`
 - [ ] Rewrite `ddk-cache-starter` around a real multi-level cache design
-- [ ] Add `ApplicationContextRunner` tests for Web, Redis and MyBatis starters (Cache, DB, Tracer, Seata and ArchGuard already have them)
+- [ ] Add `ApplicationContextRunner` tests for the Redis starter
 
 ## Phase 5 - Archetypes and Examples
 
