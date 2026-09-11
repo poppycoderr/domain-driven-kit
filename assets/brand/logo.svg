@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" fill="none" role="img" aria-label="Domain Driven Kit">
+  <title>Domain Driven Kit</title>
+  <defs>
+    <linearGradient id="ddkGradient" x1="52" y1="30" x2="206" y2="226" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3B82F6"/><stop offset=".5" stop-color="#6366F1"/><stop offset="1" stop-color="#8B5CF6"/>
+    </linearGradient>
+    <linearGradient id="ddkCore" x1="92" y1="94" x2="160" y2="162" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#60A5FA"/><stop offset="1" stop-color="#A78BFA"/>
+    </linearGradient>
+</defs>
+  <path d="M58 34h52a94 94 0 0 1 0 188H58z" stroke="url(#ddkGradient)" stroke-width="16"
+        stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M126 92l36 36-36 36-36-36z" fill="url(#ddkCore)"/>
+</svg>
