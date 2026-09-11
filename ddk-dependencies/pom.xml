@@ -78,6 +78,11 @@
                 <artifactId>ddk-archguard-starter</artifactId>
                 <version>${ddk.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.ddk</groupId>
+                <artifactId>ddk-event-starter</artifactId>
+                <version>${ddk.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
