@@ -19,25 +19,36 @@ import java.util.List;
  * 通用仓储实现（基于 MyBatis-Plus）
  * <p>
  * 自动处理 Entity ↔ PO 之间的映射转换，子类只需声明泛型参数即可获得完整的 CRUD + 分页能力。
+ * <p>
+ * 必须为 {@code E -> P} 和 {@code P -> E} 两个方向各注册一个
+ * {@code @EnhancedMapper}，否则在首次调用时抛
+ * {@code MissingMapperException}——没有静默兜底。
  *
- * @param <ID> 主键类型
  * @param <E>  领域实体类型
+ * @param <ID> 标识类型
  * @param <P>  持久化对象类型
  * @param <M>  MyBatis Mapper 类型
  * @author Elijah Du
  * @date 2025/2/11
  */
 @SuppressWarnings({"unchecked", "DataFlowIssue"})
-public class GenericRepositoryImpl<ID extends Serializable, E, P, M extends BaseMapper<P>>
+public class GenericRepositoryImpl<E, ID extends Serializable, P, M extends BaseMapper<P>>
         extends ServiceImpl<M, P>
-        implements GenericRepository<ID, E> {
+        implements GenericRepository<E, ID> {
 
     protected final Class<?>[] typeArguments = GenericTypeResolver.resolveTypeArguments(this.getClass(), GenericRepositoryImpl.class);
-    protected final Class<E> eClass = (Class<E>) typeArguments[1];
+    protected final Class<E> eClass = (Class<E>) typeArguments[0];
     protected final Class<P> pClass = (Class<P>) typeArguments[2];
 
     @Autowired
     private MapperProvider mapperProvider;
+
+    /**
+     * 供子类在自定义查询里复用已注册的映射器，不必再注入一次。
+     */
+    protected MapperProvider mapperProvider() {
+        return mapperProvider;
+    }
 
     @Override
     public boolean create(E entity) {

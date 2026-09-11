@@ -1,12 +1,11 @@
 package com.ddk.application.command;
 
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 /**
- * 用户更新命令
+ * 用户更新命令。字段为 null 表示「本次不修改」。
  *
  * @author Elijah Du
  * @date 2025/2/19
@@ -14,7 +13,6 @@ import lombok.Data;
 @Data
 public class UserUpdateCommand {
 
-    @NotNull(message = "username is required")
     @Size(message = "username length must be between 4 and 20", min = 4, max = 20)
     private String username;
 

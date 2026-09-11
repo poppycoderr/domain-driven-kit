@@ -24,6 +24,8 @@ public class ArchGuardAutoConfigurationTest {
     @Test
     void common_arch_rules_should_be_accessible() {
         assertThat(CommonArchRules.LAYERED_ARCHITECTURE_RULE).isNotNull();
+        assertThat(CommonArchRules.DOMAIN_MUST_NOT_DEPEND_ON_FRAMEWORKS).isNotNull();
+        assertThat(CommonArchRules.DOMAIN_MUST_NOT_DEPEND_ON_OUTER_LAYERS).isNotNull();
 
         JavaClasses importedClasses = new ClassFileImporter().importClasses(CommonArchRules.class);
         assertThat(importedClasses).isNotEmpty();

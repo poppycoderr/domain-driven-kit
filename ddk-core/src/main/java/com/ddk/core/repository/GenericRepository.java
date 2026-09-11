@@ -7,13 +7,20 @@ import java.util.List;
 
 /**
  * 通用仓储接口（纯抽象，不依赖任何持久层框架）
+ * <p>
+ * 泛型顺序是 {@code <E, ID>}——实体在前、标识在后，与 Spring Data 的习惯一致。
+ * 早期版本声明为 {@code <ID, E>}，和 javadoc 写的顺序相反，容易把两个参数传反。
+ * <p>
+ * 这里<b>刻意不</b>把 {@code E} 约束成 {@code AggregateRoot}：DDK 的领域模型基类是
+ * 「可以只用一部分」的，把仓储绑死在聚合根上会让还没引入领域模型的项目无法使用它。
+ * 需要在保存后发布领域事件的场景，见 {@code com.ddk.core.domain.DomainEventPublisher}。
  *
  * @param <E>  实体类型
- * @param <ID> 主键类型
+ * @param <ID> 标识类型
  * @author Elijah Du
  * @date 2025/2/11
  */
-public interface GenericRepository<ID, E> {
+public interface GenericRepository<E, ID> {
 
     /**
      * 保存实体

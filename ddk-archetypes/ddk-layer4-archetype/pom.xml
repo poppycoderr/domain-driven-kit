@@ -24,6 +24,23 @@
             <groupId>com.ddk</groupId>
             <artifactId>ddk-mybatis-starter</artifactId>
         </dependency>
+
+        <!--
+            架构守卫以 test 作用域引入：ArchUnit 只落在测试类路径上，
+            不会进生产包。分层规则由 ArchitectureTest 在每次构建时执行。
+        -->
+        <dependency>
+            <groupId>com.ddk</groupId>
+            <artifactId>ddk-archguard-starter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5</artifactId>
+            <version>${archunit.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
 </project>

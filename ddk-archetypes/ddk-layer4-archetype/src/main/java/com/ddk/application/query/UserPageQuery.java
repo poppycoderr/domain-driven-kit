@@ -9,7 +9,10 @@ import lombok.EqualsAndHashCode;
 import java.util.List;
 
 /**
- * 用户分页查询
+ * 用户分页查询。
+ * <p>
+ * {@code @Query} 的 value 不写时取字段名的下划线形式作为列名，
+ * 这里显式写出列名，避免驼峰转换和真实表结构不一致。
  *
  * @author Elijah Du
  * @date 2025/2/19
@@ -18,9 +21,12 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 public class UserPageQuery extends PageQuery {
 
-    @Query(operator = Operator.LIKE)
-    private String userName;
+    @Query(value = "username", operator = Operator.LIKE)
+    private String username;
 
     @Query(value = "gender", operator = Operator.IN)
     private List<Integer> genders;
+
+    @Query(value = "status")
+    private Boolean status;
 }

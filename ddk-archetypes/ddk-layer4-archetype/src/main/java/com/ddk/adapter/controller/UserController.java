@@ -11,10 +11,12 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 /**
- * 用户接口
+ * 用户接口。
+ * <p>
+ * 适配层只做三件事：<b>接收协议、转交应用服务、包装响应</b>。
+ * 这里不应出现任何 if 形式的业务判断，也不应直接碰领域对象——
+ * 它拿到和返回的都是应用层的命令与 DTO。
  *
  * @author Elijah Du
  * @date 2025/2/19
@@ -27,9 +29,8 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/register")
-    public ApiResponse<Void> create(@Valid @RequestBody List<UserCreateCommand> commands) {
-        userService.create(commands);
-        return ApiResponse.ofSuccess();
+    public ApiResponse<UserDTO> register(@Valid @RequestBody UserCreateCommand command) {
+        return ApiResponse.ofSuccess(userService.register(command));
     }
 
     @GetMapping("/{id}")
@@ -43,8 +44,13 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ApiResponse<Void> update(@PathVariable Long id, @Valid @RequestBody UserUpdateCommand command) {
-        userService.update(command);
+    public ApiResponse<UserDTO> update(@PathVariable Long id, @Valid @RequestBody UserUpdateCommand command) {
+        return ApiResponse.ofSuccess(userService.update(id, command));
+    }
+
+    @PatchMapping("/{id}/disable")
+    public ApiResponse<Void> disable(@PathVariable Long id, @RequestParam(required = false) String reason) {
+        userService.disable(id, reason);
         return ApiResponse.ofSuccess();
     }
 
