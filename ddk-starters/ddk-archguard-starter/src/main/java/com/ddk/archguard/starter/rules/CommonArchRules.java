@@ -13,8 +13,12 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
  *
  * <pre>{@code
  * class ArchitectureTest {
- *     private final JavaClasses classes =
- *             new ClassFileImporter().importPackages("com.example.myapp");
+ *     // DO_NOT_INCLUDE_JARS 不能省：否则 classpath 上包名恰好落进
+ *     // ..domain.. 等层匹配的第三方类也会被算进来
+ *     private final JavaClasses classes = new ClassFileImporter()
+ *             .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_JARS)
+ *             .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+ *             .importPackages("com.example.myapp");
  *
  *     @Test
  *     void layered_architecture_is_respected() {

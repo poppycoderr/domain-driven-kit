@@ -181,6 +181,7 @@ Written in a document these are suggestions; written as a test they are constrai
 class ArchitectureTest {
 
     private final JavaClasses classes = new ClassFileImporter()
+            .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_JARS)
             .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
             .importPackages("com.example.myapp");
 
