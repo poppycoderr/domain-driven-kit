@@ -1,8 +1,8 @@
 package com.ddk.core.mapper;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.SmartInitializingSingleton;
 import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Component;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,25 +13,42 @@ import java.util.concurrent.ConcurrentHashMap;
  * 启动时扫描所有带 {@link EnhancedMapper} 的 Bean，按「源类型 -> 目标类型」建立索引，
  * 供仓储等基础设施在运行时查找。
  *
- * <h2>两条设计约束</h2>
+ * <h2>三条设计约束</h2>
  * <ol>
  *     <li><b>key 用全限定类名。</b>早期用 {@code getSimpleName()} 拼接，
  *     {@code com.a.User -> com.a.UserPO} 与 {@code com.b.User -> com.b.UserPO}
  *     会碰撞成同一个 key，后注册的静默覆盖前一个——在多限界上下文的项目里几乎必然发生。</li>
  *     <li><b>查不到就失败，不做兜底。</b>理由见 {@link MissingMapperException}。</li>
+ *     <li><b>扫描推迟到所有单例就绪之后。</b>早期在构造器里直接调用
+ *     {@code getBeansWithAnnotation}，会在自身还在构造时触发全量 Bean 实例化，
+ *     既有循环依赖风险，也可能漏掉此刻还没创建的映射器。
+ *     现在实现 {@link SmartInitializingSingleton}，在单例全部就绪后再收集。</li>
  * </ol>
+ * <p>
+ * 本类<b>不</b>标注 {@code @Component}：它位于库 jar 中，靠使用方的 component scan
+ * 扫到 {@code com.ddk} 包是碰运气——业务应用的启动类通常在自己的包下。
+ * 它由 {@code ddk-mybatis-starter} 的自动配置注册。
  *
  * @author Elijah Du
  * @date 2025/2/11
  */
 @Slf4j
-@Component
-public class MapperProvider {
+public class MapperProvider implements SmartInitializingSingleton {
 
     /** key: 源类型全限定名 + "->" + 目标类型全限定名 */
     private final Map<String, ObjectMapper<?, ?>> mappers = new ConcurrentHashMap<>();
 
+    private final ApplicationContext context;
+
     public MapperProvider(ApplicationContext context) {
+        this.context = context;
+    }
+
+    /**
+     * 所有单例就绪后再扫描映射器。
+     */
+    @Override
+    public void afterSingletonsInstantiated() {
         loadEnhancedMappers(context);
     }
 

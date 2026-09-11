@@ -138,6 +138,7 @@ class MapperProviderTest {
     }
 
     private static MapperProvider providerOf(Class<?> config) {
+        // 扫描发生在 afterSingletonsInstantiated，因此这里拿到的是已经完成注册的实例
         try (AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext(config)) {
             return ctx.getBean(MapperProvider.class);
         }
