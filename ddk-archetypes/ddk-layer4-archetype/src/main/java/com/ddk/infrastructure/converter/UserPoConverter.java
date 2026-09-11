@@ -31,7 +31,7 @@ public class UserPoConverter implements ObjectMapper<User, UserPO> {
             return null;
         }
         UserPO po = new UserPO();
-        po.setId(source.isNew() ? null : source.id().value());
+        po.setId(source.id().value());
         po.setUsername(source.username());
         po.setPassword(source.encryptedPassword());
         po.setGender(source.gender() == null ? null : source.gender().getGender());

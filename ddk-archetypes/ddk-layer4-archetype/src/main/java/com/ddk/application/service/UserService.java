@@ -7,6 +7,7 @@ import com.ddk.application.query.UserPageQuery;
 import com.ddk.application.response.UserDTO;
 import com.ddk.core.exception.BusinessException;
 import com.ddk.core.page.PageResponse;
+import com.ddk.domain.acl.UserIdGenerator;
 import com.ddk.domain.acl.UserRepository;
 import com.ddk.domain.model.entity.User;
 import com.ddk.domain.model.enums.Gender;
@@ -36,19 +37,21 @@ import java.util.Arrays;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserIdGenerator userIdGenerator;
     private final PasswordEncryptionService passwordEncryptionService;
     private final UserAssembler userAssembler;
 
     @Transactional
     public UserDTO register(@Valid UserCreateCommand command) {
         User user = User.register(
+                userIdGenerator.nextId(),
                 command.getUsername(),
                 passwordEncryptionService.encrypt(command.getPassword()),
                 toGender(command.getGender()),
                 new PhoneNumber(command.getPhoneNumber()),
                 Email.ofNullable(command.getEmail()));
 
-        return userAssembler.toDTO(userRepository.save(user));
+        return userAssembler.toDTO(userRepository.create(user));
     }
 
     public UserDTO getById(Long id) {
@@ -68,14 +71,14 @@ public class UserService {
         if (command.getEmail() != null) {
             user.changeEmail(new Email(command.getEmail()));
         }
-        return userAssembler.toDTO(userRepository.saveChanges(user));
+        return userAssembler.toDTO(userRepository.update(user));
     }
 
     @Transactional
     public void disable(Long id, String reason) {
         User user = requireUser(id);
         user.disable(reason);
-        userRepository.saveChanges(user);
+        userRepository.update(user);
     }
 
     @Transactional
@@ -84,11 +87,8 @@ public class UserService {
     }
 
     private User requireUser(Long id) {
-        User user = userRepository.find(id);
-        if (user == null) {
-            throw new BusinessException(UserError.USER_NOT_FOUND, id);
-        }
-        return user;
+        return userRepository.find(id)
+                .orElseThrow(() -> new BusinessException(UserError.USER_NOT_FOUND, id));
     }
 
     private Gender toGender(Integer value) {
