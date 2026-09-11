@@ -1,6 +1,9 @@
-# 🎉 项目名称 (ddk-layer3-archetype)
+# 三层架构骨架 (ddk-layer3-archetype)
 
-一个基于 Spring Boot 的三层架构示例项目。 该项目是基于经典的四层架构进行简化后的结果，更适用于业务复杂度较低的场景。
+一个基于 Spring Boot 的三层架构骨架，是四层架构简化后的结果，适用于业务复杂度较低的场景。
+
+> **当前状态：这个模块目前只有一个 `Application` 类，下面描述的是目标结构而不是已有代码。**
+> 需要可直接参考的完整实现，请看 [四层骨架](../ddk-layer4-archetype/README.md)。
 
 ## 🏛️ 架构设计 (Architecture)
 
@@ -9,12 +12,12 @@
 *   业务逻辑层通过 `ACL` 接口与基础设施层交互。
 *   基础设施层实现业务逻辑层定义的 `ACL` 接口，从而实现依赖倒置。
 
-<img src="3-layer.png" alt="4-layer" width=400/>
+<img src="3-layer.svg" alt="三层架构" width="720"/>
 
 ## 📦 项目结构 (Package Structure)
 
 ```text
-io.github.ddk
+com.ddk
 ├── adapter (适配层/表示层)
 │   ├── common          通用的适配器组件，例如类型转换、通用处理等
 │   ├── web             Web 相关的适配器
@@ -34,7 +37,7 @@ io.github.ddk
 │   │   ├── entity        实体 (无需后缀)
 │   │   ├── valueobject   值对象 (无需后缀)
 │   │   ├── aggregate     聚合根 (xxxAggregate)
-│   │   ├── enum          枚举类型 (根据实际业务命名，需继承 BaseEnum 以获取自动映射能力，如：xxType，xxStatus)
+│   │   ├── enum          枚举类型 (根据实际业务命名，需实现 IEnum 以获取自动映射能力，如：xxType，xxStatus)
 │   └── acl             防腐层接口，定义与基础设施层的交互接口 (通常是涉及到外部调用的接口 xxxGateway，仓储接口 xxxRepository)
 ├── infrastructure (基础设施层)
 │   ├── acl             业务逻辑层声明接口的实现类
@@ -57,11 +60,30 @@ io.github.ddk
 *   **business:** 包含核心业务逻辑、用例编排和事务管理。是原四层架构中应用层与领域层的合并。
 *   **infrastructure:** 提供技术支持，如数据库访问、消息传递、缓存等。
 
-## 三层架构的优点（Benefits of Simplification） ➕
+## 收益与代价
 
-*   **减少了复杂性:** 通过合并应用层和领域层，减少了层与层之间的交互和转换，降低了代码的复杂性。 📉
-*   **更快的开发速度:** 减少了不必要的抽象，可以更快地实现业务功能。 ⏱️
-*   **更容易理解和维护:** 代码结构更加扁平化，更易于理解和维护。 📚
-*   **更适合简单业务场景:** 对于业务逻辑相对简单的项目，三层架构已经足够满足需求，避免了过度设计。 👍
+收益：
+
+*   **层间转换更少：** 合并应用层与领域层后，少了一次对象转换和一层接口
+*   **上手更快：** 结构扁平，不需要先理解聚合边界才能写第一个接口
+*   **避免过度设计：** 业务规则本来就简单时，四层的抽象是净负担
+
+代价，需要提前知道：
+
+*   **规则和编排混住。** 用例编排与业务规则在同一个 Service 里，随着分支增多会迅速变长
+*   **没有聚合边界。** 不变量没有唯一的守卫位置，容易退回贫血模型
+*   **拆回四层是有成本的。** 等到发现需要拆的时候，调用方已经依赖了合并后的接口
+
+判断标准很简单：**当你开始需要为「什么时候允许改这个字段」写注释时，就该换回四层。**
+
+## 仍然适用的约束
+
+即使合并了两层，这几条不变：
+
+*   `adapter` 只做协议适配，不写业务判断
+*   `business` 内部的领域模型仍然可以用 `ddk-core` 的 `Identifier` / `ValueObject` / `AggregateRoot`
+*   `infrastructure` 实现 `business` 定义的接口，不把 PO 与框架注解泄漏回去
+
+`CommonArchRules.LAYERED_ARCHITECTURE_RULE` 对三层同样可用——它按包名匹配，`business` 包不在四层的层定义里，因此只会校验 `adapter` 与 `infrastructure` 的边界。需要更严格的约束时，按 `business` 包自己写一条规则。
 
 

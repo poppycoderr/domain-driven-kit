@@ -1,64 +1,136 @@
-<svg width="1200" height="700" viewBox="0 0 1200 700" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
-  <title id="title">DDK four-layer request flow</title>
-  <desc id="desc">A request flows through adapter, application, domain and infrastructure while dependencies point inward toward domain contracts.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 650" width="1120" height="650"
+     role="img" aria-labelledby="ttl dsc" style="max-width:100%;height:auto">
+  <title id="ttl">DDK 四层请求流与依赖方向</title>
+  <desc id="dsc">请求依次经过 adapter、application、domain 三层；基础设施层位于领域层之下，通过实现领域层定义的仓储契约反向依赖领域层；领域层反过来依赖基础设施层的边被 ArchUnit 规则禁止。</desc>
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="700" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#0B1120"/>
-      <stop offset="1" stop-color="#111827"/>
-    </linearGradient>
-    <style>
-      .title{font:800 36px Inter,Segoe UI,Arial,sans-serif;fill:#F8FAFC}
-      .sub{font:500 17px Inter,Segoe UI,Arial,sans-serif;fill:#CBD5E1}
-      .layer{font:800 24px Inter,Segoe UI,Arial,sans-serif;fill:#FFFFFF}
-      .desc{font:500 16px Inter,Segoe UI,Arial,sans-serif;fill:#D1D5DB}
-      .mono{font:700 14px SFMono-Regular,Consolas,monospace;fill:#BFDBFE}
-      .box{stroke-width:2}
-      .arrow{stroke:#93C5FD;stroke-width:3;marker-end:url(#arrow)}
-      .back{stroke:#FBBF24;stroke-width:2.5;stroke-dasharray:8 8;marker-end:url(#arrowGold)}
-      .guard{font:700 15px Inter,Segoe UI,Arial,sans-serif;fill:#FDE68A}
-    </style>
-    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#93C5FD"/>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="mk" d="M0 0 L10 5 L0 10 z"/>
     </marker>
-    <marker id="arrowGold" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#FBBF24"/>
+    <marker id="ar-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="mk-b" d="M0 0 L10 5 L0 10 z"/>
     </marker>
-  </defs>
-  <rect width="1200" height="700" rx="32" fill="url(#bg)"/>
-  <text x="64" y="70" class="title">Four-Layer Flow</text>
-  <text x="64" y="103" class="sub">Runtime calls move outward. Compile-time dependencies still point inward.</text>
+    <marker id="ar-v" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="mk-v" d="M0 0 L10 5 L0 10 z"/>
+    </marker>
+</defs>
+  <style>
+    text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",Inter,Roboto,sans-serif;}
+    .bg{fill:#FBFCFE}
+    .title{font-size:27px;font-weight:700;fill:#0F172A;letter-spacing:-.2px}
+    .sub{font-size:14px;font-weight:400;fill:#64748B}
+    .kicker{font-size:11.5px;font-weight:700;fill:#94A3B8;letter-spacing:1.4px}
+    .lbl{font-size:15px;font-weight:650;fill:#0F172A}
+    .lbl-sm{font-size:13.5px;font-weight:650;fill:#0F172A}
+    .txt{font-size:12.5px;font-weight:400;fill:#64748B}
+    .txt-xs{font-size:11.5px;font-weight:400;fill:#94A3B8}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;font-size:12px;font-weight:500;fill:#334155}
+    .mono-sm{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;font-size:11px;font-weight:500;fill:#64748B}
+    .edgelbl{font-size:11.5px;font-weight:500;fill:#64748B}
 
-  <rect x="90" y="180" width="230" height="150" rx="24" fill="#1E3A8A" stroke="#60A5FA" class="box"/>
-  <text x="205" y="230" text-anchor="middle" class="layer">Adapter</text>
-  <text x="205" y="265" text-anchor="middle" class="desc">HTTP / MQ / CLI</text>
-  <text x="205" y="292" text-anchor="middle" class="mono">Controller · Consumer</text>
+    .card{fill:#FFFFFF;stroke:#E2E8F0;stroke-width:1.25}
+    .group{fill:#F1F5F9;fill-opacity:.55;stroke:#E2E8F0;stroke-width:1.25}
+    .blue{fill:#EFF6FF;stroke:#BFDBFE;stroke-width:1.25}
+    .teal{fill:#F0FDFA;stroke:#99F6E4;stroke-width:1.25}
+    .violet{fill:#F5F3FF;stroke:#DDD6FE;stroke-width:1.25}
+    .amber{fill:#FFFBEB;stroke:#FDE68A;stroke-width:1.25}
+    .rose{fill:#FFF1F2;stroke:#FECDD3;stroke-width:1.25}
+    .slate{fill:#F8FAFC;stroke:#E2E8F0;stroke-width:1.25}
 
-  <rect x="360" y="180" width="230" height="150" rx="24" fill="#064E3B" stroke="#34D399" class="box"/>
-  <text x="475" y="230" text-anchor="middle" class="layer">Application</text>
-  <text x="475" y="265" text-anchor="middle" class="desc">Use-case orchestration</text>
-  <text x="475" y="292" text-anchor="middle" class="mono">Service · Command · DTO</text>
+    .t-blue{fill:#1D4ED8} .t-teal{fill:#0F766E} .t-violet{fill:#6D28D9}
+    .t-amber{fill:#B45309} .t-rose{fill:#BE123C} .t-ink{fill:#0F172A}
 
-  <rect x="630" y="180" width="230" height="150" rx="24" fill="#581C87" stroke="#C084FC" class="box"/>
-  <text x="745" y="230" text-anchor="middle" class="layer">Domain</text>
-  <text x="745" y="265" text-anchor="middle" class="desc">Rules and invariants</text>
-  <text x="745" y="292" text-anchor="middle" class="mono">Entity · VO · Repository</text>
+    .edge{stroke:#94A3B8;stroke-width:1.6;fill:none;marker-end:url(#ar)}
+    .edge-b{stroke:#3B82F6;stroke-width:1.8;fill:none;marker-end:url(#ar-b)}
+    .edge-v{stroke:#8B5CF6;stroke-width:1.6;fill:none;stroke-dasharray:6 5;marker-end:url(#ar-v)}
+    .edge-x{stroke:#F43F5E;stroke-width:1.6;fill:none;stroke-dasharray:5 5}
+    .rail{stroke:#E2E8F0;stroke-width:2;fill:none}
+    .hair{stroke:#E2E8F0;stroke-width:1.25;fill:none}
+    .mk{fill:#94A3B8} .mk-b{fill:#3B82F6} .mk-v{fill:#8B5CF6}
 
-  <rect x="900" y="180" width="230" height="150" rx="24" fill="#7C2D12" stroke="#FB923C" class="box"/>
-  <text x="1015" y="230" text-anchor="middle" class="layer">Infrastructure</text>
-  <text x="1015" y="265" text-anchor="middle" class="desc">Technical adapters</text>
-  <text x="1015" y="292" text-anchor="middle" class="mono">Mapper · PO · Client</text>
+    @media (prefers-color-scheme: dark) {
+      .bg{fill:#0B1120}
+      .title{fill:#F1F5F9} .sub{fill:#94A3B8} .kicker{fill:#64748B}
+      .lbl,.lbl-sm{fill:#E2E8F0} .txt{fill:#94A3B8} .txt-xs{fill:#64748B}
+      .mono{fill:#CBD5E1} .mono-sm{fill:#94A3B8} .edgelbl{fill:#94A3B8}
+      .card{fill:#111827;stroke:#283548}
+      .group{fill:#0F172A;fill-opacity:.7;stroke:#1E293B}
+      .blue{fill:#111E38;stroke:#1E40AF}
+      .teal{fill:#0C2620;stroke:#115E59}
+      .violet{fill:#1A1333;stroke:#5B21B6}
+      .amber{fill:#271B08;stroke:#92400E}
+      .rose{fill:#2A0F17;stroke:#9F1239}
+      .slate{fill:#131C2B;stroke:#283548}
+      .t-blue{fill:#93C5FD} .t-teal{fill:#5EEAD4} .t-violet{fill:#C4B5FD}
+      .t-amber{fill:#FCD34D} .t-rose{fill:#FDA4AF} .t-ink{fill:#E2E8F0}
+      .edge{stroke:#64748B} .edge-b{stroke:#60A5FA} .edge-v{stroke:#A78BFA}
+      .edge-x{stroke:#FB7185}
+      .rail{stroke:#1E293B} .hair{stroke:#1E293B}
+      .mk{fill:#64748B} .mk-b{fill:#60A5FA} .mk-v{fill:#A78BFA}
+    }
+</style>
+  <rect class="bg" width="1120" height="650" rx="18"/>
+  <text class="title" x="56" y="60">一次请求穿过四层</text>
+  <text class="sub" x="56" y="87">向内的实线是调用方向，向上的虚线是依赖倒置——领域层定义契约，基础设施层去实现它。</text>
+  <rect x="56" y="150" width="300" height="180" rx="14" class="blue"/>
+  <text class="lbl" x="80" y="186">adapter</text>
+  <text class="mono" x="80" y="210">UserController</text>
+  <circle cx="85" cy="238" r="2.5" fill="#94A3B8"/>
+  <text class="txt" x="98" y="242">接收 HTTP / MQ 协议</text>
+  <circle cx="85" cy="264" r="2.5" fill="#94A3B8"/>
+  <text class="txt" x="98" y="268">转成 Command、包 ApiResponse</text>
+  <circle cx="85" cy="290" r="2.5" fill="#94A3B8"/>
+  <text class="txt" x="98" y="294">不写任何业务判断</text>
+  <rect x="408" y="150" width="300" height="180" rx="14" class="teal"/>
+  <text class="lbl" x="432" y="186">application</text>
+  <text class="mono" x="432" y="210">UserService</text>
+  <circle cx="437" cy="238" r="2.5" fill="#94A3B8"/>
+  <text class="txt" x="450" y="242">取出聚合、调用领域方法</text>
+  <circle cx="437" cy="264" r="2.5" fill="#94A3B8"/>
+  <text class="txt" x="450" y="268">管事务边界与用例编排</text>
+  <circle cx="437" cy="290" r="2.5" fill="#94A3B8"/>
+  <text class="txt" x="450" y="294">不写业务规则</text>
+  <rect x="760" y="150" width="300" height="180" rx="14" class="violet"/>
+  <text class="lbl" x="784" y="186">domain</text>
+  <text class="mono" x="784" y="210">User 聚合根</text>
+  <circle cx="789" cy="238" r="2.5" fill="#94A3B8"/>
+  <text class="txt" x="802" y="242">不变量与状态机在这里</text>
+  <circle cx="789" cy="264" r="2.5" fill="#94A3B8"/>
+  <text class="txt" x="802" y="268">登记领域事件</text>
+  <circle cx="789" cy="290" r="2.5" fill="#94A3B8"/>
+  <text class="txt" x="802" y="294">不依赖任何框架</text>
+  <path class="edge-b" d="M362 240.0 L400 240.0"/>
+  <text class="edgelbl" x="382.0" y="226.0" text-anchor="middle">Command / Query</text>
+  <path class="edge-b" d="M714 240.0 L752 240.0"/>
+  <text class="edgelbl" x="734.0" y="226.0" text-anchor="middle">调用领域方法</text>
+  <text class="txt-xs" x="56" y="134">① HTTP / MQ 进入</text>
+  <text class="txt-xs" x="1060" y="134" text-anchor="end">返回 UserDTO → ApiResponse</text>
+  <rect x="760" y="420" width="300" height="180" rx="14" class="slate"/>
+  <text class="lbl" x="784" y="454">infrastructure</text>
+  <text class="mono" x="784" y="478">UserRepositoryImpl</text>
+  <circle cx="789" cy="506" r="2.5" fill="#94A3B8"/>
+  <text class="txt" x="802" y="510">Entity ↔ PO 显式转换</text>
+  <circle cx="789" cy="530" r="2.5" fill="#94A3B8"/>
+  <text class="txt" x="802" y="534">MyBatis-Plus / Redis / MQ</text>
+  <circle cx="789" cy="554" r="2.5" fill="#94A3B8"/>
+  <text class="txt" x="802" y="558">保存后排空领域事件</text>
+  <path class="edge-v" d="M860 414 L860 338"/>
+  <text class="edgelbl" x="876" y="376">实现 domain 定义的</text>
+  <text class="edgelbl" x="876" y="394">仓储契约（依赖倒置）</text>
+  <rect x="56" y="420" width="652" height="180" rx="14" class="rose"/>
+  <text class="kicker" x="80" y="454">被禁止的依赖</text>
+  <text class="lbl-sm" x="80" y="484">领域层不得反过来依赖基础设施</text>
+  <text class="txt" x="80" y="514">一旦 domain 里出现 @Mapper、RedisTemplate 或 PO，</text>
+  <text class="txt" x="80" y="535">业务模型就被存储结构绑架，也再不能脱离容器</text>
+  <text class="txt" x="80" y="556">做单元测试。</text>
+  <rect x="576" y="460" width="112" height="32" rx="8" class="card"/>
+  <text class="mono-sm" x="632" y="481" text-anchor="middle">domain</text>
+  <rect x="576" y="530" width="112" height="32" rx="8" class="card"/>
+  <text class="mono-sm" x="632" y="551" text-anchor="middle">infrastructure</text>
+  <path class="edge-x" d="M632 494 L632 528"/>
+  <circle cx="632" cy="511" r="9" fill="#FFF1F2"/>
+  <circle cx="632" cy="511" r="9" fill="none" stroke="#F43F5E" stroke-width="1.4"/>
+  <path d="M628 507 L636 515 M636 507 L628 515" stroke="#F43F5E" stroke-width="1.6" fill="none"/>
+  <text class="txt-xs" x="632" y="584" text-anchor="middle">ArchUnit 在构建期拦截</text>
+  <text class="txt-xs" x="56" y="628">规则来源：CommonArchRules.LAYERED_ARCHITECTURE_RULE 与 DOMAIN_MUST_NOT_DEPEND_ON_FRAMEWORKS</text>
 
-  <path d="M320 255 L360 255" class="arrow"/>
-  <path d="M590 255 L630 255" class="arrow"/>
-  <path d="M860 255 L900 255" class="back"/>
-  <text x="880" y="238" text-anchor="middle" class="guard">implements</text>
-
-  <path d="M1015 330 C1015 440 745 440 745 330" class="back"/>
-  <text x="880" y="430" text-anchor="middle" class="guard">implements domain contracts</text>
-
-  <rect x="145" y="430" width="910" height="148" rx="26" fill="#111827" stroke="#334155" stroke-width="1.5"/>
-  <text x="600" y="478" text-anchor="middle" class="layer">ArchGuard makes this testable</text>
-  <text x="600" y="514" text-anchor="middle" class="desc">Domain cannot import Spring, MyBatis or Jackson.</text>
-  <text x="600" y="542" text-anchor="middle" class="desc">Domain cannot depend on Infrastructure.</text>
-  <text x="600" y="568" text-anchor="middle" class="mono">CommonArchRules.LAYERED_ARCHITECTURE_RULE</text>
 </svg>

@@ -1,68 +1,168 @@
-<svg width="1200" height="620" viewBox="0 0 1200 620" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
-  <title id="title">DDK roadmap</title>
-  <desc id="desc">Roadmap phases from engineering baseline to domain model, repository safety, starter normalization, examples and release readiness.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 520" width="1120" height="520"
+     role="img" aria-labelledby="ttl dsc" style="max-width:100%;height:auto">
+  <title id="ttl">DDK 演进路线</title>
+  <desc id="dsc">六个阶段：工程基线、领域模型、映射与仓储安全已完成；Starter 规范化与骨架示例进行中；发布就绪未开始。</desc>
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="620" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#FFFFFF"/>
-      <stop offset="1" stop-color="#F1F5F9"/>
-    </linearGradient>
-    <style>
-      .title{font:800 36px Inter,Segoe UI,Arial,sans-serif;fill:#0F172A}
-      .sub{font:500 17px Inter,Segoe UI,Arial,sans-serif;fill:#475569}
-      .phase{font:800 20px Inter,Segoe UI,Arial,sans-serif;fill:#0F172A}
-      .text{font:500 14px Inter,Segoe UI,Arial,sans-serif;fill:#475569}
-      .num{font:900 26px Inter,Segoe UI,Arial,sans-serif;fill:#FFFFFF}
-      .card{fill:#FFFFFF;stroke:#CBD5E1;stroke-width:1.5}
-      .line{stroke:#CBD5E1;stroke-width:5;stroke-linecap:round}
-    </style>
-  </defs>
-  <rect width="1200" height="620" rx="32" fill="url(#bg)"/>
-  <text x="64" y="70" class="title">Roadmap</text>
-  <text x="64" y="103" class="sub">Build a reliable foundation before publishing widely.</text>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="mk" d="M0 0 L10 5 L0 10 z"/>
+    </marker>
+    <marker id="ar-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="mk-b" d="M0 0 L10 5 L0 10 z"/>
+    </marker>
+    <marker id="ar-v" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="mk-v" d="M0 0 L10 5 L0 10 z"/>
+    </marker>
+</defs>
+  <style>
+    text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",Inter,Roboto,sans-serif;}
+    .bg{fill:#FBFCFE}
+    .title{font-size:27px;font-weight:700;fill:#0F172A;letter-spacing:-.2px}
+    .sub{font-size:14px;font-weight:400;fill:#64748B}
+    .kicker{font-size:11.5px;font-weight:700;fill:#94A3B8;letter-spacing:1.4px}
+    .lbl{font-size:15px;font-weight:650;fill:#0F172A}
+    .lbl-sm{font-size:13.5px;font-weight:650;fill:#0F172A}
+    .txt{font-size:12.5px;font-weight:400;fill:#64748B}
+    .txt-xs{font-size:11.5px;font-weight:400;fill:#94A3B8}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;font-size:12px;font-weight:500;fill:#334155}
+    .mono-sm{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;font-size:11px;font-weight:500;fill:#64748B}
+    .edgelbl{font-size:11.5px;font-weight:500;fill:#64748B}
 
-  <path d="M135 300 H1065" class="line"/>
+    .card{fill:#FFFFFF;stroke:#E2E8F0;stroke-width:1.25}
+    .group{fill:#F1F5F9;fill-opacity:.55;stroke:#E2E8F0;stroke-width:1.25}
+    .blue{fill:#EFF6FF;stroke:#BFDBFE;stroke-width:1.25}
+    .teal{fill:#F0FDFA;stroke:#99F6E4;stroke-width:1.25}
+    .violet{fill:#F5F3FF;stroke:#DDD6FE;stroke-width:1.25}
+    .amber{fill:#FFFBEB;stroke:#FDE68A;stroke-width:1.25}
+    .rose{fill:#FFF1F2;stroke:#FECDD3;stroke-width:1.25}
+    .slate{fill:#F8FAFC;stroke:#E2E8F0;stroke-width:1.25}
 
-  <g transform="translate(75 185)">
-    <rect width="170" height="210" rx="22" class="card"/>
-    <circle cx="85" cy="55" r="31" fill="#2563EB"/>
-    <text x="85" y="64" text-anchor="middle" class="num">1</text>
-    <text x="85" y="112" text-anchor="middle" class="phase">Baseline</text>
-    <text x="85" y="145" text-anchor="middle" class="text">BOM · style</text>
-    <text x="85" y="169" text-anchor="middle" class="text">metadata · CI</text>
-  </g>
-  <g transform="translate(275 185)">
-    <rect width="170" height="210" rx="22" class="card"/>
-    <circle cx="85" cy="55" r="31" fill="#059669"/>
-    <text x="85" y="64" text-anchor="middle" class="num">2</text>
-    <text x="85" y="112" text-anchor="middle" class="phase">DDD Model</text>
-    <text x="85" y="145" text-anchor="middle" class="text">Entity · VO</text>
-    <text x="85" y="169" text-anchor="middle" class="text">Aggregate · Event</text>
-  </g>
-  <g transform="translate(475 185)">
-    <rect width="170" height="210" rx="22" class="card"/>
-    <circle cx="85" cy="55" r="31" fill="#7C3AED"/>
-    <text x="85" y="64" text-anchor="middle" class="num">3</text>
-    <text x="85" y="112" text-anchor="middle" class="phase">Safety</text>
-    <text x="85" y="145" text-anchor="middle" class="text">Mapper fail-fast</text>
-    <text x="85" y="169" text-anchor="middle" class="text">repository tests</text>
-  </g>
-  <g transform="translate(675 185)">
-    <rect width="170" height="210" rx="22" class="card"/>
-    <circle cx="85" cy="55" r="31" fill="#EA580C"/>
-    <text x="85" y="64" text-anchor="middle" class="num">4</text>
-    <text x="85" y="112" text-anchor="middle" class="phase">Starters</text>
-    <text x="85" y="145" text-anchor="middle" class="text">config prefix</text>
-    <text x="85" y="169" text-anchor="middle" class="text">context tests</text>
-  </g>
-  <g transform="translate(875 185)">
-    <rect width="170" height="210" rx="22" class="card"/>
-    <circle cx="85" cy="55" r="31" fill="#0F766E"/>
-    <text x="85" y="64" text-anchor="middle" class="num">5</text>
-    <text x="85" y="112" text-anchor="middle" class="phase">Examples</text>
-    <text x="85" y="145" text-anchor="middle" class="text">archetypes</text>
-    <text x="85" y="169" text-anchor="middle" class="text">runnable apps</text>
-  </g>
+    .t-blue{fill:#1D4ED8} .t-teal{fill:#0F766E} .t-violet{fill:#6D28D9}
+    .t-amber{fill:#B45309} .t-rose{fill:#BE123C} .t-ink{fill:#0F172A}
 
-  <rect x="245" y="465" width="710" height="70" rx="20" fill="#0F172A"/>
-  <text x="600" y="507" text-anchor="middle" style="font:700 18px Inter,Segoe UI,Arial,sans-serif;fill:#F8FAFC">Release after contracts, tests and examples are reliable.</text>
+    .edge{stroke:#94A3B8;stroke-width:1.6;fill:none;marker-end:url(#ar)}
+    .edge-b{stroke:#3B82F6;stroke-width:1.8;fill:none;marker-end:url(#ar-b)}
+    .edge-v{stroke:#8B5CF6;stroke-width:1.6;fill:none;stroke-dasharray:6 5;marker-end:url(#ar-v)}
+    .edge-x{stroke:#F43F5E;stroke-width:1.6;fill:none;stroke-dasharray:5 5}
+    .rail{stroke:#E2E8F0;stroke-width:2;fill:none}
+    .hair{stroke:#E2E8F0;stroke-width:1.25;fill:none}
+    .mk{fill:#94A3B8} .mk-b{fill:#3B82F6} .mk-v{fill:#8B5CF6}
+
+    @media (prefers-color-scheme: dark) {
+      .bg{fill:#0B1120}
+      .title{fill:#F1F5F9} .sub{fill:#94A3B8} .kicker{fill:#64748B}
+      .lbl,.lbl-sm{fill:#E2E8F0} .txt{fill:#94A3B8} .txt-xs{fill:#64748B}
+      .mono{fill:#CBD5E1} .mono-sm{fill:#94A3B8} .edgelbl{fill:#94A3B8}
+      .card{fill:#111827;stroke:#283548}
+      .group{fill:#0F172A;fill-opacity:.7;stroke:#1E293B}
+      .blue{fill:#111E38;stroke:#1E40AF}
+      .teal{fill:#0C2620;stroke:#115E59}
+      .violet{fill:#1A1333;stroke:#5B21B6}
+      .amber{fill:#271B08;stroke:#92400E}
+      .rose{fill:#2A0F17;stroke:#9F1239}
+      .slate{fill:#131C2B;stroke:#283548}
+      .t-blue{fill:#93C5FD} .t-teal{fill:#5EEAD4} .t-violet{fill:#C4B5FD}
+      .t-amber{fill:#FCD34D} .t-rose{fill:#FDA4AF} .t-ink{fill:#E2E8F0}
+      .edge{stroke:#64748B} .edge-b{stroke:#60A5FA} .edge-v{stroke:#A78BFA}
+      .edge-x{stroke:#FB7185}
+      .rail{stroke:#1E293B} .hair{stroke:#1E293B}
+      .mk{fill:#64748B} .mk-b{fill:#60A5FA} .mk-v{fill:#A78BFA}
+    }
+</style>
+  <rect class="bg" width="1120" height="520" rx="18"/>
+  <text class="title" x="56" y="60">演进路线</text>
+  <text class="sub" x="56" y="87">先把基础做扎实，再考虑对外发布。已完成的部分都有测试兜底，未完成的不假装完成。</text>
+  <path class="rail" d="M132.5 176 L987.5 176"/>
+  <rect x="56" y="200" width="153" height="232" rx="12" class="card"/>
+  <circle cx="132.5" cy="176" r="7" fill="#14B8A6"/>
+  <circle cx="132.5" cy="176" r="11" fill="none" stroke="#14B8A6" stroke-opacity=".35" stroke-width="2"/>
+  <path class="hair" d="M132.5 187 L132.5 200"/>
+  <text class="kicker" x="74" y="234">01</text>
+  <text class="lbl-sm" x="74" y="262">工程基线</text>
+  <rect x="74" y="276" width="56" height="24" rx="7" class="teal"/>
+  <text class="txt-xs" x="84" y="293">已完成</text>
+  <circle cx="78" cy="324" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="88" y="328">CI 跑 mvn verify</text>
+  <circle cx="78" cy="358" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="88" y="362">ddk-dependencies</text>
+  <text class="txt-xs" x="88" y="377">成为真实 BOM</text>
+  <circle cx="78" cy="392" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="88" y="396">JaCoCo 覆盖率报告</text>
+  <rect x="227" y="200" width="153" height="232" rx="12" class="card"/>
+  <circle cx="303.5" cy="176" r="7" fill="#14B8A6"/>
+  <circle cx="303.5" cy="176" r="11" fill="none" stroke="#14B8A6" stroke-opacity=".35" stroke-width="2"/>
+  <path class="hair" d="M303.5 187 L303.5 200"/>
+  <text class="kicker" x="245" y="234">02</text>
+  <text class="lbl-sm" x="245" y="262">领域模型</text>
+  <rect x="245" y="276" width="56" height="24" rx="7" class="teal"/>
+  <text class="txt-xs" x="255" y="293">已完成</text>
+  <circle cx="249" cy="324" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="259" y="328">Identifier</text>
+  <text class="txt-xs" x="259" y="343">ValueObject</text>
+  <circle cx="249" cy="358" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="259" y="362">Entity</text>
+  <text class="txt-xs" x="259" y="377">AggregateRoot</text>
+  <circle cx="249" cy="392" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="259" y="396">DomainEvent</text>
+  <text class="txt-xs" x="259" y="411">Specification</text>
+  <rect x="398" y="200" width="153" height="232" rx="12" class="card"/>
+  <circle cx="474.5" cy="176" r="7" fill="#14B8A6"/>
+  <circle cx="474.5" cy="176" r="11" fill="none" stroke="#14B8A6" stroke-opacity=".35" stroke-width="2"/>
+  <path class="hair" d="M474.5 187 L474.5 200"/>
+  <text class="kicker" x="416" y="234">03</text>
+  <text class="lbl-sm" x="416" y="262">映射与仓储安全</text>
+  <rect x="416" y="276" width="56" height="24" rx="7" class="teal"/>
+  <text class="txt-xs" x="426" y="293">已完成</text>
+  <circle cx="420" cy="324" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="430" y="328">映射缺失即失败</text>
+  <circle cx="420" cy="358" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="430" y="362">key 改用全限定名</text>
+  <circle cx="420" cy="392" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="430" y="396">仓储泛型顺序收敛</text>
+  <rect x="569" y="200" width="153" height="232" rx="12" class="card"/>
+  <circle cx="645.5" cy="176" r="7" fill="#3B82F6"/>
+  <circle cx="645.5" cy="176" r="11" fill="none" stroke="#3B82F6" stroke-opacity=".35" stroke-width="2"/>
+  <path class="hair" d="M645.5 187 L645.5 200"/>
+  <text class="kicker" x="587" y="234">04</text>
+  <text class="lbl-sm" x="587" y="262">Starter 规范化</text>
+  <rect x="587" y="276" width="56" height="24" rx="7" class="blue"/>
+  <text class="txt-xs" x="597" y="293">进行中</text>
+  <circle cx="591" cy="324" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="601" y="328">统一 ddk.* 配置前缀</text>
+  <circle cx="591" cy="358" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="601" y="362">补配置元数据</text>
+  <circle cx="591" cy="392" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="601" y="396">重写 cache</text>
+  <text class="txt-xs" x="601" y="411">starter</text>
+  <rect x="740" y="200" width="153" height="232" rx="12" class="card"/>
+  <circle cx="816.5" cy="176" r="7" fill="#3B82F6"/>
+  <circle cx="816.5" cy="176" r="11" fill="none" stroke="#3B82F6" stroke-opacity=".35" stroke-width="2"/>
+  <path class="hair" d="M816.5 187 L816.5 200"/>
+  <text class="kicker" x="758" y="234">05</text>
+  <text class="lbl-sm" x="758" y="262">骨架与示例</text>
+  <rect x="758" y="276" width="56" height="24" rx="7" class="blue"/>
+  <text class="txt-xs" x="768" y="293">进行中</text>
+  <circle cx="762" cy="324" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="772" y="328">真正的 Maven</text>
+  <text class="txt-xs" x="772" y="343">archetype</text>
+  <circle cx="762" cy="358" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="772" y="362">可运行的四层示例</text>
+  <circle cx="762" cy="392" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="772" y="396">README 冒烟命令</text>
+  <rect x="911" y="200" width="153" height="232" rx="12" class="card"/>
+  <circle cx="987.5" cy="176" r="7" fill="#94A3B8"/>
+  <circle cx="987.5" cy="176" r="11" fill="none" stroke="#94A3B8" stroke-opacity=".35" stroke-width="2"/>
+  <path class="hair" d="M987.5 187 L987.5 200"/>
+  <text class="kicker" x="929" y="234">06</text>
+  <text class="lbl-sm" x="929" y="262">发布就绪</text>
+  <rect x="929" y="276" width="56" height="24" rx="7" class="slate"/>
+  <text class="txt-xs" x="939" y="293">未开始</text>
+  <circle cx="933" cy="324" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="943" y="328">稳定包名与公开契约</text>
+  <circle cx="933" cy="358" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="943" y="362">语义化版本策略</text>
+  <circle cx="933" cy="392" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="943" y="396">Javadoc 与发布说明</text>
+  <text class="txt-xs" x="56" y="494">近期修复：全局异常处理未生效 · 分页大小无上限 · addSort 排序丢失 · ArchGuard 允许 Domain→Infrastructure</text>
+  <text class="txt-xs" x="1064" y="494" text-anchor="end">详见 ROADMAP.md</text>
+
 </svg>

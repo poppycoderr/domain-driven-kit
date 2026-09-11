@@ -1,69 +1,147 @@
-<svg width="1200" height="660" viewBox="0 0 1200 660" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
-  <title id="title">DDK module map</title>
-  <desc id="desc">DDK modules and their dependency directions from applications through starters and persistence support to core abstractions.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 760" width="1120" height="760"
+     role="img" aria-labelledby="ttl dsc" style="max-width:100%;height:auto">
+  <title id="ttl">DDK 模块依赖地图</title>
+  <desc id="dsc">业务应用依赖 starter，starter 依赖 ddk-core；只有 ddk-mybatis-starter 和需要持久化的应用经过 ddk-mybatis；ddk-core 内含 domain、repository、page、mapper、response、exception 六个包。</desc>
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="660" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#F8FAFC"/>
-      <stop offset="1" stop-color="#EEF2FF"/>
-    </linearGradient>
-    <style>
-      .title{font:800 36px Inter,Segoe UI,Arial,sans-serif;fill:#0F172A}
-      .sub{font:500 17px Inter,Segoe UI,Arial,sans-serif;fill:#475569}
-      .head{font:800 21px Inter,Segoe UI,Arial,sans-serif;fill:#0F172A}
-      .text{font:500 15px Inter,Segoe UI,Arial,sans-serif;fill:#475569}
-      .mono{font:700 14px SFMono-Regular,Consolas,monospace;fill:#1E40AF}
-      .box{fill:#FFFFFF;stroke:#CBD5E1;stroke-width:1.5}
-      .core{fill:#EFF6FF;stroke:#2563EB;stroke-width:2}
-      .starter{fill:#F0FDFA;stroke:#0F766E;stroke-width:1.5}
-      .planned{fill:#FEF3C7;stroke:#D97706;stroke-width:1.5}
-      .arrow{stroke:#64748B;stroke-width:2.4;marker-end:url(#arrow)}
-      .soft{stroke:#94A3B8;stroke-width:1.7;stroke-dasharray:7 7;marker-end:url(#arrow)}
-    </style>
-    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748B"/>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="mk" d="M0 0 L10 5 L0 10 z"/>
     </marker>
-  </defs>
-  <rect width="1200" height="660" rx="32" fill="url(#bg)"/>
-  <text x="64" y="70" class="title">Module Map</text>
-  <text x="64" y="103" class="sub">Keep frameworks out of the domain; give Spring projects a fast start.</text>
+    <marker id="ar-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="mk-b" d="M0 0 L10 5 L0 10 z"/>
+    </marker>
+    <marker id="ar-v" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="mk-v" d="M0 0 L10 5 L0 10 z"/>
+    </marker>
+</defs>
+  <style>
+    text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",Inter,Roboto,sans-serif;}
+    .bg{fill:#FBFCFE}
+    .title{font-size:27px;font-weight:700;fill:#0F172A;letter-spacing:-.2px}
+    .sub{font-size:14px;font-weight:400;fill:#64748B}
+    .kicker{font-size:11.5px;font-weight:700;fill:#94A3B8;letter-spacing:1.4px}
+    .lbl{font-size:15px;font-weight:650;fill:#0F172A}
+    .lbl-sm{font-size:13.5px;font-weight:650;fill:#0F172A}
+    .txt{font-size:12.5px;font-weight:400;fill:#64748B}
+    .txt-xs{font-size:11.5px;font-weight:400;fill:#94A3B8}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;font-size:12px;font-weight:500;fill:#334155}
+    .mono-sm{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;font-size:11px;font-weight:500;fill:#64748B}
+    .edgelbl{font-size:11.5px;font-weight:500;fill:#64748B}
 
-  <rect x="70" y="150" width="240" height="140" rx="18" class="box"/>
-  <text x="190" y="202" text-anchor="middle" class="head">Business App</text>
-  <text x="190" y="232" text-anchor="middle" class="text">Your codebase</text>
-  <text x="190" y="252" text-anchor="middle" class="mono">adapter / application</text>
-  <text x="190" y="274" text-anchor="middle" class="mono">domain</text>
+    .card{fill:#FFFFFF;stroke:#E2E8F0;stroke-width:1.25}
+    .group{fill:#F1F5F9;fill-opacity:.55;stroke:#E2E8F0;stroke-width:1.25}
+    .blue{fill:#EFF6FF;stroke:#BFDBFE;stroke-width:1.25}
+    .teal{fill:#F0FDFA;stroke:#99F6E4;stroke-width:1.25}
+    .violet{fill:#F5F3FF;stroke:#DDD6FE;stroke-width:1.25}
+    .amber{fill:#FFFBEB;stroke:#FDE68A;stroke-width:1.25}
+    .rose{fill:#FFF1F2;stroke:#FECDD3;stroke-width:1.25}
+    .slate{fill:#F8FAFC;stroke:#E2E8F0;stroke-width:1.25}
 
-  <rect x="420" y="145" width="320" height="140" rx="22" class="core"/>
-  <text x="580" y="192" text-anchor="middle" class="head">ddk-core</text>
-  <text x="580" y="224" text-anchor="middle" class="text">Pure contracts and helpers</text>
-  <text x="580" y="250" text-anchor="middle" class="mono">ApiResponse · PageQuery · Mapper</text>
+    .t-blue{fill:#1D4ED8} .t-teal{fill:#0F766E} .t-violet{fill:#6D28D9}
+    .t-amber{fill:#B45309} .t-rose{fill:#BE123C} .t-ink{fill:#0F172A}
 
-  <rect x="870" y="150" width="260" height="120" rx="18" class="starter"/>
-  <text x="1000" y="194" text-anchor="middle" class="head">ddk-starters</text>
-  <text x="1000" y="224" text-anchor="middle" class="text">Spring Boot integration</text>
-  <text x="1000" y="248" text-anchor="middle" class="mono">web · db · redis · cache</text>
+    .edge{stroke:#94A3B8;stroke-width:1.6;fill:none;marker-end:url(#ar)}
+    .edge-b{stroke:#3B82F6;stroke-width:1.8;fill:none;marker-end:url(#ar-b)}
+    .edge-v{stroke:#8B5CF6;stroke-width:1.6;fill:none;stroke-dasharray:6 5;marker-end:url(#ar-v)}
+    .edge-x{stroke:#F43F5E;stroke-width:1.6;fill:none;stroke-dasharray:5 5}
+    .rail{stroke:#E2E8F0;stroke-width:2;fill:none}
+    .hair{stroke:#E2E8F0;stroke-width:1.25;fill:none}
+    .mk{fill:#94A3B8} .mk-b{fill:#3B82F6} .mk-v{fill:#8B5CF6}
 
-  <rect x="420" y="380" width="320" height="120" rx="20" class="box"/>
-  <text x="580" y="424" text-anchor="middle" class="head">ddk-mybatis</text>
-  <text x="580" y="454" text-anchor="middle" class="text">Persistence implementation</text>
-  <text x="580" y="478" text-anchor="middle" class="mono">GenericRepositoryImpl · QueryParser</text>
+    @media (prefers-color-scheme: dark) {
+      .bg{fill:#0B1120}
+      .title{fill:#F1F5F9} .sub{fill:#94A3B8} .kicker{fill:#64748B}
+      .lbl,.lbl-sm{fill:#E2E8F0} .txt{fill:#94A3B8} .txt-xs{fill:#64748B}
+      .mono{fill:#CBD5E1} .mono-sm{fill:#94A3B8} .edgelbl{fill:#94A3B8}
+      .card{fill:#111827;stroke:#283548}
+      .group{fill:#0F172A;fill-opacity:.7;stroke:#1E293B}
+      .blue{fill:#111E38;stroke:#1E40AF}
+      .teal{fill:#0C2620;stroke:#115E59}
+      .violet{fill:#1A1333;stroke:#5B21B6}
+      .amber{fill:#271B08;stroke:#92400E}
+      .rose{fill:#2A0F17;stroke:#9F1239}
+      .slate{fill:#131C2B;stroke:#283548}
+      .t-blue{fill:#93C5FD} .t-teal{fill:#5EEAD4} .t-violet{fill:#C4B5FD}
+      .t-amber{fill:#FCD34D} .t-rose{fill:#FDA4AF} .t-ink{fill:#E2E8F0}
+      .edge{stroke:#64748B} .edge-b{stroke:#60A5FA} .edge-v{stroke:#A78BFA}
+      .edge-x{stroke:#FB7185}
+      .rail{stroke:#1E293B} .hair{stroke:#1E293B}
+      .mk{fill:#64748B} .mk-b{fill:#60A5FA} .mk-v{fill:#A78BFA}
+    }
+</style>
+  <rect class="bg" width="1120" height="760" rx="18"/>
+  <text class="title" x="56" y="60">模块依赖地图</text>
+  <text class="sub" x="56" y="87">箭头方向即依赖方向。只有需要持久化的模块才会碰到 ddk-mybatis，其余 starter 直接依赖 ddk-core。</text>
+  <rect x="56" y="130" width="1008" height="64" rx="12" class="blue"/>
+  <text class="lbl" x="80" y="168">你的业务应用</text>
+  <text class="txt-xs" x="1040" y="168" text-anchor="end">按需引入 starter，版本号由 BOM 统一</text>
+  <path class="edge" d="M560 196 L560 222"/>
+  <text class="edgelbl" x="572" y="214">依赖</text>
+  <rect x="56" y="224" width="1008" height="216" rx="14" class="group"/>
+  <text class="lbl-sm" x="80" y="254">ddk-starters</text>
+  <text class="txt-xs" x="208" y="254">8 个 Spring Boot starter</text>
+  <rect x="76" y="272" width="230" height="62" rx="10" class="card"/>
+  <circle cx="94" cy="296" r="3.5" fill="#14B8A6"/>
+  <text class="lbl-sm" x="106" y="300">ddk-web-starter</text>
+  <text class="txt-xs" x="106" y="320">全局异常 · Jackson · CORS</text>
+  <rect x="322" y="272" width="230" height="62" rx="10" class="card"/>
+  <circle cx="340" cy="296" r="3.5" fill="#14B8A6"/>
+  <text class="lbl-sm" x="352" y="300">ddk-mybatis-starter</text>
+  <text class="txt-xs" x="352" y="320">MyBatis-Plus 插件与分页</text>
+  <rect x="568" y="272" width="230" height="62" rx="10" class="card"/>
+  <circle cx="586" cy="296" r="3.5" fill="#14B8A6"/>
+  <text class="lbl-sm" x="598" y="300">ddk-redis-starter</text>
+  <text class="txt-xs" x="598" y="320">RedisTemplate 序列化</text>
+  <rect x="814" y="272" width="230" height="62" rx="10" class="card"/>
+  <circle cx="832" cy="296" r="3.5" fill="#14B8A6"/>
+  <text class="lbl-sm" x="844" y="300">ddk-archguard-starter</text>
+  <text class="txt-xs" x="844" y="320">ArchUnit 分层规则</text>
+  <rect x="76" y="350" width="230" height="62" rx="10" class="card"/>
+  <circle cx="94" cy="374" r="3.5" fill="#3B82F6"/>
+  <text class="lbl-sm" x="106" y="378">ddk-db-starter</text>
+  <text class="txt-xs" x="106" y="398">多数据源动态注册</text>
+  <rect x="322" y="350" width="230" height="62" rx="10" class="card"/>
+  <circle cx="340" cy="374" r="3.5" fill="#3B82F6"/>
+  <text class="lbl-sm" x="352" y="378">ddk-tracer-starter</text>
+  <text class="txt-xs" x="352" y="398">Micrometer + OTel</text>
+  <rect x="568" y="350" width="230" height="62" rx="10" class="card"/>
+  <circle cx="586" cy="374" r="3.5" fill="#3B82F6"/>
+  <text class="lbl-sm" x="598" y="378">ddk-seata-starter</text>
+  <text class="txt-xs" x="598" y="398">分布式事务</text>
+  <rect x="814" y="350" width="230" height="62" rx="10" class="card"/>
+  <circle cx="832" cy="374" r="3.5" fill="#F59E0B"/>
+  <text class="lbl-sm" x="844" y="378">ddk-cache-starter</text>
+  <text class="txt-xs" x="844" y="398">多级缓存，待重写</text>
+  <rect x="56" y="494" width="440" height="76" rx="12" class="teal"/>
+  <text class="lbl" x="80" y="526">ddk-mybatis</text>
+  <text class="txt" x="80" y="550">通用仓储实现 · 查询条件解析 · 分页适配</text>
+  <path class="edge" d="M200 444 L200 486"/>
+  <text class="edgelbl" x="212" y="476">ddk-mybatis-starter 与需要持久化的应用</text>
+  <rect x="56" y="610" width="1008" height="96" rx="12" class="violet"/>
+  <text class="lbl" x="80" y="644">ddk-core</text>
+  <text class="txt-xs" x="80" y="668">不依赖任何持久层框架</text>
+  <rect x="292" y="644" width="68" height="30" rx="8" class="card"/>
+  <text class="mono-sm" x="326.0" y="664" text-anchor="middle">domain</text>
+  <rect x="372" y="644" width="100" height="30" rx="8" class="card"/>
+  <text class="mono-sm" x="422.0" y="664" text-anchor="middle">repository</text>
+  <rect x="484" y="644" width="52" height="30" rx="8" class="card"/>
+  <text class="mono-sm" x="510.0" y="664" text-anchor="middle">page</text>
+  <rect x="548" y="644" width="68" height="30" rx="8" class="card"/>
+  <text class="mono-sm" x="582.0" y="664" text-anchor="middle">mapper</text>
+  <rect x="628" y="644" width="84" height="30" rx="8" class="card"/>
+  <text class="mono-sm" x="670.0" y="664" text-anchor="middle">response</text>
+  <rect x="724" y="644" width="92" height="30" rx="8" class="card"/>
+  <text class="mono-sm" x="770.0" y="664" text-anchor="middle">exception</text>
+  <text class="txt-xs" x="292" y="694">com.ddk.core.domain 不得依赖任何框架，这条约束由测试强制执行</text>
+  <path class="edge" d="M200 574 L200 602"/>
+  <path class="edge" d="M900 444 L900 602"/>
+  <text class="edgelbl" x="888" y="520" text-anchor="end">其余 starter 只依赖 ddk-core</text>
+  <text class="edgelbl" x="888" y="540" text-anchor="end">不引入 MyBatis</text>
+  <text class="txt-xs" x="56" y="734">ddk-dependencies（BOM）：下游 import 后无需再写各模块版本号　·　ddk-archetypes：三层 / 四层项目骨架</text>
+  <text class="txt-xs" x="1030" y="734">待重写</text>
+  <circle cx="1016" cy="730" r="3.5" fill="#F59E0B"/>
+  <text class="txt-xs" x="964" y="734">可试用</text>
+  <circle cx="950" cy="730" r="3.5" fill="#3B82F6"/>
+  <text class="txt-xs" x="910" y="734">可用</text>
+  <circle cx="896" cy="730" r="3.5" fill="#14B8A6"/>
 
-  <rect x="70" y="400" width="240" height="104" rx="18" class="planned"/>
-  <text x="190" y="440" text-anchor="middle" class="head">ddk-archetypes</text>
-  <text x="190" y="470" text-anchor="middle" class="text">Project skeletons</text>
-
-  <rect x="870" y="400" width="260" height="104" rx="18" class="planned"/>
-  <text x="1000" y="440" text-anchor="middle" class="head">ddk-examples</text>
-  <text x="1000" y="470" text-anchor="middle" class="text">Runnable reference apps</text>
-
-  <path d="M310 215 L420 215" class="arrow"/>
-  <path d="M740 215 L870 215" class="arrow"/>
-  <path d="M580 285 L580 380" class="arrow"/>
-  <path d="M310 450 L420 450" class="soft"/>
-  <path d="M740 450 L870 450" class="soft"/>
-  <path d="M1000 270 C1000 330 730 325 650 380" class="soft"/>
-
-  <rect x="70" y="548" width="1060" height="76" rx="18" fill="#0F172A"/>
-  <text x="600" y="582" text-anchor="middle" style="font:700 16px Inter,Segoe UI,Arial,sans-serif;fill:#E2E8F0">Rule of thumb: domain depends on contracts; infrastructure implements domain ports.</text>
-  <text x="600" y="607" text-anchor="middle" style="font:700 16px Inter,Segoe UI,Arial,sans-serif;fill:#E2E8F0">Starters are the only Spring-facing modules.</text>
 </svg>

@@ -37,22 +37,41 @@ This is a personally maintained open-source project. It is useful for learning, 
 
 | Module | Capability | Status |
 |---|---|---|
-| `ddk-core` | `ApiResponse`, exceptions, pagination, mapper abstractions, repository contract | Usable, tests being expanded |
-| `ddk-mybatis` | MyBatis-Plus repository implementation, query parsing, pagination adapter | Usable, page sorting has been fixed |
-| `ddk-web-starter` | Jackson, CORS, global exception handling | Usable, global exception advice is now active |
-| `ddk-archguard-starter` | DDD layered architecture rules for ArchUnit | Usable, Domain -> Infrastructure dependency has been tightened |
+| `ddk-core` | Domain model primitives, `ApiResponse`, exceptions, pagination, mapper registry, repository contract | Usable, 67 unit tests |
+| `ddk-mybatis` | MyBatis-Plus repository implementation, query parsing, pagination adapter | Usable, 12 unit tests |
+| `ddk-web-starter` | Jackson, CORS, global exception handling | Usable |
+| `ddk-archguard-starter` | ArchUnit rules for layering and domain purity | Usable |
+| `ddk-dependencies` | BOM, so downstream projects stop writing versions | Usable |
 | `ddk-db-starter` | Dynamic multi-data-source registration | Experimental |
-| `ddk-cache-starter` | Cache starter draft | Planned rewrite |
-| `ddk-archetypes` | 3-layer / 4-layer project skeletons | To be converted into real Maven archetypes |
+| `ddk-tracer-starter` / `ddk-seata-starter` | Distributed tracing / transactions | Experimental |
+| `ddk-cache-starter` | Cache starter draft | Planned rewrite, see the [design walkthrough](https://poppycoder.netlify.app/#/docs/ddk/starters/cache-design.md) |
+| `ddk-archetypes` | The 4-layer skeleton is readable and tested; the 3-layer one is still a stub | To be converted into real Maven archetypes |
 | `ddk-examples` | Example project module | Full runnable example planned |
+
+## Domain Model
+
+<p align="center">
+    <img src="./assets/diagrams/ddk-domain-model.svg" alt="DDK domain model base classes" />
+</p>
+
+`com.ddk.core.domain` does exactly three things:
+
+- **Gives identity a type.** `Identifier` makes `UserId(1)` different from `OrderId(1)`, so swapped arguments fail at compile time
+- **Separates value equality from identity equality.** `ValueObject` (an empty interface, so a `record` can implement it) and `Entity`
+- **Gives domain events a place to be collected and published.** `AggregateRoot` registers them, `DomainEventPublisher` publishes them after commit
+
+The package depends on no framework at all — not Spring, MyBatis or Jackson. That constraint is enforced by `DomainPackagePurityTest`, not by a note in the docs.
+
+The primitives provide mechanism without dictating process, and you can adopt only the part you need.
 
 ## Recent Updates
 
-- Fixed `BaseExceptionHandler` so it is registered as a global `@RestControllerAdvice`
-- Added a default max page size to `PageQuery`
-- Fixed `PageQuery.addSort()` so sorting reaches the MyBatis-Plus query wrapper
-- Tightened `CommonArchRules` to prevent Domain from depending on Infrastructure
-- Reworked the README and roadmap to make the current state and future work explicit
+- Shipped `com.ddk.core.domain`: `Identifier`, `ValueObject`, `Entity`, `AggregateRoot`, `DomainEvent`, `Specification`
+- `MapperProvider` now keys mappers by fully qualified name, fixing silent overwrites between same-named classes in different packages
+- A missing mapper now throws `MissingMapperException` instead of falling back to `DefaultMapper`, which mapped everything to an empty object
+- `GenericRepository<ID, E>` became `<E, ID>`, matching its javadoc and Spring Data conventions (breaking change)
+- The 4-layer archetype was rewritten from a broken anemic sample into a readable, tested one
+- ArchGuard gained domain purity rules; the test count went from 14 to 96
 
 ## Module Layout
 
@@ -62,8 +81,8 @@ This is a personally maintained open-source project. It is useful for learning, 
 
 ```text
 domain-driven-kit
-├── ddk-dependencies      Dependency management module, planned as a real BOM
-├── ddk-core              Core abstractions: exception, response, pagination, mapper, repository contract
+├── ddk-dependencies      BOM, so downstream projects stop writing versions
+├── ddk-core              Core abstractions: domain model, exception, response, pagination, mapper, repository contract
 ├── ddk-mybatis           MyBatis-Plus repository implementation and query adapters
 ├── ddk-starters          Spring Boot starter modules
 │   ├── ddk-web-starter
@@ -76,6 +95,18 @@ domain-driven-kit
 │   └── ddk-archguard-starter
 ├── ddk-archetypes        3-layer / 4-layer project skeletons
 └── ddk-examples          Example applications
+```
+
+Inside `ddk-core`:
+
+```text
+com.ddk.core
+├── domain        Domain model primitives, zero framework dependencies
+├── repository    The GenericRepository contract
+├── page          PageQuery / PageResponse / Sort
+├── mapper        MapperProvider and @EnhancedMapper
+├── response      ApiResponse
+└── exception     ErrorCode and the exception hierarchy
 ```
 
 ## Quick Start
@@ -95,28 +126,36 @@ mvn -B -ntp verify
 mvn -B install
 ```
 
-Use in another project:
+Use in another project. Import the BOM first, then drop the versions:
 
 ```xml
-<properties>
-    <ddk.version>1.0.0-SNAPSHOT</ddk.version>
-</properties>
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>com.ddk</groupId>
+            <artifactId>ddk-dependencies</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
 
 <dependencies>
     <dependency>
         <groupId>com.ddk</groupId>
-        <artifactId>ddk-core</artifactId>
-        <version>${ddk.version}</version>
-    </dependency>
-    <dependency>
-        <groupId>com.ddk</groupId>
-        <artifactId>ddk-mybatis</artifactId>
-        <version>${ddk.version}</version>
-    </dependency>
-    <dependency>
-        <groupId>com.ddk</groupId>
         <artifactId>ddk-web-starter</artifactId>
-        <version>${ddk.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>com.ddk</groupId>
+        <artifactId>ddk-mybatis-starter</artifactId>
+    </dependency>
+
+    <!-- Architecture rules belong on the test classpath only -->
+    <dependency>
+        <groupId>com.ddk</groupId>
+        <artifactId>ddk-archguard-starter</artifactId>
+        <scope>test</scope>
     </dependency>
 </dependencies>
 ```
@@ -129,11 +168,6 @@ See the full guide: [Quick Start](https://poppycoder.netlify.app/#/docs/ddk/quic
     <img src="./assets/diagrams/ddk-layer-flow.svg" alt="DDK four-layer request flow" />
 </p>
 
-```text
-adapter          -> application -> domain
-infrastructure  --------------------^
-```
-
 Core constraints:
 
 - `adapter` adapts external protocols and should not contain business rules
@@ -141,7 +175,28 @@ Core constraints:
 - `domain` owns business rules and should not depend on Spring, MyBatis, Jackson or other frameworks
 - `infrastructure` implements repository and external dependency contracts defined by the domain layer
 
-`ddk-archguard-starter` provides ArchUnit rules to make these boundaries executable in tests.
+Written in a document these are suggestions; written as a test they are constraints:
+
+```java
+class ArchitectureTest {
+
+    private final JavaClasses classes = new ClassFileImporter()
+            .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+            .importPackages("com.example.myapp");
+
+    @Test
+    void layered_architecture_is_respected() {
+        CommonArchRules.LAYERED_ARCHITECTURE_RULE.check(classes);
+    }
+
+    @Test
+    void domain_stays_framework_free() {
+        CommonArchRules.DOMAIN_MUST_NOT_DEPEND_ON_FRAMEWORKS.check(classes);
+    }
+}
+```
+
+A violation fails the build. See `ddk-archetypes/ddk-layer4-archetype` for a working example.
 
 ## Roadmap
 
@@ -151,11 +206,11 @@ Core constraints:
 
 Short-term priorities:
 
-1. Add focused tests for `ddk-core` and `ddk-mybatis`
-2. Turn `ddk-dependencies` into a real BOM
-3. Implement domain model primitives: `Entity`, `ValueObject`, `AggregateRoot`, `DomainEvent`
-4. Normalize starter configuration prefixes, metadata and auto-configuration tests
-5. Add a complete runnable `ddk-examples` application
+1. Normalize starter configuration prefixes, metadata and auto-configuration tests
+2. Rewrite `ddk-cache-starter` following the [design walkthrough](https://poppycoder.netlify.app/#/docs/ddk/starters/cache-design.md)
+3. Turn `ddk-archetypes` into real Maven archetypes
+4. Add a complete runnable `ddk-examples` application
+5. Add H2-backed integration tests for `ddk-mybatis`
 
 See [ROADMAP.md](./ROADMAP.md) for the full plan.
 
@@ -163,6 +218,7 @@ See [ROADMAP.md](./ROADMAP.md) for the full plan.
 
 - [DDK documentation](https://poppycoder.netlify.app/#/docs/ddk/index.md)
 - [Quick Start](https://poppycoder.netlify.app/#/docs/ddk/quickstart.md)
+- [Domain Model Primitives](https://poppycoder.netlify.app/#/docs/ddk/core/domain-model.md)
 - [Layering and Architecture Guard](https://poppycoder.netlify.app/#/docs/ddk/conventions.md)
 - [Development and Refactoring Plan](https://poppycoder.netlify.app/#/docs/ddk/contributing.md)
 
