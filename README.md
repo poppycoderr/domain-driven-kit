@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="./logo.png" alt="ddk logo" width="220" />
+    <img src="./assets/brand/logo.svg" alt="Domain Driven Kit" width="140" />
 </p>
 
 <h1 align="center">Domain Driven Kit</h1>
