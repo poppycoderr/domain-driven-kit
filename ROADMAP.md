@@ -69,10 +69,11 @@ Goal: make every starter predictable in production projects.
 - [x] Contribute Jackson defaults through a builder customizer instead of replacing the `ObjectMapper` bean
 - [x] Stop the catch-all exception handler from turning 405/415 responses into 500s
 - [x] Add tests for the Web and MyBatis starters
-- [ ] Give Redis, Cache, DB, Tracer and Seata a dedicated `ddk.*` prefix
-- [ ] Restrict polymorphic deserialization in `ddk-redis-starter`
+- [x] Give Redis a dedicated `ddk.*` prefix
+- [ ] Give Cache, DB, Tracer and Seata a dedicated `ddk.*` prefix
+- [x] Restrict polymorphic deserialization in `ddk-redis-starter`
 - [ ] Rewrite `ddk-cache-starter` around a real multi-level cache design
-- [ ] Add `ApplicationContextRunner` tests for the Redis starter
+- [x] Add `ApplicationContextRunner` tests for the Redis starter
 
 ## Phase 5 - Archetypes and Examples
 
