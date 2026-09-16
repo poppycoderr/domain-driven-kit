@@ -3,6 +3,7 @@ package com.ddk.redis.starter.config;
 import com.ddk.redis.starter.serializer.RedisJsonMapper;
 import com.ddk.redis.starter.util.RedisUtil;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -35,18 +36,29 @@ import java.util.List;
 @EnableConfigurationProperties(DdkRedisProperties.class)
 public class DdkRedisAutoConfiguration {
 
+    public static final String VALUE_SERIALIZER_BEAN_NAME = "ddkRedisValueSerializer";
+
+    /**
+     * value 序列化器，带类型白名单。
+     * <p>
+     * 单独注册成 Bean，让同样要往 Redis 存任意对象的组件（例如 {@code ddk-cache-starter} 的二级缓存）
+     * 复用同一套白名单，而不是各自再配一份、各自出一个漏洞。
+     */
     @Bean
-    @ConditionalOnMissingBean(name = "redisTemplate")
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory,
-                                                       DdkRedisProperties properties,
-                                                       BeanFactory beanFactory) {
+    @ConditionalOnMissingBean(name = VALUE_SERIALIZER_BEAN_NAME)
+    public RedisSerializer<Object> ddkRedisValueSerializer(DdkRedisProperties properties, BeanFactory beanFactory) {
         List<String> trusted = new ArrayList<>(properties.getTrustedPackages());
         if (AutoConfigurationPackages.has(beanFactory)) {
             trusted.addAll(AutoConfigurationPackages.get(beanFactory));
         }
-        RedisSerializer<Object> valueSerializer =
-                new GenericJackson2JsonRedisSerializer(RedisJsonMapper.create(trusted));
+        return new GenericJackson2JsonRedisSerializer(RedisJsonMapper.create(trusted));
+    }
 
+    @Bean
+    @ConditionalOnMissingBean(name = "redisTemplate")
+    public RedisTemplate<String, Object> redisTemplate(
+            RedisConnectionFactory connectionFactory,
+            @Qualifier(VALUE_SERIALIZER_BEAN_NAME) RedisSerializer<Object> valueSerializer) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
         template.setKeySerializer(RedisSerializer.string());
