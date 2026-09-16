@@ -37,14 +37,17 @@ This is a personally maintained open-source project. It is useful for learning, 
 
 | Module | Capability | Status |
 |---|---|---|
-| `ddk-core` | Domain model primitives, `ApiResponse`, exceptions, pagination, mapper registry, repository contract | Usable, 67 unit tests |
-| `ddk-mybatis` | MyBatis-Plus repository implementation, query parsing, pagination adapter | Usable, 12 unit tests |
-| `ddk-web-starter` | Jackson, CORS, global exception handling | Usable |
+| `ddk-core` | Domain model primitives, `ApiResponse`, exceptions, pagination, mapper registry, repository contract | Usable |
+| `ddk-mybatis` | MyBatis-Plus repository implementation, query parsing, pagination, optimistic locking, domain event publishing | Usable, with H2 integration tests |
+| `ddk-web-starter` | Jackson, CORS, global exception handling, configurable under `ddk.web.*` | Usable |
+| `ddk-mybatis-starter` | Pagination, optimistic locking, full-table update/delete guard, snowflake IDs, configurable under `ddk.mybatis.*` | Usable |
+| `ddk-event-starter` | Spring-backed domain event publisher | Usable |
+| `ddk-redis-starter` | JSON `RedisTemplate` with a deserialization type allow-list | Usable |
+| `ddk-cache-starter` | Caffeine (L1) + Redis (L2) two-level cache with cross-instance invalidation and Redis failure fallback | Usable, with Redis integration tests |
 | `ddk-archguard-starter` | ArchUnit rules for layering and domain purity | Usable |
 | `ddk-dependencies` | BOM, so downstream projects stop writing versions | Usable |
 | `ddk-db-starter` | Dynamic multi-data-source registration | Experimental |
 | `ddk-tracer-starter` / `ddk-seata-starter` | Distributed tracing / transactions | Experimental |
-| `ddk-cache-starter` | Cache starter draft | Planned rewrite, see the [design walkthrough](https://poppycoder.netlify.app/#/docs/ddk/starters/cache-design.md) |
 | `ddk-archetypes` | The 4-layer skeleton is readable and tested; the 3-layer one is still a stub | To be converted into real Maven archetypes |
 | `ddk-examples` | Example project module | Full runnable example planned |
 
@@ -207,11 +210,10 @@ A violation fails the build. See `ddk-archetypes/ddk-layer4-archetype` for a wor
 
 Short-term priorities:
 
-1. Normalize starter configuration prefixes, metadata and auto-configuration tests
-2. Rewrite `ddk-cache-starter` following the [design walkthrough](https://poppycoder.netlify.app/#/docs/ddk/starters/cache-design.md)
-3. Turn `ddk-archetypes` into real Maven archetypes
-4. Add a complete runnable `ddk-examples` application
-5. Add H2-backed integration tests for `ddk-mybatis`
+1. Turn `ddk-archetypes` into real Maven archetypes and complete the 3-layer skeleton
+2. Add a complete runnable `ddk-examples` application
+3. Give the DB, Tracer and Seata starters a `ddk.*` prefix and auto-configuration tests
+4. Add Spotless and JaCoCo coverage thresholds
 
 See [ROADMAP.md](./ROADMAP.md) for the full plan.
 
