@@ -35,6 +35,8 @@ class DdkRedisAutoConfigurationTest {
             assertThat(context).hasSingleBean(StringRedisTemplate.class);
             RedisTemplate<?, ?> template = context.getBean("redisTemplate", RedisTemplate.class);
             assertThat(template.getKeySerializer()).isEqualTo(RedisSerializer.string());
+            assertThat(template.getValueSerializer())
+                    .isSameAs(context.getBean(DdkRedisAutoConfiguration.VALUE_SERIALIZER_BEAN_NAME));
         });
     }
 
