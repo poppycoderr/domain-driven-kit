@@ -25,6 +25,11 @@
             <artifactId>ddk-mybatis-starter</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.ddk</groupId>
+            <artifactId>ddk-event-starter</artifactId>
+        </dependency>
+
         <!--
             架构守卫以 test 作用域引入：ArchUnit 只落在测试类路径上，
             不会进生产包。分层规则由 ArchitectureTest 在每次构建时执行。
