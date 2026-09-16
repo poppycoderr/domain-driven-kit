@@ -27,3 +27,6 @@ hs_err_pid*
 replay_pid*
 .idea/
 target/
+
+# Agent working docs (visualizations, review notes)
+.agentdocs/
