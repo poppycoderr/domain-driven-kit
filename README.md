@@ -37,14 +37,17 @@
 
 | 模块 | 当前能力 | 状态 |
 |---|---|---|
-| `ddk-core` | 领域模型基类、`ApiResponse`、异常体系、分页对象、Mapper 注册表、仓储契约 | 可用，67 个单测 |
-| `ddk-mybatis` | MyBatis-Plus 通用仓储、查询条件解析、分页适配 | 可用，12 个单测 |
-| `ddk-web-starter` | Jackson、CORS、全局异常处理 | 可用 |
+| `ddk-core` | 领域模型基类、`ApiResponse`、异常体系、分页对象、Mapper 注册表、仓储契约 | 可用 |
+| `ddk-mybatis` | MyBatis-Plus 通用仓储、查询条件解析、分页适配、乐观锁、领域事件发布 | 可用，含 H2 集成测试 |
+| `ddk-web-starter` | Jackson、CORS、全局异常处理，`ddk.web.*` 可配 | 可用 |
+| `ddk-mybatis-starter` | 分页、乐观锁、防全表更新删除、雪花 ID，`ddk.mybatis.*` 可配 | 可用 |
+| `ddk-event-starter` | 领域事件的 Spring 发布实现 | 可用 |
+| `ddk-redis-starter` | 带类型白名单的 JSON `RedisTemplate` | 可用 |
+| `ddk-cache-starter` | Caffeine（L1）+ Redis（L2）两级缓存，跨实例失效广播，Redis 故障降级 | 可用，含 Redis 集成测试 |
 | `ddk-archguard-starter` | DDD 分层与领域层纯度的 ArchUnit 规则 | 可用 |
 | `ddk-dependencies` | BOM，下游 import 后无需再写版本号 | 可用 |
 | `ddk-db-starter` | 多数据源动态注册 | 可试用 |
 | `ddk-tracer-starter` / `ddk-seata-starter` | 链路追踪 / 分布式事务 | 可试用 |
-| `ddk-cache-starter` | 缓存 starter 草案 | 待重写，见[设计推演](https://poppycoder.netlify.app/#/docs/ddk/starters/cache-design.md) |
 | `ddk-archetypes` | 四层骨架已可读可测，三层骨架仍是空壳 | 待改造成真正 Maven archetype |
 | `ddk-examples` | 示例工程入口 | 待补完整可运行示例 |
 
@@ -207,11 +210,10 @@ class ArchitectureTest {
 
 短期优先级：
 
-1. 规范化 starter 的配置前缀、配置元数据与装配测试
-2. 按[设计推演](https://poppycoder.netlify.app/#/docs/ddk/starters/cache-design.md)重写 `ddk-cache-starter`
-3. 把 `ddk-archetypes` 改造成真正的 Maven archetype
-4. 补一个完整可运行的 `ddk-examples` 示例
-5. 给 `ddk-mybatis` 补 H2 集成测试
+1. 把 `ddk-archetypes` 改造成真正的 Maven archetype，补齐三层骨架
+2. 补一个完整可运行的 `ddk-examples` 示例
+3. 给 DB、Tracer、Seata starter 统一 `ddk.*` 配置前缀并补装配测试
+4. 引入 Spotless 与 JaCoCo 覆盖率门槛
 
 完整路线图见 [ROADMAP.md](./ROADMAP.md)。
 
