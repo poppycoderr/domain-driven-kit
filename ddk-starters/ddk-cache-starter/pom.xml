@@ -11,12 +11,13 @@
 
     <artifactId>ddk-cache-starter</artifactId>
     <name>DDK Cache Starter</name>
-    <description>Cache auto-configuration with Caffeine and Redis</description>
+    <description>Two-level cache: Caffeine (L1) in front of Redis (L2) behind Spring Cache</description>
 
     <dependencies>
+        <!-- 二级缓存复用 redis starter 的 value 序列化器与类型白名单 -->
         <dependency>
             <groupId>com.ddk</groupId>
-            <artifactId>ddk-core</artifactId>
+            <artifactId>ddk-redis-starter</artifactId>
         </dependency>
 
         <dependency>
@@ -29,9 +30,27 @@
             <artifactId>caffeine</artifactId>
         </dependency>
 
+        <!-- 有 MeterRegistry 时输出命中率指标，没有时不影响装配 -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-redis</artifactId>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 
