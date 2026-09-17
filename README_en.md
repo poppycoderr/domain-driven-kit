@@ -232,3 +232,7 @@ Issues and PRs are welcome. The most useful contributions right now are:
 - Tests and runnable examples
 - DDD layering examples and documentation
 - Clearer trade-off analysis for existing design decisions
+
+## License
+
+[Apache License 2.0](./LICENSE). Free to use, modify and distribute, including commercially; keep the copyright and license notices, and state changes made to modified files.
