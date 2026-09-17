@@ -24,6 +24,7 @@ The first release: the DDD foundation on a Spring Boot 4.1 baseline.
 - `ddk-archguard-starter`: three- and four-layer ArchUnit rules plus domain purity rules
 - Three- and four-layer Maven archetypes, and the runnable `ddk-example-user` application
 - `scripts/ddk.sh` to install DDK locally and generate projects in one command
+- Null-safety: every package in `ddk-core`, `ddk-mybatis` and the starters is `@NullMarked` with JSpecify, and NullAway checks it at compile time
 - Quality gates in `mvn verify`: Spotless checks and per-module JaCoCo minimums (70% lines, 50% branches); CI on Java 21 and 25
 
 ### Changed
@@ -31,6 +32,7 @@ The first release: the DDD foundation on a Spring Boot 4.1 baseline.
 - Baseline is Spring Boot 4.1, Spring Framework 7 and Jackson 3
 - `ddk-web-starter` contributes Jackson defaults through `JsonMapperBuilderCustomizer` and serializes `Long` as a string
 - `ddk-tracer-starter` builds on `spring-boot-starter-opentelemetry` instead of the whole actuator
+- `Entity.id()`, `AggregateRoot.version()` and `ApiResponse` data are declared `@Nullable`; `AbstractException.getArgs()` returns an empty array instead of `null`
 - The Redis level of the two-level cache writes synchronously, because Spring Data Redis 4 writes asynchronously by default and that let stale values flow back into L1
 
 ### Removed

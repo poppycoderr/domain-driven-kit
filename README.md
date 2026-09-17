@@ -253,7 +253,7 @@ Issues and PRs are welcome. The most useful contributions right now are:
 - DDD layering examples and documentation
 - Clearer trade-off analysis for existing design decisions
 
-Run `mvn verify` before opening a PR: it checks formatting with Spotless (fix with `mvn spotless:apply`) and requires at least 70% line and 50% branch coverage per module.
+Run `mvn verify` before opening a PR: it checks formatting with Spotless (fix with `mvn spotless:apply`) and requires at least 70% line and 50% branch coverage per module. Main code is `@NullMarked`: mark anything that may be `null` with `@Nullable`, or NullAway fails the compile.
 
 ## Built With
 

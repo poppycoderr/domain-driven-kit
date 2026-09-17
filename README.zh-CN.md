@@ -253,7 +253,7 @@ com.ddk.core
 - 改进 DDD 分层示例和文档
 - 对已有设计提出更清晰的工程取舍
 
-提交前请运行 `mvn verify`：它会检查格式（Spotless，可用 `mvn spotless:apply` 自动修复）并要求每个模块行覆盖率不低于 70%、分支覆盖率不低于 50%。
+提交前请运行 `mvn verify`：它会检查格式（Spotless，可用 `mvn spotless:apply` 自动修复）并要求每个模块行覆盖率不低于 70%、分支覆盖率不低于 50%。主代码处于 `@NullMarked` 之下，可能为 `null` 的位置要标 `@Nullable`，否则 NullAway 会让编译失败。
 
 ## 开发工具
 
