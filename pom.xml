@@ -62,6 +62,7 @@
         <errorprone.version>2.50.0</errorprone.version>
         <nullaway.version>0.14.1</nullaway.version>
         <seata.version>2.6.0</seata.version>
+        <spring-ai.version>2.0.1</spring-ai.version>
         <maven-archetype.version>3.4.1</maven-archetype.version>
     </properties>
 
@@ -81,6 +82,15 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
                 <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Spring AI BOM：MCP server 与注解扫描 -->
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -139,6 +149,11 @@
             <dependency>
                 <groupId>com.ddk</groupId>
                 <artifactId>ddk-event-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ddk</groupId>
+                <artifactId>ddk-mcp-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
