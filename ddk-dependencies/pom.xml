@@ -108,4 +108,18 @@
         </dependencies>
     </dependencyManagement>
 
+    <!-- BOM 不继承父 pom，也没有源码；声明 Spotless 只是为了让 mvn spotless:apply 在整个 reactor 上可用 -->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>2.44.5</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>
