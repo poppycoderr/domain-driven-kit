@@ -109,8 +109,12 @@ public class DdkCacheAutoConfiguration {
             }
         }
 
-        // SCAN 代替 KEYS 清空缓存，避免大 key 空间下阻塞 Redis
-        RedisCacheWriter writer = RedisCacheWriter.nonLockingRedisCacheWriter(factory, BatchStrategies.scan(1000));
+        // SCAN 代替 KEYS 清空缓存，避免大 key 空间下阻塞 Redis。
+        // Spring Data Redis 4 在 Lettuce 下默认异步写：evict 返回时 L2 可能还没删，
+        // 其他实例收到失效广播后会把旧值重新读回 L1，所以两级缓存必须同步写。
+        RedisCacheWriter writer = RedisCacheWriter.create(factory, writerConfig -> writerConfig
+                .batchStrategy(BatchStrategies.scan(1000))
+                .immediateWrites());
         RedisCacheManager redis = RedisCacheManager.builder(writer)
                 .cacheDefaults(base.entryTtl(ttl(properties, properties.getDefaultTtl())))
                 .withInitialCacheConfigurations(perCache)
