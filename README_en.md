@@ -11,7 +11,7 @@
 <p align="center">
     <a href="README.md">中文</a> ·
     <a href="https://poppycoder.netlify.app/ddk/">Documentation</a> ·
-    <a href="./ROADMAP.md">Roadmap</a>
+    <a href="./ROADMAP_en.md">Roadmap</a>
 </p>
 
 ---
@@ -209,12 +209,15 @@ A violation fails the build. See [`ddk-examples/ddk-example-user`](./ddk-example
     <img src="./assets/diagrams/ddk-roadmap.svg" alt="DDK roadmap" />
 </p>
 
-Short-term priorities:
+The foundation (domain model, repositories, nine starters, archetypes and examples) is complete. Next milestones:
 
-1. Add Spotless and JaCoCo coverage thresholds
-2. Stabilize package names and public contracts ahead of a release
+1. **v0.1 Modern baseline and first release**: Spring Boot 4.1 / Jackson 3, published to Maven Central
+2. **v0.2 AI collaboration**: generated projects ship `AGENTS.md` and Skills, ArchGuard reports violations agents can act on, an MCP starter on Spring AI
+3. **v0.3 Reliable domain events**: transactional outbox, RocketMQ / Kafka delivery, idempotent consumers
+4. **v0.4 Middleware integrations**: Redisson aggregate locks, XXL-Job, Flyway, springdoc, Elasticsearch read models
+5. **v1.0 Production ready**: the `ddk-mall` reference application, native images, a frozen public API
 
-See [ROADMAP.md](./ROADMAP.md) for the full plan.
+See [ROADMAP_en.md](./ROADMAP_en.md) for the full plan.
 
 ## Documentation
 
