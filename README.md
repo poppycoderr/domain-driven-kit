@@ -49,8 +49,8 @@
 | `ddk-db-starter` | 按名字注册多数据源，连接池参数可配，主数据源启动期校验 | 可用 |
 | `ddk-tracer-starter` | 链路追踪，traceId 写入响应头 | 可用 |
 | `ddk-seata-starter` | 分布式事务，出站 HTTP 调用传播 XID | 可用 |
-| `ddk-archetypes` | 四层骨架已可读可测，三层骨架仍是空壳 | 待改造成真正 Maven archetype |
-| `ddk-examples` | 示例工程入口 | 待补完整可运行示例 |
+| `ddk-archetypes` | 三层 / 四层 Maven archetype，生成即带架构守卫测试 | 可用，含生成项目的集成测试 |
+| `ddk-examples` | 可运行的四层用户注册示例，H2 + 种子数据 + 冒烟命令 | 可用 |
 
 ## 领域模型
 
@@ -211,9 +211,8 @@ class ArchitectureTest {
 
 短期优先级：
 
-1. 把 `ddk-archetypes` 改造成真正的 Maven archetype，补齐三层骨架
-2. 补一个完整可运行的 `ddk-examples` 示例
-3. 引入 Spotless 与 JaCoCo 覆盖率门槛
+1. 引入 Spotless 与 JaCoCo 覆盖率门槛
+2. 稳定包名与公开契约，为发布做准备
 
 完整路线图见 [ROADMAP.md](./ROADMAP.md)。
 
