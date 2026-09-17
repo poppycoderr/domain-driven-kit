@@ -233,6 +233,11 @@ class ArchitectureTest {
 - 改进 DDD 分层示例和文档
 - 对已有设计提出更清晰的工程取舍
 
+## 开发工具
+
+- 代码与文档在 [Claude Code](https://claude.com/claude-code) 和 [Codex](https://openai.com/codex) 的辅助下编写，所有改动都经过人工审阅、测试与 CI 校验后合并。
+- 文档站 [codesphere](https://poppycoder.netlify.app) 基于 [VitePress](https://vitepress.dev) 构建，早期版本使用 [docsify](https://docsify.js.org)。
+
 ## 许可证
 
 [Apache License 2.0](./LICENSE)。可以自由使用、修改和分发，包括商业用途；分发时保留版权与许可声明，修改过的文件需注明改动。

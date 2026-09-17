@@ -233,6 +233,11 @@ Issues and PRs are welcome. The most useful contributions right now are:
 - DDD layering examples and documentation
 - Clearer trade-off analysis for existing design decisions
 
+## Tooling
+
+- Code and docs are written with the help of [Claude Code](https://claude.com/claude-code) and [Codex](https://openai.com/codex); every change is reviewed, tested and passes CI before it is merged.
+- The documentation site [codesphere](https://poppycoder.netlify.app) is built with [VitePress](https://vitepress.dev); earlier versions used [docsify](https://docsify.js.org).
+
 ## License
 
 [Apache License 2.0](./LICENSE). Free to use, modify and distribute, including commercially; keep the copyright and license notices, and state changes made to modified files.
