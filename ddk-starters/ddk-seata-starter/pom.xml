@@ -13,10 +13,6 @@
     <name>DDK Seata Starter</name>
     <description>Distributed transaction management with Seata</description>
 
-    <properties>
-        <seata.version>2.6.0</seata.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>com.ddk</groupId>
@@ -26,7 +22,6 @@
         <dependency>
             <groupId>org.apache.seata</groupId>
             <artifactId>seata-spring-boot-starter</artifactId>
-            <version>${seata.version}</version>
         </dependency>
 
         <dependency>
