@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -51,10 +51,10 @@ class GenericRepositoryIntegrationTest {
     @ImportAutoConfiguration({
             DataSourceAutoConfiguration.class,
             com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration.class,
-            org.springframework.boot.autoconfigure.sql.init.SqlInitializationAutoConfiguration.class,
-            org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration.class,
-            org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration.class,
-            org.springframework.boot.autoconfigure.jdbc.JdbcTemplateAutoConfiguration.class,
+            org.springframework.boot.jdbc.autoconfigure.DataSourceInitializationAutoConfiguration.class,
+            org.springframework.boot.transaction.autoconfigure.TransactionAutoConfiguration.class,
+            org.springframework.boot.jdbc.autoconfigure.DataSourceTransactionManagerAutoConfiguration.class,
+            org.springframework.boot.jdbc.autoconfigure.JdbcTemplateAutoConfiguration.class,
     })
     static class TestApp {
 
