@@ -14,6 +14,12 @@
     <description>Core abstractions for DDK - exception, response, pagination, mapping (no persistence dependency)</description>
 
     <dependencies>
+        <!-- 空安全注解：包级 @NullMarked，可能为 null 的位置显式标 @Nullable，由 NullAway 在编译期检查 -->
+        <dependency>
+            <groupId>org.jspecify</groupId>
+            <artifactId>jspecify</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>

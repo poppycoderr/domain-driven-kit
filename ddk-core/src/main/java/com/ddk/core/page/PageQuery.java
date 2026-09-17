@@ -2,6 +2,7 @@ package com.ddk.core.page;
 
 import jakarta.validation.constraints.Min;
 import lombok.Data;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +24,7 @@ public class PageQuery {
     @Min(value = 1, message = "每页数量不能小于1")
     private Long pageSize = 10L;
 
-    private List<Sort> sorts;
+    private @Nullable List<Sort> sorts;
 
     public PageQuery addSort(String field, String order) {
         if (sorts == null) {
@@ -33,7 +34,7 @@ public class PageQuery {
         return this;
     }
 
-    public void setPageSize(Long pageSize) {
+    public void setPageSize(@Nullable Long pageSize) {
         if (pageSize == null) {
             this.pageSize = 10L;
             return;

@@ -1,5 +1,7 @@
 package com.ddk.core.domain;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -65,7 +67,7 @@ public abstract class AggregateRoot<ID extends Identifier<?>> extends Entity<ID>
      * 放在聚合根而不是 {@link Entity} 上：并发控制的单位是聚合，不是聚合内的单个实体。
      * 由基础设施层映射到 PO 的版本列（MyBatis-Plus 的 {@code @Version}）。
      */
-    private Long version;
+    private @Nullable Long version;
 
     protected AggregateRoot() {
         super();
@@ -122,14 +124,14 @@ public abstract class AggregateRoot<ID extends Identifier<?>> extends Entity<ID>
         domainEvents.clear();
     }
 
-    public Long version() {
+    public @Nullable Long version() {
         return version;
     }
 
     /**
      * 由基础设施层在加载聚合时回填版本号。
      */
-    protected void assignVersion(Long version) {
+    protected void assignVersion(@Nullable Long version) {
         this.version = version;
     }
 }

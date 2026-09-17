@@ -1,5 +1,9 @@
 package com.ddk.core.domain;
 
+import org.jspecify.annotations.Nullable;
+
+import java.util.Objects;
+
 /**
  * 实体基类：按身份相等。
  * <p>
@@ -19,7 +23,7 @@ public abstract class Entity<ID extends Identifier<?>> {
      * 强制 final 会导致必须提前生成 ID，那是另一种设计取向（UUID / 雪花），
      * 这里不替使用者做这个决定。
      */
-    protected ID id;
+    protected @Nullable ID id;
 
     protected Entity() {
     }
@@ -28,7 +32,7 @@ public abstract class Entity<ID extends Identifier<?>> {
         this.id = id;
     }
 
-    public ID id() {
+    public @Nullable ID id() {
         return id;
     }
 
@@ -62,7 +66,7 @@ public abstract class Entity<ID extends Identifier<?>> {
      * 标识为 null 时退化为引用相等：两个都没落库的实体不应该被判定为同一个。
      */
     @Override
-    public final boolean equals(Object o) {
+    public final boolean equals(@Nullable Object o) {
         if (this == o) {
             return true;
         }
@@ -70,7 +74,7 @@ public abstract class Entity<ID extends Identifier<?>> {
             return false;
         }
         Entity<?> other = (Entity<?>) o;
-        return id != null && id.equals(other.id);
+        return id != null && Objects.equals(id, other.id);
     }
 
     /**

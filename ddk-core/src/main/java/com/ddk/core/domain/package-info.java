@@ -9,10 +9,14 @@
  * <b>硬约束：本包不得依赖 Spring、MyBatis、Jackson 或任何框架。</b>
  * 领域模型必须能在没有容器的情况下被单元测试，这条由
  * {@code CommonArchRules.DOMAIN_MUST_NOT_DEPEND_ON_FRAMEWORKS} 强制执行。
+ * JSpecify 只是空安全注解，不属于框架依赖。
  * <p>
  * 基类只提供机制、不强制流程，也不要求整套接受——只想用
  * {@code ValueObject} 就只用它。
  *
  * @author Elijah Du
  */
+@NullMarked
 package com.ddk.core.domain;
+
+import org.jspecify.annotations.NullMarked;

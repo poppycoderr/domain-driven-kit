@@ -55,12 +55,12 @@ class DomainPackagePurityTest {
     }
 
     @Test
-    @DisplayName("只依赖 JDK 与自身")
+    @DisplayName("只依赖 JDK、JSpecify 空安全注解与自身")
     void dependsOnlyOnJdkAndItself() {
         classes()
                 .should().onlyDependOnClassesThat()
-                .resideInAnyPackage("com.ddk.core.domain..", "java..")
-                .because("领域基类不引入任何第三方依赖，下游可以放心继承")
+                .resideInAnyPackage("com.ddk.core.domain..", "java..", "org.jspecify.annotations..")
+                .because("领域基类不引入任何第三方运行时依赖，下游可以放心继承；JSpecify 只有注解，不带任何行为")
                 .check(domainClasses);
     }
 }

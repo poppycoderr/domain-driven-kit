@@ -1,5 +1,7 @@
 package com.ddk.core.domain;
 
+import org.jspecify.annotations.Nullable;
+
 import java.io.Serializable;
 
 /**
@@ -65,7 +67,7 @@ public abstract class Identifier<T extends Serializable> implements ValueObject,
      * 否则 {@code UserId.of(1L).equals(OrderId.of(1L))} 会返回 true，类型化标识就白做了。
      */
     @Override
-    public final boolean equals(Object o) {
+    public final boolean equals(@Nullable Object o) {
         if (this == o) {
             return true;
         }
