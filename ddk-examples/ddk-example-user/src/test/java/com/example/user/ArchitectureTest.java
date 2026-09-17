@@ -27,4 +27,9 @@ class ArchitectureTest {
     void domainDoesNotDependOnOuterLayers() {
         CommonArchRules.DOMAIN_MUST_NOT_DEPEND_ON_OUTER_LAYERS.check(classes);
     }
+
+    @Test
+    void ddkInternalsAreNotUsed() {
+        CommonArchRules.DDK_INTERNALS_MUST_NOT_BE_USED.check(classes);
+    }
 }
