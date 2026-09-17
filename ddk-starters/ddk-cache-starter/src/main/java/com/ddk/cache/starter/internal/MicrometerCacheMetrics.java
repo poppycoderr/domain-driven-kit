@@ -1,5 +1,6 @@
-package com.ddk.cache.starter.metrics;
+package com.ddk.cache.starter.internal;
 
+import com.ddk.cache.starter.metrics.CacheMetrics;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.jspecify.annotations.Nullable;

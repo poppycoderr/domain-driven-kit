@@ -1,4 +1,4 @@
-package com.ddk.cache.starter.invalidation;
+package com.ddk.cache.starter.internal;
 
 import org.jspecify.annotations.Nullable;
 

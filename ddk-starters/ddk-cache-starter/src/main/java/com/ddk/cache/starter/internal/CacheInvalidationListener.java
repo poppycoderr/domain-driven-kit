@@ -1,4 +1,4 @@
-package com.ddk.cache.starter.invalidation;
+package com.ddk.cache.starter.internal;
 
 import com.ddk.cache.starter.support.DdkCacheManager;
 import lombok.extern.slf4j.Slf4j;

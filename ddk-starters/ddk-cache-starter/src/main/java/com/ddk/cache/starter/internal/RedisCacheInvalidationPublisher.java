@@ -1,5 +1,6 @@
-package com.ddk.cache.starter.invalidation;
+package com.ddk.cache.starter.internal;
 
+import com.ddk.cache.starter.invalidation.CacheInvalidationPublisher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import tools.jackson.core.JacksonException;

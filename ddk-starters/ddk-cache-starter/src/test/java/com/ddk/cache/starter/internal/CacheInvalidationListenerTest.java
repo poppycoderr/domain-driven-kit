@@ -1,6 +1,7 @@
-package com.ddk.cache.starter.invalidation;
+package com.ddk.cache.starter.internal;
 
 import com.ddk.cache.starter.config.DdkCacheProperties;
+import com.ddk.cache.starter.invalidation.CacheInvalidationPublisher;
 import com.ddk.cache.starter.metrics.CacheMetrics;
 import com.ddk.cache.starter.support.DdkCacheManager;
 import com.ddk.cache.starter.support.TwoLevelCache;

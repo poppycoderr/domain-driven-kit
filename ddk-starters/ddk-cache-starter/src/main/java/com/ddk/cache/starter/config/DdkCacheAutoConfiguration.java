@@ -1,12 +1,12 @@
 package com.ddk.cache.starter.config;
 
-import com.ddk.cache.starter.invalidation.CacheInvalidationListener;
+import com.ddk.cache.starter.internal.CacheInvalidationListener;
+import com.ddk.cache.starter.internal.JitteredTtlFunction;
+import com.ddk.cache.starter.internal.MicrometerCacheMetrics;
+import com.ddk.cache.starter.internal.RedisCacheInvalidationPublisher;
 import com.ddk.cache.starter.invalidation.CacheInvalidationPublisher;
-import com.ddk.cache.starter.invalidation.RedisCacheInvalidationPublisher;
 import com.ddk.cache.starter.metrics.CacheMetrics;
-import com.ddk.cache.starter.metrics.MicrometerCacheMetrics;
 import com.ddk.cache.starter.support.DdkCacheManager;
-import com.ddk.cache.starter.support.JitteredTtlFunction;
 import com.ddk.redis.starter.config.DdkRedisAutoConfiguration;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.micrometer.core.instrument.MeterRegistry;
