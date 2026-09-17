@@ -40,6 +40,22 @@ curl -s -X POST localhost:8080/users -H 'Content-Type: application/json' \
   -d '{"username":"alice","password":"password123","gender":1,"phoneNumber":"13900139002"}'
 ```
 
+## 通过 MCP 调用
+
+示例同时引入了 `ddk-mcp-starter`，把注册、查询、禁用三个用例暴露为 MCP 工具，端点是 `http://localhost:8080/mcp`（streamable HTTP）。在 Claude Code 里接入：
+
+```bash
+claude mcp add --transport http ddk-example-user http://localhost:8080/mcp
+```
+
+| 工具 | 对应用例 |
+|---|---|
+| `register_user` | `UserService.register` |
+| `get_user` | `UserService.get` |
+| `disable_user` | `UserService.disable` |
+
+`adapter.mcp.UserMcpTools` 与 `UserController` 同属适配层：参数带 Bean Validation 注解，只调用应用服务。用户名重复时工具返回 `USERNAME_TAKEN: ...`，参数不合法时返回 `VALIDATION_ERROR: username: ...`，模型可以据此调整后重试。端到端行为由 `UserMcpToolsTest` 通过 MCP 客户端验证。
+
 ## 请求如何穿过四层
 
 ```text

@@ -20,6 +20,7 @@ class ArchitectureTest {
                 CommonArchRules.LAYERED_ARCHITECTURE_RULE,
                 CommonArchRules.DOMAIN_MUST_NOT_DEPEND_ON_FRAMEWORKS,
                 CommonArchRules.DOMAIN_MUST_NOT_DEPEND_ON_OUTER_LAYERS,
-                CommonArchRules.DDK_INTERNALS_MUST_NOT_BE_USED);
+                CommonArchRules.DDK_INTERNALS_MUST_NOT_BE_USED,
+                CommonArchRules.MCP_TOOLS_MUST_RESIDE_IN_ADAPTER);
     }
 }
