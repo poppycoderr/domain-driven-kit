@@ -4,6 +4,7 @@ import com.ddk.web.handler.BaseExceptionHandler;
 import com.ddk.web.properties.DdkWebProperties;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -45,14 +46,18 @@ public class WebAutoConfiguration {
      */
     @Bean
     @ConditionalOnProperty(prefix = DdkWebProperties.PREFIX, name = "jackson", matchIfMissing = true)
-    public Jackson2ObjectMapperBuilderCustomizer ddkJacksonCustomizer() {
-        return builder -> builder
-                .modules(new JavaTimeModule())
-                // 时间序列化成 ISO-8601 字符串，而不是时间戳数组
-                .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                // 请求体里多出来的字段忽略掉，而不是直接 400——
-                // 否则前端加一个字段就会打挂后端
-                .featuresToDisable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+    public Jackson2ObjectMapperBuilderCustomizer ddkJacksonCustomizer(DdkWebProperties properties) {
+        return builder -> {
+            builder.modules(new JavaTimeModule())
+                    // 时间序列化成 ISO-8601 字符串，而不是时间戳数组
+                    .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                    // 请求体里多出来的字段忽略掉，而不是直接 400——否则前端加一个字段就会打挂后端
+                    .featuresToDisable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+            if (properties.isWriteLongAsString()) {
+                builder.serializerByType(Long.class, ToStringSerializer.instance)
+                        .serializerByType(Long.TYPE, ToStringSerializer.instance);
+            }
+        };
     }
 
     /**
