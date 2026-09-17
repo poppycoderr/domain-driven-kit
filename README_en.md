@@ -233,6 +233,8 @@ Issues and PRs are welcome. The most useful contributions right now are:
 - DDD layering examples and documentation
 - Clearer trade-off analysis for existing design decisions
 
+Run `mvn verify` before opening a PR: it checks formatting with Spotless (fix with `mvn spotless:apply`) and requires at least 70% line and 50% branch coverage per module.
+
 ## Tooling
 
 - Code and docs are written with the help of [Claude Code](https://claude.com/claude-code) and [Codex](https://openai.com/codex); every change is reviewed, tested and passes CI before it is merged.
