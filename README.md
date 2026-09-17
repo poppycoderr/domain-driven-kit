@@ -233,6 +233,8 @@ class ArchitectureTest {
 - 改进 DDD 分层示例和文档
 - 对已有设计提出更清晰的工程取舍
 
+提交前请运行 `mvn verify`：它会检查格式（Spotless，可用 `mvn spotless:apply` 自动修复）并要求每个模块行覆盖率不低于 70%、分支覆盖率不低于 50%。
+
 ## 开发工具
 
 - 代码与文档在 [Claude Code](https://claude.com/claude-code) 和 [Codex](https://openai.com/codex) 的辅助下编写，所有改动都经过人工审阅、测试与 CI 校验后合并。
