@@ -23,6 +23,7 @@
         <module>ddk-seata-starter</module>
         <module>ddk-archguard-starter</module>
         <module>ddk-event-starter</module>
+        <module>ddk-mcp-starter</module>
     </modules>
 
 </project>
