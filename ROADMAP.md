@@ -62,7 +62,7 @@
 
 ## v0.1 · 现代基线与首次发布
 
-**目标：别人能在 5 分钟内用上 DDK。** 没有发布到 Maven Central，其他一切都只能「看看」。
+**目标：别人能在 5 分钟内用上 DDK。** 暂不发布 Maven Central，先把「克隆 → 一条命令安装 → 生成项目」这条路径做顺。
 
 平台升级（Spring Boot 3.4 已于 2025 年 12 月结束开源维护，这是最高优先级）：
 
@@ -79,7 +79,8 @@
 - [ ] 版本号改为 `0.1.0`，写明 0.x 期间的兼容策略：次版本号可以有破坏性变更，但必须写进发布说明
 - [ ] 梳理公开包与内部包，内部实现放进 `internal` 包并由 ArchUnit 约束
 - [ ] 公开 API 的 Javadoc、`CHANGELOG.md`、GitHub Release 自动生成发布说明
-- [ ] 发布到 Maven Central（签名、sources、javadoc 包），CI 在打 tag 时自动发布
+- [ ] 打 tag 时由 CI 创建 GitHub Release：发布说明、源码包与各模块 jar
+- [ ] 提供一条命令完成本地安装与项目生成的脚本，README 快速开始按这条路径编写
 
 ## v0.2 · AI 协作
 
@@ -136,6 +137,7 @@ AI 能力（基于 Spring AI 2.0）：
 - [ ] 所有 starter 提供 GraalVM 原生镜像 `RuntimeHints`，示例能构建原生镜像
 - [ ] 虚拟线程下的行为验证（锁、ThreadLocal 上下文传播）
 - [ ] 公开 API 冻结，此后遵守语义化版本
+- [ ] 发布到 Maven Central：等 star 与使用反馈明显增长后再做。届时可使用 GitHub 账号对应的 `io.github.poppycoderr` 命名空间，不依赖自有域名
 - [ ] 文档站中英双语
 
 ## 贯穿始终：好看又好用
@@ -144,7 +146,7 @@ Star 来自两件事：**第一屏就让人看懂价值**，**五分钟内真的
 
 好看：
 
-- [ ] README 首屏：一句话价值主张、徽章（CI、覆盖率、Maven Central、License）、20 秒动图演示「生成项目 → 违反分层 → 测试报错 → 修复」
+- [ ] README 首屏：一句话价值主张、徽章（CI、覆盖率、最新 Release、License）、20 秒动图演示「生成项目 → 违反分层 → 测试报错 → 修复」
 - [ ] 与 COLA、Spring Modulith、jMolecules 的对比表，讲清各自适合的场景，而不是贬低别人
 - [ ] 仓库社交预览图、GitHub Topics（`ddd`、`spring-boot`、`archunit`、`mybatis-plus`、`ai-agents`）
 - [ ] 架构图保持统一视觉，并提供深色模式

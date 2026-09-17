@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 560" width="1120" height="560"
      role="img" aria-labelledby="ttl dsc" style="max-width:100%;height:auto">
   <title id="ttl">DDK 演进路线</title>
-  <desc id="dsc">基础层已完成；v0.1 升级 Spring Boot 4 并发布到 Maven Central，v0.2 AI 协作，v0.3 可靠领域事件，v0.4 中间件集成，v1.0 生产就绪；好看又好用贯穿始终。</desc>
+  <desc id="dsc">基础层已完成；v0.1 升级 Spring Boot 4 并发布首个 GitHub Release，v0.2 AI 协作，v0.3 可靠领域事件，v0.4 中间件集成，v1.0 生产就绪；好看又好用贯穿始终。</desc>
   <defs>
     <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path class="mk" d="M0 0 L10 5 L0 10 z"/>
@@ -100,7 +100,7 @@
   <circle cx="249" cy="358" r="2.5" fill="#94A3B8"/>
   <text class="txt-xs" x="259" y="362">JSpecify 空安全</text>
   <circle cx="249" cy="392" r="2.5" fill="#94A3B8"/>
-  <text class="txt-xs" x="259" y="396">发布 Maven Central</text>
+  <text class="txt-xs" x="259" y="396">首个 GitHub Release</text>
   <rect x="398" y="200" width="153" height="232" rx="12" class="card"/>
   <circle cx="474.5" cy="176" r="7" fill="#94A3B8"/>
   <circle cx="474.5" cy="176" r="11" fill="none" stroke="#94A3B8" stroke-opacity=".35" stroke-width="2"/>

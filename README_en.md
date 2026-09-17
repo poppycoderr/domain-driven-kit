@@ -211,7 +211,7 @@ A violation fails the build. See [`ddk-examples/ddk-example-user`](./ddk-example
 
 The foundation (domain model, repositories, nine starters, archetypes and examples) is complete. Next milestones:
 
-1. **v0.1 Modern baseline and first release**: Spring Boot 4.1 / Jackson 3, published to Maven Central
+1. **v0.1 Modern baseline and first release**: Spring Boot 4.1 / Jackson 3 and the first GitHub Release
 2. **v0.2 AI collaboration**: generated projects ship `AGENTS.md` and Skills, ArchGuard reports violations agents can act on, an MCP starter on Spring AI
 3. **v0.3 Reliable domain events**: transactional outbox, RocketMQ / Kafka delivery, idempotent consumers
 4. **v0.4 Middleware integrations**: Redisson aggregate locks, XXL-Job, Flyway, springdoc, Elasticsearch read models

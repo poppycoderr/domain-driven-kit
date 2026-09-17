@@ -211,7 +211,7 @@ class ArchitectureTest {
 
 基础层（领域模型、仓储、9 个 starter、archetype 与示例）已经完成。接下来的里程碑：
 
-1. **v0.1 现代基线与首次发布**：升级到 Spring Boot 4.1 / Jackson 3，发布到 Maven Central
+1. **v0.1 现代基线与首次发布**：升级到 Spring Boot 4.1 / Jackson 3，发布首个 GitHub Release
 2. **v0.2 AI 协作**：生成项目自带 `AGENTS.md` 与 Skills，ArchGuard 输出代理可读的违规报告，基于 Spring AI 的 MCP starter
 3. **v0.3 可靠领域事件**：事务性 Outbox、RocketMQ / Kafka 投递、幂等消费
 4. **v0.4 中间件集成**：Redisson 聚合锁、XXL-Job、Flyway、springdoc、Elasticsearch 读模型
