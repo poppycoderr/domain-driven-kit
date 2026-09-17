@@ -1,16 +1,16 @@
 package com.ddk.cache.starter.support;
 
 import com.ddk.cache.starter.invalidation.CacheInvalidationPublisher;
-import com.ddk.cache.starter.metrics.CacheMetrics;
 import com.ddk.cache.starter.metrics.CacheMetrics.AccessResult;
+import com.ddk.cache.starter.metrics.CacheMetrics;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Expiry;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 import org.springframework.cache.Cache;
 import org.springframework.cache.support.AbstractValueAdaptingCache;
 import org.springframework.cache.support.NullValue;
 import org.springframework.core.convert.ConversionService;
-import org.springframework.lang.Nullable;
 
 import java.time.Duration;
 import java.util.concurrent.Callable;
@@ -46,8 +46,7 @@ public class TwoLevelCache extends AbstractValueAdaptingCache {
 
     private final CacheSettings settings;
 
-    @Nullable
-    private final com.github.benmanes.caffeine.cache.Cache<String, Object> local;
+    private final com.github.benmanes.caffeine.cache.@Nullable Cache<String, Object> local;
 
     @Nullable
     private final Cache remote;
@@ -121,7 +120,7 @@ public class TwoLevelCache extends AbstractValueAdaptingCache {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> T get(Object key, Callable<T> valueLoader) {
+    public <T> @Nullable T get(Object key, Callable<T> valueLoader) {
         String cacheKey = toCacheKey(key);
         Object stored = lookup(cacheKey);
         if (stored != null) {

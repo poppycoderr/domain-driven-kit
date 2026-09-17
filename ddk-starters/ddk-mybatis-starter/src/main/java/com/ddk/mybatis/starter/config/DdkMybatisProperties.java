@@ -2,6 +2,7 @@ package com.ddk.mybatis.starter.config;
 
 import com.baomidou.mybatisplus.annotation.DbType;
 import lombok.Data;
+import org.jspecify.annotations.Nullable;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -63,10 +64,10 @@ public class DdkMybatisProperties {
      * 与 {@link #datacenterId} 必须同时设置，否则回落到 Hutool 按本机推导的默认值。
      * <b>多实例部署时应当显式指定</b>，推导值在容器环境下并不可靠。
      */
-    private Long workerId;
+    private @Nullable Long workerId;
 
     /**
      * 雪花 ID 的数据中心号（0-31）。
      */
-    private Long datacenterId;
+    private @Nullable Long datacenterId;
 }

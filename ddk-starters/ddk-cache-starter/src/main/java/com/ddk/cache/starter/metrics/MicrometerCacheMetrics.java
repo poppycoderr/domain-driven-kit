@@ -2,6 +2,7 @@ package com.ddk.cache.starter.metrics;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.ObjectProvider;
 
 /**
@@ -18,7 +19,7 @@ public class MicrometerCacheMetrics implements CacheMetrics {
 
     private final ObjectProvider<MeterRegistry> registryProvider;
 
-    private volatile MeterRegistry registry;
+    private volatile @Nullable MeterRegistry registry;
 
     public MicrometerCacheMetrics(ObjectProvider<MeterRegistry> registryProvider) {
         this.registryProvider = registryProvider;
@@ -48,7 +49,7 @@ public class MicrometerCacheMetrics implements CacheMetrics {
         }
     }
 
-    private MeterRegistry registry() {
+    private @Nullable MeterRegistry registry() {
         MeterRegistry r = registry;
         if (r == null) {
             r = registryProvider.getIfAvailable();

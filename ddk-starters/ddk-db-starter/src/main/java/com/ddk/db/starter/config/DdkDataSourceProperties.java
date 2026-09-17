@@ -1,11 +1,12 @@
 package com.ddk.db.starter.config;
 
 import lombok.Data;
+import org.jspecify.annotations.Nullable;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import javax.sql.DataSource;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import javax.sql.DataSource;
 
 /**
  * 多数据源配置。
@@ -36,7 +37,7 @@ public class DdkDataSourceProperties {
      * 主数据源的名字，它的 DataSource、事务管理器、JdbcTemplate 标记为 {@code @Primary}。
      * 只有一个数据源时可以省略。
      */
-    private String primary;
+    private @Nullable String primary;
 
     /**
      * 数据源，key 是名字，决定注册的 Bean 名：{@code <name>DataSource}、
@@ -50,21 +51,21 @@ public class DdkDataSourceProperties {
         /**
          * JDBC URL。
          */
-        private String url;
+        private @Nullable String url;
 
-        private String username;
+        private @Nullable String username;
 
-        private String password;
+        private @Nullable String password;
 
         /**
          * JDBC 驱动类名，通常可以从 URL 推断。
          */
-        private String driverClassName;
+        private @Nullable String driverClassName;
 
         /**
          * 连接池实现，默认按 classpath 选择（通常是 HikariCP）。
          */
-        private Class<? extends DataSource> type;
+        private @Nullable Class<? extends DataSource> type;
 
         /**
          * 连接池自身的属性，按名字绑定到连接池实例上，

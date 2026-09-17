@@ -43,6 +43,7 @@ import tools.jackson.databind.json.JsonMapper;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 /**
@@ -120,7 +121,7 @@ public class DdkCacheAutoConfiguration {
                 .withInitialCacheConfigurations(perCache)
                 .build();
         redis.afterPropertiesSet();
-        return redis::getCache;
+        return name -> Objects.requireNonNull(redis.getCache(name), () -> "Redis cache not available: " + name);
     }
 
     private static JitteredTtlFunction ttl(DdkCacheProperties properties, Duration ttl) {

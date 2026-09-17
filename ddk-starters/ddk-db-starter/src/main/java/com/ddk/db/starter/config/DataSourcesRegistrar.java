@@ -1,5 +1,6 @@
 package com.ddk.db.starter.config;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.config.RuntimeBeanReference;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -16,8 +17,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.JdbcTransactionManager;
 import org.springframework.util.StringUtils;
 
-import javax.sql.DataSource;
 import java.util.Map;
+import java.util.Objects;
+import javax.sql.DataSource;
 
 /**
  * 按 {@code ddk.datasource.sources} 为每个数据源注册 DataSource、事务管理器、JdbcTemplate。
@@ -36,7 +38,7 @@ import java.util.Map;
  */
 class DataSourcesRegistrar implements ImportBeanDefinitionRegistrar, EnvironmentAware {
 
-    private Environment environment;
+    private @Nullable Environment environment;
 
     @Override
     public void setEnvironment(Environment environment) {
@@ -45,10 +47,10 @@ class DataSourcesRegistrar implements ImportBeanDefinitionRegistrar, Environment
 
     @Override
     public void registerBeanDefinitions(AnnotationMetadata metadata, BeanDefinitionRegistry registry) {
-        DdkDataSourceProperties properties = Binder.get(environment)
+        Binder binder = Binder.get(Objects.requireNonNull(environment, "Environment has not been injected"));
+        DdkDataSourceProperties properties = binder
                 .bind(DdkDataSourceProperties.PREFIX, DdkDataSourceProperties.class)
                 .orElseGet(DdkDataSourceProperties::new);
-        Binder binder = Binder.get(environment);
         Map<String, DdkDataSourceProperties.Source> sources = properties.getSources();
         if (sources.isEmpty()) {
             return;
@@ -66,7 +68,7 @@ class DataSourcesRegistrar implements ImportBeanDefinitionRegistrar, Environment
         });
     }
 
-    static String resolvePrimary(String primary, Map<String, DdkDataSourceProperties.Source> sources) {
+    static String resolvePrimary(@Nullable String primary, Map<String, DdkDataSourceProperties.Source> sources) {
         if (!StringUtils.hasText(primary)) {
             if (sources.size() == 1) {
                 return sources.keySet().iterator().next();
@@ -84,11 +86,12 @@ class DataSourcesRegistrar implements ImportBeanDefinitionRegistrar, Environment
 
     private static RootBeanDefinition dataSource(Binder binder, String name, DdkDataSourceProperties.Source source,
                                                  boolean isPrimary) {
-        if (!StringUtils.hasText(source.getUrl())) {
+        String url = source.getUrl();
+        if (url == null || url.isBlank()) {
             throw new IllegalStateException(DdkDataSourceProperties.PREFIX + ".sources." + name + ".url must be set");
         }
         // 登记具体的连接池类型，按 HikariDataSource 等实现类做类型查找时不必先实例化
-        RootBeanDefinition definition = new RootBeanDefinition(poolType(source), () -> build(binder, name, source));
+        RootBeanDefinition definition = new RootBeanDefinition(poolType(source), () -> build(binder, name, source, url));
         definition.setPrimary(isPrimary);
         // 连接池有 close()，SimpleDriverDataSource 之类没有；按实际类型推断销毁方法
         definition.setDestroyMethodName(AbstractBeanDefinition.INFER_METHOD);
@@ -97,20 +100,23 @@ class DataSourcesRegistrar implements ImportBeanDefinitionRegistrar, Environment
 
     @SuppressWarnings("unchecked")
     private static Class<DataSource> poolType(DdkDataSourceProperties.Source source) {
-        Class<? extends DataSource> type = source.getType() != null
-                ? source.getType()
-                : DataSourceBuilder.findType(DataSourcesRegistrar.class.getClassLoader());
+        Class<? extends DataSource> type = source.getType();
+        if (type == null) {
+            type = DataSourceBuilder.findType(DataSourcesRegistrar.class.getClassLoader());
+        }
         return (Class<DataSource>) (type != null ? type : DataSource.class);
     }
 
-    private static DataSource build(Binder binder, String name, DdkDataSourceProperties.Source source) {
-        DataSource dataSource = DataSourceBuilder.create()
+    private static DataSource build(Binder binder, String name, DdkDataSourceProperties.Source source, String url) {
+        DataSourceBuilder<?> builder = DataSourceBuilder.create()
                 .type(source.getType())
-                .url(source.getUrl())
+                .url(url)
                 .username(source.getUsername())
-                .password(source.getPassword())
-                .driverClassName(source.getDriverClassName())
-                .build();
+                .password(source.getPassword());
+        if (source.getDriverClassName() != null) {
+            builder.driverClassName(source.getDriverClassName());
+        }
+        DataSource dataSource = builder.build();
         // 直接从 Environment 绑定到连接池实例，支持 maximum-pool-size / maximumPoolSize 等宽松写法
         binder.bind(ConfigurationPropertyName.adapt(
                 DdkDataSourceProperties.PREFIX + ".sources." + name + ".pool", '.'), Bindable.ofInstance(dataSource));
