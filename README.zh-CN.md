@@ -48,6 +48,17 @@
 
 ## 快速开始
 
+一条命令生成四层架构服务。脚本会构建 DDK、安装到本地 Maven 仓库，再用 archetype 生成项目：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/poppycoderr/domain-driven-kit/main/scripts/ddk.sh | bash -s -- new order-service --group com.acme
+cd order-service && mvn verify
+```
+
+加 `--layers 3` 生成三层骨架，设置 `DDK_REF=v0.1.0` 构建指定发布版本，`ddk.sh help` 查看全部选项。
+
+手动构建 DDK：
+
 环境要求：
 
 - JDK 21

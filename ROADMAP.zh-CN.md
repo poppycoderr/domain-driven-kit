@@ -76,11 +76,12 @@
 
 发布就绪：
 
-- [ ] 版本号改为 `0.1.0`，写明 0.x 期间的兼容策略：次版本号可以有破坏性变更，但必须写进发布说明
+- [x] 版本号改为 `0.1.0`，写明 0.x 期间的兼容策略：次版本号可以有破坏性变更，但必须写进发布说明
 - [ ] 梳理公开包与内部包，内部实现放进 `internal` 包并由 ArchUnit 约束
-- [ ] 公开 API 的 Javadoc、`CHANGELOG.md`、GitHub Release 自动生成发布说明
-- [ ] 打 tag 时由 CI 创建 GitHub Release：发布说明、源码包与各模块 jar
-- [ ] 提供一条命令完成本地安装与项目生成的脚本，README 快速开始按这条路径编写
+- [ ] 公开 API 的 Javadoc
+- [x] `CHANGELOG.md`，GitHub Release 的发布说明从中提取
+- [x] 打 tag 时由 CI 创建 GitHub Release：发布说明、源码包与各模块 jar
+- [x] 提供一条命令完成本地安装与项目生成的脚本，README 快速开始按这条路径编写
 
 ## v0.2 · AI 协作
 
