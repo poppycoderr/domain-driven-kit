@@ -1,8 +1,8 @@
 package com.ddk.cache.starter.support;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.cache.support.NullValue;
 import org.springframework.data.redis.cache.RedisCacheWriter;
-import org.springframework.lang.Nullable;
 
 import java.time.Duration;
 import java.util.concurrent.ThreadLocalRandom;

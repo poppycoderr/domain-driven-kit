@@ -22,6 +22,7 @@ import org.springframework.core.GenericTypeResolver;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -67,8 +68,9 @@ public class GenericRepositoryImpl<E, ID extends Serializable, P, M extends Base
         extends ServiceImpl<M, P>
         implements GenericRepository<E, ID> {
 
-    protected final Class<?>[] typeArguments =
-            GenericTypeResolver.resolveTypeArguments(this.getClass(), GenericRepositoryImpl.class);
+    protected final Class<?>[] typeArguments = Objects.requireNonNull(
+            GenericTypeResolver.resolveTypeArguments(this.getClass(), GenericRepositoryImpl.class),
+            "GenericRepositoryImpl must be subclassed with concrete type arguments");
     protected final Class<E> eClass = (Class<E>) typeArguments[0];
     protected final Class<P> pClass = (Class<P>) typeArguments[2];
 

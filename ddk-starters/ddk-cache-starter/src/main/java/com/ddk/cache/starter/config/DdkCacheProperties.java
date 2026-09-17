@@ -2,6 +2,7 @@ package com.ddk.cache.starter.config;
 
 import com.ddk.cache.starter.support.CacheSettings;
 import lombok.Data;
+import org.jspecify.annotations.Nullable;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
@@ -117,21 +118,21 @@ public class DdkCacheProperties {
         /**
          * 该缓存的 L2 过期时间。
          */
-        private Duration ttl;
+        private @Nullable Duration ttl;
 
         /**
          * 该缓存是否启用 L1。
          */
-        private Boolean localEnabled;
+        private @Nullable Boolean localEnabled;
 
         /**
          * 该缓存的 L1 过期时间。
          */
-        private Duration localTtl;
+        private @Nullable Duration localTtl;
 
         /**
          * 该缓存的 L1 最大条目数。
          */
-        private Long localMaximumSize;
+        private @Nullable Long localMaximumSize;
     }
 }

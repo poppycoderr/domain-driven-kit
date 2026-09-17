@@ -2,6 +2,7 @@ package com.ddk.cache.starter.invalidation;
 
 import com.ddk.cache.starter.support.DdkCacheManager;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import tools.jackson.core.JacksonException;
@@ -28,7 +29,7 @@ public class CacheInvalidationListener implements MessageListener {
     }
 
     @Override
-    public void onMessage(Message message, byte[] pattern) {
+    public void onMessage(Message message, byte @Nullable [] pattern) {
         CacheInvalidationMessage event;
         try {
             event = objectMapper.readValue(message.getBody(), CacheInvalidationMessage.class);
@@ -39,11 +40,12 @@ public class CacheInvalidationListener implements MessageListener {
         if (origin.equals(event.origin())) {
             return;
         }
+        String key = event.key();
         cacheManager.findCache(event.cacheName()).ifPresent(cache -> {
-            if (event.clearsWholeCache()) {
+            if (key == null) {
                 cache.clearLocal();
             } else {
-                cache.evictLocal(event.key());
+                cache.evictLocal(key);
             }
         });
     }
