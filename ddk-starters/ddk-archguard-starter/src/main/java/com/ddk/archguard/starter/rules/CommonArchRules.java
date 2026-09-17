@@ -53,9 +53,12 @@ public final class CommonArchRules {
 
     /**
      * 四层依赖方向：UI -> Application -> Domain，Infrastructure 只为实现领域契约而反向依赖 Domain。
+     * <p>
+     * 层允许为空：刚生成的骨架、或者没有适配层的纯后台服务，不会因为「某层没有类」而失败。
      */
     public static final ArchRule LAYERED_ARCHITECTURE_RULE = Architectures.layeredArchitecture()
             .consideringAllDependencies()
+            .withOptionalLayers(true)
             .layer("UI").definedBy("..ui..", "..adapter..")
             .layer("Application").definedBy("..application..")
             .layer("Domain").definedBy("..domain..")
@@ -68,6 +71,23 @@ public final class CommonArchRules {
             .whereLayer("Infrastructure").mayOnlyBeAccessedByLayers("Application");
 
     /**
+     * 三层依赖方向：Adapter -> Business，Infrastructure 实现 Business 定义的接口。
+     * <p>
+     * Business 合并了应用层与领域层，因此不要求它框架无关；约束的重点是依赖倒置——
+     * 业务层与适配层都不能直接引用基础设施层的实现类。
+     */
+    public static final ArchRule THREE_LAYER_ARCHITECTURE_RULE = Architectures.layeredArchitecture()
+            .consideringAllDependencies()
+            .withOptionalLayers(true)
+            .layer("Adapter").definedBy("..adapter..")
+            .layer("Business").definedBy("..business..")
+            .layer("Infrastructure").definedBy("..infrastructure..")
+
+            .whereLayer("Adapter").mayNotBeAccessedByAnyLayer()
+            .whereLayer("Business").mayOnlyBeAccessedByLayers("Adapter", "Infrastructure")
+            .whereLayer("Infrastructure").mayNotBeAccessedByAnyLayer();
+
+    /**
      * 领域层必须保持框架无关。
      * <p>
      * 这条规则保护的是<b>可测试性</b>：领域模型一旦依赖 Spring 或 ORM，
@@ -77,7 +97,8 @@ public final class CommonArchRules {
     public static final ArchRule DOMAIN_MUST_NOT_DEPEND_ON_FRAMEWORKS = noClasses()
             .that().resideInAPackage("..domain..")
             .should().dependOnClassesThat().resideInAnyPackage(FRAMEWORK_PACKAGES)
-            .because("领域模型必须能在没有容器的情况下被单元测试，持久化细节不得渗入业务模型");
+            .because("领域模型必须能在没有容器的情况下被单元测试，持久化细节不得渗入业务模型")
+            .allowEmptyShould(true);
 
     /**
      * 领域层不得依赖应用层与适配层。
@@ -89,5 +110,6 @@ public final class CommonArchRules {
             .that().resideInAPackage("..domain..")
             .should().dependOnClassesThat()
             .resideInAnyPackage("..application..", "..adapter..", "..ui..", "..infrastructure..")
-            .because("依赖方向必须指向内层，领域层是依赖图的终点");
+            .because("依赖方向必须指向内层，领域层是依赖图的终点")
+            .allowEmptyShould(true);
 }
