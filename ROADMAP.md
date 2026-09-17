@@ -29,10 +29,10 @@ Goal: make the project easier to build, review and maintain.
 
 - [x] Fill `ddk-dependencies` as a real BOM
 - [x] Add JaCoCo reporting
-- [ ] Add Spotless or Checkstyle for formatting
-- [ ] Add JaCoCo thresholds now that core tests are in place
-- [ ] Add `spring-boot-configuration-processor` metadata for every starter
-- [ ] Remove generated `target/` artifacts and classpath-sensitive resources from library modules
+- [x] Add Spotless checks for unused imports and whitespace, without a whole-file formatter that fights the 150-column style
+- [x] Enforce per-module JaCoCo minimums (70% lines, 50% branches) as a regression floor
+- [x] Generate `spring-boot-configuration-processor` metadata for every starter from the root pom
+- [x] Remove generated `target/` artifacts and classpath-sensitive resources from library modules
 
 ## Phase 2 - Core DDD Model
 
