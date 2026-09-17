@@ -15,6 +15,28 @@
     <packaging>pom</packaging>
     <name>Domain Driven Kit</name>
     <description>A DDD scaffolding framework for Java applications</description>
+    <url>https://github.com/poppycoderr/domain-driven-kit</url>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Elijah Du</name>
+            <url>https://github.com/poppycoderr</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <url>https://github.com/poppycoderr/domain-driven-kit</url>
+        <connection>scm:git:https://github.com/poppycoderr/domain-driven-kit.git</connection>
+        <developerConnection>scm:git:git@github.com:poppycoderr/domain-driven-kit.git</developerConnection>
+    </scm>
 
     <properties>
         <java.version>21</java.version>
