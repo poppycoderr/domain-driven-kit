@@ -29,7 +29,7 @@ jobs:
           sed -i "s|<ddk.version>.*</ddk.version>|<ddk.version>$VERSION</ddk.version>|" ddk-dependencies/pom.xml
 
       - name: Build and test
-        run: mvn -B -ntp install -Parchetype-it
+        run: mvn -B -ntp install -Parchetype-it,release
 
       - name: Collect artifacts
         run: |

@@ -35,7 +35,7 @@ jobs:
       # 用 install 而不是 verify：archetype 集成测试会生成项目并对它执行 mvn verify，
       # 生成的项目要从本地仓库解析 DDK 各模块。
       - name: Build and test
-        run: mvn -B -ntp install -Parchetype-it
+        run: mvn -B -ntp install -Parchetype-it,release
 
       - name: Upload test reports
         if: always()
