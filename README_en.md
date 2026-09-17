@@ -10,7 +10,7 @@
 
 <p align="center">
     <a href="README.md">中文</a> ·
-    <a href="https://poppycoder.netlify.app/#/docs/ddk/index.md">Documentation</a> ·
+    <a href="https://poppycoder.netlify.app/ddk/">Documentation</a> ·
     <a href="./ROADMAP.md">Roadmap</a>
 </p>
 
@@ -164,7 +164,7 @@ Use in another project. Import the BOM first, then drop the versions:
 </dependencies>
 ```
 
-See the full guide: [Quick Start](https://poppycoder.netlify.app/#/docs/ddk/quickstart.md).
+See the full guide: [Quick Start](https://poppycoder.netlify.app/ddk/quickstart).
 
 ## Recommended Layering
 
@@ -218,11 +218,11 @@ See [ROADMAP.md](./ROADMAP.md) for the full plan.
 
 ## Documentation
 
-- [DDK documentation](https://poppycoder.netlify.app/#/docs/ddk/index.md)
-- [Quick Start](https://poppycoder.netlify.app/#/docs/ddk/quickstart.md)
-- [Domain Model Primitives](https://poppycoder.netlify.app/#/docs/ddk/core/domain-model.md)
-- [Layering and Architecture Guard](https://poppycoder.netlify.app/#/docs/ddk/conventions.md)
-- [Development and Refactoring Plan](https://poppycoder.netlify.app/#/docs/ddk/contributing.md)
+- [DDK documentation](https://poppycoder.netlify.app/ddk/)
+- [Quick Start](https://poppycoder.netlify.app/ddk/quickstart)
+- [Domain Model Primitives](https://poppycoder.netlify.app/ddk/core/domain-model)
+- [Layering and Architecture Guard](https://poppycoder.netlify.app/ddk/conventions)
+- [Development and Refactoring Plan](https://poppycoder.netlify.app/ddk/contributing)
 
 ## Contributing
 
