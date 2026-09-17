@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 520" width="1120" height="520"
      role="img" aria-labelledby="ttl dsc" style="max-width:100%;height:auto">
   <title id="ttl">DDK 演进路线</title>
-  <desc id="dsc">六个阶段：工程基线、领域模型、映射与仓储安全、Starter 规范化已完成；骨架与示例进行中；发布就绪未开始。</desc>
+  <desc id="dsc">六个阶段：工程基线、领域模型、映射与仓储安全、Starter 规范化、骨架与示例已完成；发布就绪未开始。</desc>
   <defs>
     <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path class="mk" d="M0 0 L10 5 L0 10 z"/>
@@ -133,20 +133,20 @@
   <circle cx="591" cy="392" r="2.5" fill="#94A3B8"/>
   <text class="txt-xs" x="601" y="396">两级缓存重写</text>
   <rect x="740" y="200" width="153" height="232" rx="12" class="card"/>
-  <circle cx="816.5" cy="176" r="7" fill="#3B82F6"/>
-  <circle cx="816.5" cy="176" r="11" fill="none" stroke="#3B82F6" stroke-opacity=".35" stroke-width="2"/>
+  <circle cx="816.5" cy="176" r="7" fill="#14B8A6"/>
+  <circle cx="816.5" cy="176" r="11" fill="none" stroke="#14B8A6" stroke-opacity=".35" stroke-width="2"/>
   <path class="hair" d="M816.5 187 L816.5 200"/>
   <text class="kicker" x="758" y="234">05</text>
   <text class="lbl-sm" x="758" y="262">骨架与示例</text>
-  <rect x="758" y="276" width="56" height="24" rx="7" class="blue"/>
-  <text class="txt-xs" x="768" y="293">进行中</text>
+  <rect x="758" y="276" width="56" height="24" rx="7" class="teal"/>
+  <text class="txt-xs" x="768" y="293">已完成</text>
   <circle cx="762" cy="324" r="2.5" fill="#94A3B8"/>
-  <text class="txt-xs" x="772" y="328">真正的 Maven</text>
+  <text class="txt-xs" x="772" y="328">三层 / 四层 Maven</text>
   <text class="txt-xs" x="772" y="343">archetype</text>
   <circle cx="762" cy="358" r="2.5" fill="#94A3B8"/>
-  <text class="txt-xs" x="772" y="362">可运行的四层示例</text>
+  <text class="txt-xs" x="772" y="362">可运行的用户示例</text>
   <circle cx="762" cy="392" r="2.5" fill="#94A3B8"/>
-  <text class="txt-xs" x="772" y="396">README 冒烟命令</text>
+  <text class="txt-xs" x="772" y="396">生成项目集成测试</text>
   <rect x="911" y="200" width="153" height="232" rx="12" class="card"/>
   <circle cx="987.5" cy="176" r="7" fill="#94A3B8"/>
   <circle cx="987.5" cy="176" r="11" fill="none" stroke="#94A3B8" stroke-opacity=".35" stroke-width="2"/>
@@ -161,7 +161,7 @@
   <text class="txt-xs" x="943" y="362">语义化版本策略</text>
   <circle cx="933" cy="392" r="2.5" fill="#94A3B8"/>
   <text class="txt-xs" x="943" y="396">Javadoc 与发布说明</text>
-  <text class="txt-xs" x="56" y="494">近期修复：Redis 反序列化不限类型 · 多级缓存从未访问 Redis · Seata 出站调用不带 XID · CORS 默认全放开</text>
+  <text class="txt-xs" x="56" y="494">近期修复：参数类型不匹配返回 500 · 雪花 ID 在前端丢精度 · 空骨架无法通过架构测试 · Seata 出站调用不带 XID</text>
   <text class="txt-xs" x="1064" y="494" text-anchor="end">详见 ROADMAP.md</text>
 
 </svg>
