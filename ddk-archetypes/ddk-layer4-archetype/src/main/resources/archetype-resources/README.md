@@ -35,4 +35,8 @@ ${package}
 
 每个包的 `package-info.java` 写明了它放什么。依赖方向由 `ArchitectureTest` 中的 `CommonArchRules.LAYERED_ARCHITECTURE_RULE` 校验，违反即构建失败。
 
+$h2 AI 协作
+
+`AGENTS.md` 写明了分层职责、编码约定与提交前必须通过的 `mvn verify`，Claude Code、Codex 等 AI 编码代理会自动读取；`CLAUDE.md` 引用了它。`.claude/skills/` 下是按本项目约定编写的 Claude Code Skills。
+
 完整的业务示例见 DDK 仓库的 `ddk-examples/ddk-example-user`。

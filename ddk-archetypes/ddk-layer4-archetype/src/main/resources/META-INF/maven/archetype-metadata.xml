@@ -36,6 +36,14 @@
             <directory></directory>
             <includes>
                 <include>README.md</include>
+                <include>AGENTS.md</include>
+                <include>CLAUDE.md</include>
+            </includes>
+        </fileSet>
+        <fileSet filtered="true" encoding="UTF-8">
+            <directory>.claude</directory>
+            <includes>
+                <include>**/*</include>
             </includes>
         </fileSet>
     </fileSets>
