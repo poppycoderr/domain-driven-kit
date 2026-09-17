@@ -201,7 +201,7 @@ class ArchitectureTest {
 }
 ```
 
-违反时构建直接失败。完整示例见 `ddk-archetypes/ddk-layer4-archetype`。
+违反时构建直接失败。完整示例见 [`ddk-examples/ddk-example-user`](./ddk-examples/ddk-example-user)。
 
 ## 开发计划
 

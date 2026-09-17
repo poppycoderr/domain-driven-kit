@@ -201,7 +201,7 @@ class ArchitectureTest {
 }
 ```
 
-A violation fails the build. See `ddk-archetypes/ddk-layer4-archetype` for a working example.
+A violation fails the build. See [`ddk-examples/ddk-example-user`](./ddk-examples/ddk-example-user) for a working example.
 
 ## Roadmap
 
