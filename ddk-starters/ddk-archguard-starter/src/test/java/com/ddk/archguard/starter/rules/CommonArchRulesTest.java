@@ -61,11 +61,22 @@ class CommonArchRulesTest {
     }
 
     @Test
+    void mcpToolRuleAcceptsToolsInTheAdapterLayer() {
+        passes(CommonArchRules.MCP_TOOLS_MUST_RESIDE_IN_ADAPTER, "mcp.valid");
+    }
+
+    @Test
+    void mcpToolRuleRejectsToolsOutsideTheAdapterLayer() {
+        fails(CommonArchRules.MCP_TOOLS_MUST_RESIDE_IN_ADAPTER, "mcp.violation", "mcp.violation.application.OrderService");
+    }
+
+    @Test
     void rulesPassOnFreshProjectsWithoutLayerClasses() {
         passes(CommonArchRules.LAYERED_ARCHITECTURE_RULE, "empty");
         passes(CommonArchRules.THREE_LAYER_ARCHITECTURE_RULE, "empty");
         passes(CommonArchRules.DOMAIN_MUST_NOT_DEPEND_ON_FRAMEWORKS, "empty");
         passes(CommonArchRules.DOMAIN_MUST_NOT_DEPEND_ON_OUTER_LAYERS, "empty");
         passes(CommonArchRules.DDK_INTERNALS_MUST_NOT_BE_USED, "empty");
+        passes(CommonArchRules.MCP_TOOLS_MUST_RESIDE_IN_ADAPTER, "empty");
     }
 }

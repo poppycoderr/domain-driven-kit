@@ -37,6 +37,13 @@
             <version>${archunit.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- 只用于构造 MCP 工具规则的测试夹具；规则本身按注解全限定名匹配，不依赖 Spring AI -->
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-mcp-annotations</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

@@ -3,6 +3,7 @@ package com.ddk.archguard.starter.rules;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.library.Architectures;
 
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 /**
@@ -123,5 +124,17 @@ public final class CommonArchRules {
             .that().resideOutsideOfPackage("com.ddk..")
             .should().dependOnClassesThat().resideInAPackage("com.ddk..internal..")
             .because("DDK 的 internal 包不属于公开 API，可能在任何版本中变更")
+            .allowEmptyShould(true);
+
+    /**
+     * MCP 工具只能声明在适配层。
+     * <p>
+     * MCP 工具与 REST 控制器一样是外部协议的入口。放在适配层后，分层规则保证它只能经由应用服务访问领域，
+     * 模型因此拿不到仓储，也绕不过应用服务里的事务与业务校验。按注解全限定名匹配，本模块不依赖 Spring AI。
+     */
+    public static final ArchRule MCP_TOOLS_MUST_RESIDE_IN_ADAPTER = methods()
+            .that().areAnnotatedWith("org.springframework.ai.mcp.annotation.McpTool")
+            .should().beDeclaredInClassesThat().resideInAPackage("..adapter..")
+            .because("MCP 工具是外部协议入口，只能经由应用服务访问领域")
             .allowEmptyShould(true);
 }
