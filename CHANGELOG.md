@@ -25,6 +25,7 @@ The first release: the DDD foundation on a Spring Boot 4.1 baseline.
 - Three- and four-layer Maven archetypes, and the runnable `ddk-example-user` application
 - `scripts/ddk.sh` to install DDK locally and generate projects in one command
 - Null-safety: every package in `ddk-core`, `ddk-mybatis` and the starters is `@NullMarked` with JSpecify, and NullAway checks it at compile time
+- Javadoc and sources jars for every module, built by the `release` profile in CI and attached to GitHub Releases; `internal` packages are left out of the Javadoc
 - Quality gates in `mvn verify`: Spotless checks and per-module JaCoCo minimums (70% lines, 50% branches); CI on Java 21 and 25
 
 ### Changed
