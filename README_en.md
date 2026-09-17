@@ -46,8 +46,9 @@ This is a personally maintained open-source project. It is useful for learning, 
 | `ddk-cache-starter` | Caffeine (L1) + Redis (L2) two-level cache with cross-instance invalidation and Redis failure fallback | Usable, with Redis integration tests |
 | `ddk-archguard-starter` | ArchUnit rules for layering and domain purity | Usable |
 | `ddk-dependencies` | BOM, so downstream projects stop writing versions | Usable |
-| `ddk-db-starter` | Dynamic multi-data-source registration | Experimental |
-| `ddk-tracer-starter` / `ddk-seata-starter` | Distributed tracing / transactions | Experimental |
+| `ddk-db-starter` | Named data sources with configurable pools and a validated primary | Usable |
+| `ddk-tracer-starter` | Distributed tracing with the trace ID in a response header | Usable |
+| `ddk-seata-starter` | Distributed transactions with XID propagation on outbound HTTP calls | Usable |
 | `ddk-archetypes` | The 4-layer skeleton is readable and tested; the 3-layer one is still a stub | To be converted into real Maven archetypes |
 | `ddk-examples` | Example project module | Full runnable example planned |
 
@@ -212,8 +213,7 @@ Short-term priorities:
 
 1. Turn `ddk-archetypes` into real Maven archetypes and complete the 3-layer skeleton
 2. Add a complete runnable `ddk-examples` application
-3. Give the DB, Tracer and Seata starters a `ddk.*` prefix and auto-configuration tests
-4. Add Spotless and JaCoCo coverage thresholds
+3. Add Spotless and JaCoCo coverage thresholds
 
 See [ROADMAP.md](./ROADMAP.md) for the full plan.
 

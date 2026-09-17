@@ -56,7 +56,7 @@ Goal: fail early when mapping is unsafe.
 - [x] Add tests for missing mapper, duplicate mapper and list mapping
 - [x] Review `GenericRepository` generic order and document the compatibility decision
 - [x] Add `ddk-mybatis` integration tests with H2
-- [ ] Map `AggregateRoot.version` to MyBatis-Plus optimistic locking in the generic repository, not only in the archetype
+- [x] Map `AggregateRoot.version` to MyBatis-Plus optimistic locking in the generic repository, not only in the archetype
 
 ## Phase 4 - Starter Normalization
 
@@ -71,7 +71,10 @@ Goal: make every starter predictable in production projects.
 - [x] Add tests for the Web and MyBatis starters
 - [x] Give Redis a dedicated `ddk.*` prefix
 - [x] Give Cache a dedicated `ddk.*` prefix
-- [ ] Give DB, Tracer and Seata a dedicated `ddk.*` prefix
+- [x] Give DB, Tracer and Seata a dedicated `ddk.*` prefix
+- [x] Key DB starter sources by name, bind pool properties and fail fast on an ambiguous primary
+- [x] Return the trace ID in an HTTP response header from the tracer starter
+- [x] Propagate the Seata XID on outbound `RestClient` / `RestTemplate` calls
 - [x] Restrict polymorphic deserialization in `ddk-redis-starter`
 - [x] Rewrite `ddk-cache-starter` around a real multi-level cache design
 - [x] Add `ApplicationContextRunner` tests for the Redis starter
