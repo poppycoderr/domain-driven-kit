@@ -1,6 +1,6 @@
 package com.ddk.tracer.starter.config;
 
-import com.ddk.tracer.starter.web.TraceIdResponseFilter;
+import com.ddk.tracer.starter.internal.TraceIdResponseFilter;
 import io.micrometer.tracing.Tracer;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;

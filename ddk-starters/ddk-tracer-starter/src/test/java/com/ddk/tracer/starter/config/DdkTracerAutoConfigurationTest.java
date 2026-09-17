@@ -1,7 +1,7 @@
 package com.ddk.tracer.starter.config;
 
 import com.ddk.tracer.starter.TracingAutoConfigurations;
-import com.ddk.tracer.starter.web.TraceIdResponseFilter;
+import com.ddk.tracer.starter.internal.TraceIdResponseFilter;
 import io.micrometer.tracing.Tracer;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
