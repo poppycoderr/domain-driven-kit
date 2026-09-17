@@ -66,12 +66,12 @@
 
 平台升级（Spring Boot 3.4 已于 2025 年 12 月结束开源维护，这是最高优先级）：
 
-- [ ] 升级到 Spring Boot 4.1 / Spring Framework 7，适配 Jackson 3 与 Jakarta EE 11
-- [ ] MyBatis-Plus 切换到 `mybatis-plus-spring-boot4-starter`
-- [ ] 评估 Seata 对 Boot 4 的支持；若跟不上，`ddk-seata-starter` 暂时移到孵化区，不阻塞发布
+- [x] 升级到 Spring Boot 4.1 / Spring Framework 7，适配 Jackson 3 与 Jakarta EE 11
+- [x] MyBatis-Plus 切换到 `mybatis-plus-spring-boot4-starter`
+- [x] 评估 Seata 对 Boot 4 的支持：Seata 2.6 自动配置只引用 Boot 4 仍保留的 API，DDK 装配测试通过，暂留主线；Seata 运行时尚未在 Boot 4 下验证
 - [ ] Java 基线保持 21，CI 增加 Java 25 矩阵
 - [ ] 公开 API 标注 JSpecify 空安全注解
-- [ ] 链路追踪 starter 对齐 Boot 4 的 OpenTelemetry 支持，只保留 traceId 响应头等 DDK 特有能力
+- [x] 链路追踪 starter 改为基于 `spring-boot-starter-opentelemetry`，不再引入整个 actuator，只保留 traceId 响应头等 DDK 特有能力
 - [ ] 使用 Spring Framework 7 自带的 `@Retryable` / `@ConcurrencyLimit`，不再引入额外的重试库
 
 发布就绪：
