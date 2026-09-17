@@ -18,6 +18,28 @@
     <packaging>pom</packaging>
     <name>DDK Dependencies (BOM)</name>
     <description>Bill of Materials for Domain Driven Kit - 下游项目 import 后无需再写 DDK 模块的版本号</description>
+    <url>https://github.com/poppycoderr/domain-driven-kit</url>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Elijah Du</name>
+            <url>https://github.com/poppycoderr</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <url>https://github.com/poppycoderr/domain-driven-kit</url>
+        <connection>scm:git:https://github.com/poppycoderr/domain-driven-kit.git</connection>
+        <developerConnection>scm:git:git@github.com:poppycoderr/domain-driven-kit.git</developerConnection>
+    </scm>
 
     <properties>
         <ddk.version>1.0.0-SNAPSHOT</ddk.version>
