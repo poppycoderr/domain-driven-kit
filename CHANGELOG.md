@@ -10,7 +10,7 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 - **1.0 onwards**: breaking changes only in major releases.
 - Releases are tagged `vX.Y.Z` and published as [GitHub Releases](https://github.com/poppycoderr/domain-driven-kit/releases). DDK is not on Maven Central yet; install it locally with [`scripts/ddk.sh`](./scripts/ddk.sh).
 
-## [0.1.0] - Unreleased
+## [0.1.0] - 2026-09-17
 
 The first release: the DDD foundation on a Spring Boot 4.1 baseline.
 
