@@ -91,7 +91,7 @@ Agent guardrails:
 
 - [x] Archetypes generate `AGENTS.md` and `CLAUDE.md`: layer responsibilities, naming, prohibitions, and the commands that must pass before committing
 - [x] Claude Code Skills in generated projects: add an aggregate, a use case, a domain event (four layers) or a feature (three layers); `AGENTS.md` covers Codex and other agents
-- [ ] ArchGuard emits machine-readable violations (which rule, which class, how to fix) that agents can use to self-correct
+- [x] ArchGuard emits machine-readable violations (which rule, which class, how to fix) that agents can use to self-correct
 - [ ] A docs topic on developing DDK projects with AI agents, with real session recordings
 
 AI capabilities (on Spring AI 2.0):
