@@ -4,14 +4,14 @@ import com.ddk.redis.starter.config.fixture.CachedUser;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackage;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
+import org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.mock;
 class DdkRedisAutoConfigurationTest {
 
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
-            .withConfiguration(AutoConfigurations.of(DdkRedisAutoConfiguration.class, RedisAutoConfiguration.class))
+            .withConfiguration(AutoConfigurations.of(DdkRedisAutoConfiguration.class, DataRedisAutoConfiguration.class))
             .withBean(RedisConnectionFactory.class, () -> mock(RedisConnectionFactory.class));
 
     private static final CachedUser USER = new CachedUser(1L, "alice", null, null);
@@ -67,7 +67,7 @@ class DdkRedisAutoConfigurationTest {
     void backsOffWhenApplicationDefinesRedisTemplate() {
         runner.withUserConfiguration(CustomTemplate.class).run(context ->
                 assertThat(context.getBean("redisTemplate", RedisTemplate.class).getValueSerializer())
-                        .isNotInstanceOf(GenericJackson2JsonRedisSerializer.class));
+                        .isNotInstanceOf(GenericJacksonJsonRedisSerializer.class));
     }
 
     @SuppressWarnings("unchecked")
