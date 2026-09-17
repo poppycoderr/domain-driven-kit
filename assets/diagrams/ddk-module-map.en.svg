@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 838" width="1120" height="838"
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 916" width="1120" height="916"
      role="img" aria-labelledby="ttl dsc" style="max-width:100%;height:auto">
   <title id="ttl">DDK module dependency map</title>
   <desc id="dsc">Applications depend on starters, starters depend on ddk-core; only ddk-mybatis-starter and applications that persist data go through ddk-mybatis; ddk-core contains the domain, repository, page, mapper, response and exception packages.</desc>
@@ -68,7 +68,7 @@
       .mk{fill:#64748B} .mk-b{fill:#60A5FA} .mk-v{fill:#A78BFA}
     }
 </style>
-  <rect class="bg" width="1120" height="838" rx="18"/>
+  <rect class="bg" width="1120" height="916" rx="18"/>
   <text class="title" x="56" y="60">Module dependency map</text>
   <text class="sub" x="56" y="87">Arrows point along dependencies. Only persistence touches ddk-mybatis; every other starter depends on ddk-core directly.</text>
   <rect x="56" y="130" width="1008" height="64" rx="12" class="blue"/>
@@ -76,9 +76,9 @@
   <text class="txt-xs" x="1040" y="168" text-anchor="end">Pick the starters you need; the BOM manages versions</text>
   <path class="edge" d="M560 196 L560 222"/>
   <text class="edgelbl" x="572" y="214">depends on</text>
-  <rect x="56" y="224" width="1008" height="294" rx="14" class="group"/>
+  <rect x="56" y="224" width="1008" height="372" rx="14" class="group"/>
   <text class="lbl-sm" x="80" y="254">ddk-starters</text>
-  <text class="txt-xs" x="208" y="254">9 Spring Boot starters under one ddk.* namespace</text>
+  <text class="txt-xs" x="208" y="254">10 Spring Boot starters under one ddk.* namespace</text>
   <rect x="76" y="272" width="312" height="62" rx="10" class="card"/>
   <circle cx="94" cy="296" r="3.5" fill="#14B8A6"/>
   <text class="lbl-sm" x="106" y="300">ddk-web-starter</text>
@@ -115,31 +115,35 @@
   <circle cx="750" cy="452" r="3.5" fill="#14B8A6"/>
   <text class="lbl-sm" x="762" y="456">ddk-archguard-starter</text>
   <text class="txt-xs" x="762" y="476">ArchUnit layer rules</text>
-  <rect x="56" y="572" width="440" height="76" rx="12" class="teal"/>
-  <text class="lbl" x="80" y="604">ddk-mybatis</text>
-  <text class="txt" x="80" y="628">Generic repository · query parsing · paging</text>
-  <path class="edge" d="M200 522 L200 564"/>
-  <text class="edgelbl" x="212" y="554">ddk-mybatis-starter and persisting apps</text>
-  <rect x="56" y="688" width="1008" height="96" rx="12" class="violet"/>
-  <text class="lbl" x="80" y="722">ddk-core</text>
-  <text class="txt-xs" x="80" y="746">No persistence framework</text>
-  <rect x="292" y="722" width="68" height="30" rx="8" class="card"/>
-  <text class="mono-sm" x="326.0" y="742" text-anchor="middle">domain</text>
-  <rect x="372" y="722" width="100" height="30" rx="8" class="card"/>
-  <text class="mono-sm" x="422.0" y="742" text-anchor="middle">repository</text>
-  <rect x="484" y="722" width="52" height="30" rx="8" class="card"/>
-  <text class="mono-sm" x="510.0" y="742" text-anchor="middle">page</text>
-  <rect x="548" y="722" width="68" height="30" rx="8" class="card"/>
-  <text class="mono-sm" x="582.0" y="742" text-anchor="middle">mapper</text>
-  <rect x="628" y="722" width="84" height="30" rx="8" class="card"/>
-  <text class="mono-sm" x="670.0" y="742" text-anchor="middle">response</text>
-  <rect x="724" y="722" width="92" height="30" rx="8" class="card"/>
-  <text class="mono-sm" x="770.0" y="742" text-anchor="middle">exception</text>
-  <text class="txt-xs" x="292" y="772">com.ddk.core.domain may not depend on any framework, enforced by tests</text>
-  <path class="edge" d="M200 652 L200 680"/>
-  <path class="edge" d="M900 522 L900 680"/>
-  <text class="edgelbl" x="888" y="598" text-anchor="end">Other starters only need ddk-core</text>
-  <text class="edgelbl" x="888" y="618" text-anchor="end">and never pull in MyBatis</text>
-  <text class="txt-xs" x="56" y="812">ddk-dependencies (BOM): import once, drop module versions   ·   ddk-archetypes: three- and four-layer project skeletons</text>
+  <rect x="76" y="506" width="312" height="62" rx="10" class="card"/>
+  <circle cx="94" cy="530" r="3.5" fill="#14B8A6"/>
+  <text class="lbl-sm" x="106" y="534">ddk-mcp-starter</text>
+  <text class="txt-xs" x="106" y="554">MCP tools: validation · error codes · audit</text>
+  <rect x="56" y="650" width="440" height="76" rx="12" class="teal"/>
+  <text class="lbl" x="80" y="682">ddk-mybatis</text>
+  <text class="txt" x="80" y="706">Generic repository · query parsing · paging</text>
+  <path class="edge" d="M200 600 L200 642"/>
+  <text class="edgelbl" x="212" y="632">ddk-mybatis-starter and persisting apps</text>
+  <rect x="56" y="766" width="1008" height="96" rx="12" class="violet"/>
+  <text class="lbl" x="80" y="800">ddk-core</text>
+  <text class="txt-xs" x="80" y="824">No persistence framework</text>
+  <rect x="292" y="800" width="68" height="30" rx="8" class="card"/>
+  <text class="mono-sm" x="326.0" y="820" text-anchor="middle">domain</text>
+  <rect x="372" y="800" width="100" height="30" rx="8" class="card"/>
+  <text class="mono-sm" x="422.0" y="820" text-anchor="middle">repository</text>
+  <rect x="484" y="800" width="52" height="30" rx="8" class="card"/>
+  <text class="mono-sm" x="510.0" y="820" text-anchor="middle">page</text>
+  <rect x="548" y="800" width="68" height="30" rx="8" class="card"/>
+  <text class="mono-sm" x="582.0" y="820" text-anchor="middle">mapper</text>
+  <rect x="628" y="800" width="84" height="30" rx="8" class="card"/>
+  <text class="mono-sm" x="670.0" y="820" text-anchor="middle">response</text>
+  <rect x="724" y="800" width="92" height="30" rx="8" class="card"/>
+  <text class="mono-sm" x="770.0" y="820" text-anchor="middle">exception</text>
+  <text class="txt-xs" x="292" y="850">com.ddk.core.domain may not depend on any framework, enforced by tests</text>
+  <path class="edge" d="M200 730 L200 758"/>
+  <path class="edge" d="M900 600 L900 758"/>
+  <text class="edgelbl" x="888" y="676" text-anchor="end">Other starters only need ddk-core</text>
+  <text class="edgelbl" x="888" y="696" text-anchor="end">and never pull in MyBatis</text>
+  <text class="txt-xs" x="56" y="890">ddk-dependencies (BOM): import once, drop module versions   ·   ddk-archetypes: three- and four-layer project skeletons</text>
 
 </svg>
