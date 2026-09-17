@@ -160,5 +160,5 @@
   <rect x="56" y="456" width="1008" height="56" rx="12" class="group"/>
   <text class="kicker" x="80" y="489">贯穿始终</text>
   <text class="txt" x="168" y="489">README 首屏动图 · 一行命令创建项目 · 在线项目生成器 · 与 COLA / Spring Modulith 对比 · 每次发布配一篇设计文章</text>
-  <text class="txt-xs" x="1064" y="538" text-anchor="end">详见 ROADMAP.md</text>
+  <text class="txt-xs" x="1064" y="538" text-anchor="end">详见 ROADMAP.zh-CN.md</text>
 </svg>
