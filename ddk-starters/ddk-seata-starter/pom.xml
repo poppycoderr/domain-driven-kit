@@ -28,6 +28,13 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
+
+        <!-- 只在应用使用 RestClient / RestTemplate 时注册 XID 传播 -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <optional>true</optional>
+        </dependency>
     </dependencies>
 
     <build>
