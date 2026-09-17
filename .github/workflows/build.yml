@@ -24,11 +24,12 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # 注意：这里必须是 verify 且不能加 -DskipTests。
-      # -DskipTests 只跳过测试执行、不跳过测试编译，历史上正是靠它掩盖了
+      # 不能加 -DskipTests：它只跳过测试执行、不跳过测试编译，历史上正是靠它掩盖了
       # ddk-cache-starter 测试类的语法错误，导致整个 reactor 长期构建失败。
+      # 用 install 而不是 verify：archetype 集成测试会生成项目并对它执行 mvn verify，
+      # 生成的项目要从本地仓库解析 DDK 各模块。
       - name: Build and test
-        run: mvn -B -ntp verify
+        run: mvn -B -ntp install -Parchetype-it
 
       - name: Upload test reports
         if: always()
