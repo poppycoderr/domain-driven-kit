@@ -13,11 +13,12 @@ public abstract class AbstractException extends RuntimeException {
 
     private final ErrorCode errorCode;
 
-    private Object[] args;
+    private final Object[] args;
 
     public AbstractException(ErrorCode errorCode) {
         super(errorCode.getMessage());
         this.errorCode = errorCode;
+        this.args = new Object[0];
     }
 
     public AbstractException(ErrorCode errorCode, Object... args) {
@@ -29,6 +30,7 @@ public abstract class AbstractException extends RuntimeException {
     public AbstractException(ErrorCode errorCode, Throwable t) {
         super(errorCode.getMessage(), t);
         this.errorCode = errorCode;
+        this.args = new Object[0];
     }
 
     public AbstractException(ErrorCode errorCode, Throwable t, Object... args) {

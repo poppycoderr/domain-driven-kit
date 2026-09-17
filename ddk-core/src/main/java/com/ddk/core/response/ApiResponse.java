@@ -2,6 +2,7 @@ package com.ddk.core.response;
 
 import com.ddk.core.exception.ErrorCode;
 import lombok.Data;
+import org.jspecify.annotations.Nullable;
 
 /**
  * 统一 API 响应结果封装
@@ -16,10 +17,10 @@ public class ApiResponse<T> {
 
     private String code;
     private String message;
-    private T data;
+    private @Nullable T data;
     private Long timestamp;
 
-    public ApiResponse(String code, String message, T data) {
+    public ApiResponse(String code, String message, @Nullable T data) {
         this.code = code;
         this.message = message;
         this.data = data;
@@ -30,7 +31,7 @@ public class ApiResponse<T> {
         return new ApiResponse<>(SUCCESS, "Success", null);
     }
 
-    public static <T> ApiResponse<T> ofSuccess(T data) {
+    public static <T> ApiResponse<T> ofSuccess(@Nullable T data) {
         return new ApiResponse<>(SUCCESS, "Success", data);
     }
 
