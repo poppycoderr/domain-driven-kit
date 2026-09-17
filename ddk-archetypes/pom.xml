@@ -16,4 +16,56 @@
         <module>ddk-layer3-archetype</module>
         <module>ddk-layer4-archetype</module>
     </modules>
+
+    <properties>
+        <!-- 集成测试会生成项目并对它执行 mvn verify，需要 DDK 已安装到本地仓库，因此默认跳过，由 archetype-it profile 开启 -->
+        <archetype.test.skip>true</archetype.test.skip>
+    </properties>
+
+    <build>
+        <extensions>
+            <extension>
+                <groupId>org.apache.maven.archetype</groupId>
+                <artifactId>archetype-packaging</artifactId>
+                <version>${maven-archetype.version}</version>
+            </extension>
+        </extensions>
+
+        <!-- 只过滤 archetype 描述文件以写入 DDK 与 Spring Boot 版本；模板本身由 Velocity 在生成时渲染，不能被 Maven 提前过滤 -->
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>META-INF/maven/archetype-metadata.xml</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>META-INF/maven/archetype-metadata.xml</exclude>
+                </excludes>
+            </resource>
+        </resources>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-archetype-plugin</artifactId>
+                    <version>${maven-archetype.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>archetype-it</id>
+            <properties>
+                <archetype.test.skip>false</archetype.test.skip>
+            </properties>
+        </profile>
+    </profiles>
 </project>
