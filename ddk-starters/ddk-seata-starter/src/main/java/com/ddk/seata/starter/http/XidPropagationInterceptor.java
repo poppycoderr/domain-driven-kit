@@ -23,7 +23,7 @@ public class XidPropagationInterceptor implements ClientHttpRequestInterceptor {
     public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution)
             throws IOException {
         String xid = RootContext.getXID();
-        if (StringUtils.hasText(xid) && !request.getHeaders().containsKey(RootContext.KEY_XID)) {
+        if (StringUtils.hasText(xid) && !request.getHeaders().containsHeader(RootContext.KEY_XID)) {
             request.getHeaders().set(RootContext.KEY_XID, xid);
         }
         return execution.execute(request, body);
