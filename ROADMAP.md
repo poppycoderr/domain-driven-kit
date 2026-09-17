@@ -45,7 +45,7 @@ Goal: make `ddk-core` useful beyond response and pagination helpers.
 - [x] Add `DomainEvent` and `DomainEventPublisher`
 - [x] Add `Specification`
 - [x] Add focused unit tests for invariants and equality behavior
-- [ ] Provide a Spring implementation of `DomainEventPublisher` in a starter, rather than leaving it in the archetype
+- [x] Provide a Spring implementation of `DomainEventPublisher` in a starter, rather than leaving it in the archetype
 
 ## Phase 3 - Mapper and Repository Safety
 
@@ -83,11 +83,11 @@ Goal: make every starter predictable in production projects.
 
 Goal: let users try DDK without reading every document first.
 
-- [x] Make the 4-layer skeleton a correct, readable reference implementation
+- [x] Make the 4-layer skeleton a correct, readable reference implementation (now `ddk-examples/ddk-example-user`)
 - [x] Ship an executable `ArchitectureTest` in the skeleton
-- [ ] Convert `ddk-archetypes` into real Maven archetypes
-- [ ] Bring the 3-layer skeleton up to the same standard; it is currently only an `Application` class
-- [ ] Add a runnable example with schema, seed data and smoke test commands
+- [x] Convert `ddk-archetypes` into real Maven archetypes, with integration tests that build the generated projects
+- [x] Bring the 3-layer skeleton up to the same standard, with its own architecture rule
+- [x] Add a runnable example with schema, seed data and smoke test commands
 - [ ] Keep examples aligned with codesphere documentation
 
 ## Phase 6 - Release Readiness

@@ -49,8 +49,8 @@ This is a personally maintained open-source project. It is useful for learning, 
 | `ddk-db-starter` | Named data sources with configurable pools and a validated primary | Usable |
 | `ddk-tracer-starter` | Distributed tracing with the trace ID in a response header | Usable |
 | `ddk-seata-starter` | Distributed transactions with XID propagation on outbound HTTP calls | Usable |
-| `ddk-archetypes` | The 4-layer skeleton is readable and tested; the 3-layer one is still a stub | To be converted into real Maven archetypes |
-| `ddk-examples` | Example project module | Full runnable example planned |
+| `ddk-archetypes` | Three- and four-layer Maven archetypes with architecture tests in every generated project | Usable, with integration tests on generated projects |
+| `ddk-examples` | Runnable four-layer user registration example with H2, seed data and smoke commands | Usable |
 
 ## Domain Model
 
@@ -211,9 +211,8 @@ A violation fails the build. See [`ddk-examples/ddk-example-user`](./ddk-example
 
 Short-term priorities:
 
-1. Turn `ddk-archetypes` into real Maven archetypes and complete the 3-layer skeleton
-2. Add a complete runnable `ddk-examples` application
-3. Add Spotless and JaCoCo coverage thresholds
+1. Add Spotless and JaCoCo coverage thresholds
+2. Stabilize package names and public contracts ahead of a release
 
 See [ROADMAP.md](./ROADMAP.md) for the full plan.
 
