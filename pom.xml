@@ -59,6 +59,8 @@
         <jacoco.line.minimum>0.70</jacoco.line.minimum>
         <jacoco.branch.minimum>0.50</jacoco.branch.minimum>
         <archunit.version>1.5.0</archunit.version>
+        <errorprone.version>2.50.0</errorprone.version>
+        <nullaway.version>0.14.1</nullaway.version>
         <seata.version>2.6.0</seata.version>
         <maven-archetype.version>3.4.1</maven-archetype.version>
     </properties>
@@ -234,8 +236,35 @@
                             <artifactId>spring-boot-configuration-processor</artifactId>
                             <version>${spring-boot.version}</version>
                         </path>
+                        <path>
+                            <groupId>com.google.errorprone</groupId>
+                            <artifactId>error_prone_core</artifactId>
+                            <version>${errorprone.version}</version>
+                        </path>
+                        <path>
+                            <groupId>com.uber.nullaway</groupId>
+                            <artifactId>nullaway</artifactId>
+                            <version>${nullaway.version}</version>
+                        </path>
                     </annotationProcessorPaths>
+                    <!-- 只启用 NullAway，且只检查标了 @NullMarked 的包：示例、骨架与测试代码不受影响。
+                         Error Prone 需要访问 javac 内部 API，对应的 add-exports 参数在 .mvn/jvm.config -->
+                    <compilerArgs>
+                        <arg>-XDcompilePolicy=simple</arg>
+                        <arg>-XDaddTypeAnnotationsToSymbol=true</arg>
+                        <arg>--should-stop=ifError=FLOW</arg>
+                        <arg>-Xplugin:ErrorProne -XepDisableAllChecks -Xep:NullAway:ERROR -XepOpt:NullAway:OnlyNullMarked=true -XepOpt:NullAway:JSpecifyMode=true -XepExcludedPaths:.*/target/generated-.*</arg>
+                    </compilerArgs>
                 </configuration>
+                <executions>
+                    <!-- 测试与被测代码同包、同样处在 @NullMarked 下，但测试会刻意传 null 验证防御逻辑，不做空安全检查 -->
+                    <execution>
+                        <id>default-testCompile</id>
+                        <configuration>
+                            <compilerArgs combine.self="override"/>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
             <!-- 只做不改变代码风格的机械检查：未使用的 import、行尾空白、Tab 缩进、文件末尾换行。
