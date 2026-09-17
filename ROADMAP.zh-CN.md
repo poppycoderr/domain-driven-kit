@@ -72,7 +72,7 @@
 - [x] Java 基线保持 21，CI 增加 Java 25 矩阵
 - [x] 公开 API 标注 JSpecify 空安全注解，由 NullAway 在编译期检查
 - [x] 链路追踪 starter 改为基于 `spring-boot-starter-opentelemetry`，不再引入整个 actuator，只保留 traceId 响应头等 DDK 特有能力
-- [ ] 使用 Spring Framework 7 自带的 `@Retryable` / `@ConcurrencyLimit`，不再引入额外的重试库
+- [x] 不引入额外的重试库：DDK 目前没有重试需求，今后需要重试或并发限制时使用 Spring Framework 7 自带的 `@Retryable` / `@ConcurrencyLimit`
 
 发布就绪：
 

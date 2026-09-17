@@ -72,7 +72,7 @@ Platform upgrade (Spring Boot 3.4 left OSS support in December 2025, so this com
 - [x] Keep Java 21 as the baseline and add Java 25 to the CI matrix
 - [x] Annotate public APIs with JSpecify nullness annotations, checked by NullAway at compile time
 - [x] Build the tracer starter on `spring-boot-starter-opentelemetry` instead of the whole actuator, keeping only DDK-specific features such as the trace ID response header
-- [ ] Use Spring Framework 7's built-in `@Retryable` / `@ConcurrencyLimit` instead of adding a retry library
+- [x] No extra retry library: DDK has no retry needs today, and future retries or concurrency limits use Spring Framework 7's built-in `@Retryable` / `@ConcurrencyLimit`
 
 Release readiness:
 
