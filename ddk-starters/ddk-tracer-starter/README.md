@@ -20,7 +20,7 @@ A caller reporting a problem can hand over the header value, and the whole call 
 </dependency>
 ```
 
-The starter brings in `spring-boot-starter-actuator`, `micrometer-tracing-bridge-otel` and `opentelemetry-exporter-otlp`. Sampling and export stay under Spring Boot's own properties:
+The starter brings in Spring Boot's `spring-boot-starter-opentelemetry` (the Micrometer Tracing OTel bridge and the OTLP exporter). Sampling and export stay under Spring Boot's own properties:
 
 ```yaml
 management:
