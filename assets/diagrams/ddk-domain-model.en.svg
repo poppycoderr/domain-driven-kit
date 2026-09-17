@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 660" width="1120" height="660"
+     role="img" aria-labelledby="ttl dsc" style="max-width:100%;height:auto">
+  <title id="ttl">DDK domain model primitives</title>
+  <desc id="dsc">Identifier implements ValueObject and bounds the Entity ID type; AggregateRoot extends Entity and collects domain events; AbstractDomainEvent implements DomainEvent; events are published after commit by DomainEventPublisher; Specification is independent and optional.</desc>
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="mk" d="M0 0 L10 5 L0 10 z"/>
+    </marker>
+    <marker id="ar-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="mk-b" d="M0 0 L10 5 L0 10 z"/>
+    </marker>
+    <marker id="ar-v" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="mk-v" d="M0 0 L10 5 L0 10 z"/>
+    </marker>
+</defs>
+  <style>
+    text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",Inter,Roboto,sans-serif;}
+    .bg{fill:#FBFCFE}
+    .title{font-size:27px;font-weight:700;fill:#0F172A;letter-spacing:-.2px}
+    .sub{font-size:14px;font-weight:400;fill:#64748B}
+    .kicker{font-size:11.5px;font-weight:700;fill:#94A3B8;letter-spacing:1.4px}
+    .lbl{font-size:15px;font-weight:650;fill:#0F172A}
+    .lbl-sm{font-size:13.5px;font-weight:650;fill:#0F172A}
+    .txt{font-size:12.5px;font-weight:400;fill:#64748B}
+    .txt-xs{font-size:11.5px;font-weight:400;fill:#94A3B8}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;font-size:12px;font-weight:500;fill:#334155}
+    .mono-sm{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;font-size:11px;font-weight:500;fill:#64748B}
+    .edgelbl{font-size:11.5px;font-weight:500;fill:#64748B}
+
+    .card{fill:#FFFFFF;stroke:#E2E8F0;stroke-width:1.25}
+    .group{fill:#F1F5F9;fill-opacity:.55;stroke:#E2E8F0;stroke-width:1.25}
+    .blue{fill:#EFF6FF;stroke:#BFDBFE;stroke-width:1.25}
+    .teal{fill:#F0FDFA;stroke:#99F6E4;stroke-width:1.25}
+    .violet{fill:#F5F3FF;stroke:#DDD6FE;stroke-width:1.25}
+    .amber{fill:#FFFBEB;stroke:#FDE68A;stroke-width:1.25}
+    .rose{fill:#FFF1F2;stroke:#FECDD3;stroke-width:1.25}
+    .slate{fill:#F8FAFC;stroke:#E2E8F0;stroke-width:1.25}
+
+    .t-blue{fill:#1D4ED8} .t-teal{fill:#0F766E} .t-violet{fill:#6D28D9}
+    .t-amber{fill:#B45309} .t-rose{fill:#BE123C} .t-ink{fill:#0F172A}
+
+    .edge{stroke:#94A3B8;stroke-width:1.6;fill:none;marker-end:url(#ar)}
+    .edge-b{stroke:#3B82F6;stroke-width:1.8;fill:none;marker-end:url(#ar-b)}
+    .edge-v{stroke:#8B5CF6;stroke-width:1.6;fill:none;stroke-dasharray:6 5;marker-end:url(#ar-v)}
+    .edge-x{stroke:#F43F5E;stroke-width:1.6;fill:none;stroke-dasharray:5 5}
+    .rail{stroke:#E2E8F0;stroke-width:2;fill:none}
+    .hair{stroke:#E2E8F0;stroke-width:1.25;fill:none}
+    .mk{fill:#94A3B8} .mk-b{fill:#3B82F6} .mk-v{fill:#8B5CF6}
+
+    @media (prefers-color-scheme: dark) {
+      .bg{fill:#0B1120}
+      .title{fill:#F1F5F9} .sub{fill:#94A3B8} .kicker{fill:#64748B}
+      .lbl,.lbl-sm{fill:#E2E8F0} .txt{fill:#94A3B8} .txt-xs{fill:#64748B}
+      .mono{fill:#CBD5E1} .mono-sm{fill:#94A3B8} .edgelbl{fill:#94A3B8}
+      .card{fill:#111827;stroke:#283548}
+      .group{fill:#0F172A;fill-opacity:.7;stroke:#1E293B}
+      .blue{fill:#111E38;stroke:#1E40AF}
+      .teal{fill:#0C2620;stroke:#115E59}
+      .violet{fill:#1A1333;stroke:#5B21B6}
+      .amber{fill:#271B08;stroke:#92400E}
+      .rose{fill:#2A0F17;stroke:#9F1239}
+      .slate{fill:#131C2B;stroke:#283548}
+      .t-blue{fill:#93C5FD} .t-teal{fill:#5EEAD4} .t-violet{fill:#C4B5FD}
+      .t-amber{fill:#FCD34D} .t-rose{fill:#FDA4AF} .t-ink{fill:#E2E8F0}
+      .edge{stroke:#64748B} .edge-b{stroke:#60A5FA} .edge-v{stroke:#A78BFA}
+      .edge-x{stroke:#FB7185}
+      .rail{stroke:#1E293B} .hair{stroke:#1E293B}
+      .mk{fill:#64748B} .mk-b{fill:#60A5FA} .mk-v{fill:#A78BFA}
+    }
+</style>
+  <rect class="bg" width="1120" height="660" rx="18"/>
+  <text class="title" x="56" y="60">Domain model primitives</text>
+  <text class="sub" x="56" y="87">Three jobs: give identity a type, separate value from identity equality, and give domain events a home.</text>
+  <rect x="56" y="140" width="250" height="104" rx="12" class="violet"/>
+  <text class="kicker" x="76" y="170">interface</text>
+  <text class="lbl" x="76" y="196">ValueObject</text>
+  <text class="txt" x="76" y="224">Value-equal · immutable · validated</text>
+  <rect x="56" y="268" width="250" height="138" rx="12" class="violet"/>
+  <text class="kicker" x="76" y="298">abstract class</text>
+  <text class="lbl" x="76" y="324">Identifier&lt;T&gt;</text>
+  <text class="txt" x="76" y="352">equals compares concrete types</text>
+  <text class="txt" x="76" y="372">UserId(1) ≠ OrderId(1)</text>
+  <text class="txt" x="76" y="392">toString() prints the raw value</text>
+  <path class="edge" d="M181 268 L181 252"/>
+  <text class="edgelbl" x="196" y="262">implements</text>
+  <rect x="436" y="268" width="280" height="138" rx="12" class="card"/>
+  <text class="kicker" x="456" y="298">abstract class</text>
+  <text class="lbl" x="456" y="324">Entity&lt;ID&gt;</text>
+  <text class="txt" x="456" y="352">Equal by identity, not by fields</text>
+  <text class="txt" x="456" y="372">hashCode uses getClass()</text>
+  <text class="txt" x="456" y="392">Still found in a Set after ID assignment</text>
+  <rect x="436" y="440" width="280" height="150" rx="12" class="card"/>
+  <text class="kicker" x="456" y="470">abstract class</text>
+  <text class="lbl" x="456" y="496">AggregateRoot&lt;ID&gt;</text>
+  <text class="txt" x="456" y="524">The only entry to the aggregate</text>
+  <text class="txt" x="456" y="544">registerEvent(DomainEvent) records</text>
+  <text class="txt" x="456" y="564">drainDomainEvents() drains</text>
+  <text class="txt" x="456" y="584">version for optimistic locking</text>
+  <path class="edge" d="M576 440 L576 414"/>
+  <text class="edgelbl" x="591" y="430">extends</text>
+  <path class="edge" d="M306 331 L428 331"/>
+  <text class="edgelbl" x="367" y="322" text-anchor="middle">bounds ID</text>
+  <rect x="796" y="140" width="268" height="104" rx="12" class="teal"/>
+  <text class="kicker" x="816" y="170">interface</text>
+  <text class="lbl" x="816" y="196">DomainEvent</text>
+  <text class="txt" x="816" y="224">occurredOn fixed at construction</text>
+  <rect x="796" y="268" width="268" height="116" rx="12" class="teal"/>
+  <text class="kicker" x="816" y="298">abstract class</text>
+  <text class="lbl" x="816" y="324">AbstractDomainEvent</text>
+  <text class="txt" x="816" y="352">Removes occurredOn boilerplate</text>
+  <text class="txt" x="816" y="372">records implement the interface</text>
+  <path class="edge" d="M930 268 L930 252"/>
+  <text class="edgelbl" x="945" y="262">implements</text>
+  <rect x="796" y="440" width="268" height="150" rx="12" class="teal"/>
+  <text class="kicker" x="816" y="470">interface</text>
+  <text class="lbl" x="816" y="496">DomainEventPublisher</text>
+  <text class="txt" x="816" y="524">Implemented by infrastructure</text>
+  <text class="txt" x="816" y="544">Subscribers must use</text>
+  <text class="txt" x="816" y="564">@TransactionalEventListener</text>
+  <text class="txt" x="816" y="584">(AFTER_COMMIT)</text>
+  <path class="edge-v" d="M716 500 L788 500"/>
+  <text class="edgelbl" x="752" y="491" text-anchor="middle">publish</text>
+  <rect x="56" y="440" width="340" height="150" rx="12" class="slate"/>
+  <text class="kicker" x="76" y="470">functional interface</text>
+  <text class="lbl" x="76" y="496">Specification&lt;T&gt;</text>
+  <text class="txt" x="76" y="524">Compose rules with and / or / not</text>
+  <text class="txt" x="76" y="544">any() / none() as reduction seeds</text>
+  <text class="txt" x="76" y="564">Evaluated in memory, never SQL</text>
+  <text class="txt-xs" x="76" y="612">Unrelated to the types above; use it on its own</text>
+  <text class="txt-xs" x="1064" y="634" text-anchor="end">Package com.ddk.core.domain · zero framework dependencies, enforced by DomainPackagePurityTest</text>
+
+</svg>

@@ -36,7 +36,7 @@
 `domain-driven-kit` is not a heavy business framework. It is an evolving **Java DDD engineering toolkit** that turns layered architecture, response contracts, exception handling, pagination, object mapping, repository abstractions, Spring Boot starters and architecture rules into reusable code.
 
 <p align="center">
-    <img src="./assets/diagrams/ddk-system-overview.svg" alt="DDK system overview" />
+    <img src="./assets/diagrams/ddk-system-overview.en.svg" alt="DDK system overview" />
 </p>
 
 It is designed for teams that want to:
@@ -134,7 +134,7 @@ DDK is maintained by one person and is still pre-release: build it locally, try 
 ## Domain Model
 
 <p align="center">
-    <img src="./assets/diagrams/ddk-domain-model.svg" alt="DDK domain model base classes" />
+    <img src="./assets/diagrams/ddk-domain-model.en.svg" alt="DDK domain model base classes" />
 </p>
 
 `com.ddk.core.domain` does exactly three things:
@@ -150,7 +150,7 @@ The primitives provide mechanism without dictating process, and you can adopt on
 ## Architecture Guard
 
 <p align="center">
-    <img src="./assets/diagrams/ddk-layer-flow.svg" alt="DDK four-layer request flow" />
+    <img src="./assets/diagrams/ddk-layer-flow.en.svg" alt="DDK four-layer request flow" />
 </p>
 
 Core constraints:
@@ -187,7 +187,7 @@ A violation fails the build. See [`ddk-examples/ddk-example-user`](./ddk-example
 ## Module Layout
 
 <p align="center">
-    <img src="./assets/diagrams/ddk-module-map.svg" alt="DDK module map" />
+    <img src="./assets/diagrams/ddk-module-map.en.svg" alt="DDK module map" />
 </p>
 
 ```text
@@ -223,7 +223,7 @@ com.ddk.core
 ## Roadmap
 
 <p align="center">
-    <img src="./assets/diagrams/ddk-roadmap.svg" alt="DDK roadmap" />
+    <img src="./assets/diagrams/ddk-roadmap.en.svg" alt="DDK roadmap" />
 </p>
 
 The foundation (domain model, repositories, nine starters, archetypes and examples) is complete. Next milestones:

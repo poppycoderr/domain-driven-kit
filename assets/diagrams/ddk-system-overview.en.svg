@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 700" width="1120" height="700"
+     role="img" aria-labelledby="ttl dsc" style="max-width:100%;height:auto">
+  <title id="ttl">DDK capability overview</title>
+  <desc id="dsc">DDK capabilities arranged by application layer: adapter gets the web starter and unified responses, application gets pagination and object mapping, domain gets the model primitives, infrastructure gets the MyBatis repository and technical starters; at build time the ArchGuard starter enforces layer boundaries with ArchUnit.</desc>
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="mk" d="M0 0 L10 5 L0 10 z"/>
+    </marker>
+    <marker id="ar-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="mk-b" d="M0 0 L10 5 L0 10 z"/>
+    </marker>
+    <marker id="ar-v" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="mk-v" d="M0 0 L10 5 L0 10 z"/>
+    </marker>
+</defs>
+  <style>
+    text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",Inter,Roboto,sans-serif;}
+    .bg{fill:#FBFCFE}
+    .title{font-size:27px;font-weight:700;fill:#0F172A;letter-spacing:-.2px}
+    .sub{font-size:14px;font-weight:400;fill:#64748B}
+    .kicker{font-size:11.5px;font-weight:700;fill:#94A3B8;letter-spacing:1.4px}
+    .lbl{font-size:15px;font-weight:650;fill:#0F172A}
+    .lbl-sm{font-size:13.5px;font-weight:650;fill:#0F172A}
+    .txt{font-size:12.5px;font-weight:400;fill:#64748B}
+    .txt-xs{font-size:11.5px;font-weight:400;fill:#94A3B8}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;font-size:12px;font-weight:500;fill:#334155}
+    .mono-sm{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;font-size:11px;font-weight:500;fill:#64748B}
+    .edgelbl{font-size:11.5px;font-weight:500;fill:#64748B}
+
+    .card{fill:#FFFFFF;stroke:#E2E8F0;stroke-width:1.25}
+    .group{fill:#F1F5F9;fill-opacity:.55;stroke:#E2E8F0;stroke-width:1.25}
+    .blue{fill:#EFF6FF;stroke:#BFDBFE;stroke-width:1.25}
+    .teal{fill:#F0FDFA;stroke:#99F6E4;stroke-width:1.25}
+    .violet{fill:#F5F3FF;stroke:#DDD6FE;stroke-width:1.25}
+    .amber{fill:#FFFBEB;stroke:#FDE68A;stroke-width:1.25}
+    .rose{fill:#FFF1F2;stroke:#FECDD3;stroke-width:1.25}
+    .slate{fill:#F8FAFC;stroke:#E2E8F0;stroke-width:1.25}
+
+    .t-blue{fill:#1D4ED8} .t-teal{fill:#0F766E} .t-violet{fill:#6D28D9}
+    .t-amber{fill:#B45309} .t-rose{fill:#BE123C} .t-ink{fill:#0F172A}
+
+    .edge{stroke:#94A3B8;stroke-width:1.6;fill:none;marker-end:url(#ar)}
+    .edge-b{stroke:#3B82F6;stroke-width:1.8;fill:none;marker-end:url(#ar-b)}
+    .edge-v{stroke:#8B5CF6;stroke-width:1.6;fill:none;stroke-dasharray:6 5;marker-end:url(#ar-v)}
+    .edge-x{stroke:#F43F5E;stroke-width:1.6;fill:none;stroke-dasharray:5 5}
+    .rail{stroke:#E2E8F0;stroke-width:2;fill:none}
+    .hair{stroke:#E2E8F0;stroke-width:1.25;fill:none}
+    .mk{fill:#94A3B8} .mk-b{fill:#3B82F6} .mk-v{fill:#8B5CF6}
+
+    @media (prefers-color-scheme: dark) {
+      .bg{fill:#0B1120}
+      .title{fill:#F1F5F9} .sub{fill:#94A3B8} .kicker{fill:#64748B}
+      .lbl,.lbl-sm{fill:#E2E8F0} .txt{fill:#94A3B8} .txt-xs{fill:#64748B}
+      .mono{fill:#CBD5E1} .mono-sm{fill:#94A3B8} .edgelbl{fill:#94A3B8}
+      .card{fill:#111827;stroke:#283548}
+      .group{fill:#0F172A;fill-opacity:.7;stroke:#1E293B}
+      .blue{fill:#111E38;stroke:#1E40AF}
+      .teal{fill:#0C2620;stroke:#115E59}
+      .violet{fill:#1A1333;stroke:#5B21B6}
+      .amber{fill:#271B08;stroke:#92400E}
+      .rose{fill:#2A0F17;stroke:#9F1239}
+      .slate{fill:#131C2B;stroke:#283548}
+      .t-blue{fill:#93C5FD} .t-teal{fill:#5EEAD4} .t-violet{fill:#C4B5FD}
+      .t-amber{fill:#FCD34D} .t-rose{fill:#FDA4AF} .t-ink{fill:#E2E8F0}
+      .edge{stroke:#64748B} .edge-b{stroke:#60A5FA} .edge-v{stroke:#A78BFA}
+      .edge-x{stroke:#FB7185}
+      .rail{stroke:#1E293B} .hair{stroke:#1E293B}
+      .mk{fill:#64748B} .mk-b{fill:#60A5FA} .mk-v{fill:#A78BFA}
+    }
+</style>
+  <rect class="bg" width="1120" height="700" rx="18"/>
+  <text class="title" x="56" y="60">Domain Driven Kit</text>
+  <text class="sub" x="56" y="87">What DDK provides, where each piece plugs in, and what guards the boundaries.</text>
+  <rect x="56" y="126" width="180" height="436" rx="14" class="group"/>
+  <text class="lbl-sm" x="72" y="148">Your application</text>
+  <rect x="70" y="152" width="152" height="88" rx="10" class="blue"/>
+  <text class="lbl-sm" x="84" y="186">adapter</text>
+  <text class="txt-xs" x="84" y="208">Protocol adapters</text>
+  <path class="edge" d="M238 196.0 L268 196.0"/>
+  <rect x="276.0" y="152" width="384.0" height="88" rx="10" class="card"/>
+  <text class="lbl-sm" x="296.0" y="186">ddk-web-starter</text>
+  <text class="txt" x="296.0" y="210">Global exceptions · Jackson · CORS</text>
+  <rect x="680.0" y="152" width="384.0" height="88" rx="10" class="card"/>
+  <text class="lbl-sm" x="700.0" y="186">ApiResponse / ErrorCode</text>
+  <text class="txt" x="700.0" y="210">Unified response and error codes</text>
+  <rect x="70" y="254" width="152" height="88" rx="10" class="teal"/>
+  <text class="lbl-sm" x="84" y="288">application</text>
+  <text class="txt-xs" x="84" y="310">Use cases</text>
+  <path class="edge" d="M238 298.0 L268 298.0"/>
+  <rect x="276.0" y="254" width="384.0" height="88" rx="10" class="card"/>
+  <text class="lbl-sm" x="296.0" y="288">PageQuery / PageResponse</text>
+  <text class="txt" x="296.0" y="312">Paged queries with a page-size cap</text>
+  <rect x="680.0" y="254" width="384.0" height="88" rx="10" class="card"/>
+  <text class="lbl-sm" x="700.0" y="288">MapperProvider</text>
+  <text class="txt" x="700.0" y="312">Entity↔PO mapper registry, fail-fast</text>
+  <rect x="70" y="356" width="152" height="88" rx="10" class="violet"/>
+  <text class="lbl-sm" x="84" y="390">domain</text>
+  <text class="txt-xs" x="84" y="412">Business rules</text>
+  <path class="edge" d="M238 400.0 L268 400.0"/>
+  <rect x="276.0" y="356" width="384.0" height="88" rx="10" class="card"/>
+  <text class="lbl-sm" x="296.0" y="390">ddk-core · domain</text>
+  <text class="txt" x="296.0" y="414">Identifier · ValueObject · Entity</text>
+  <rect x="680.0" y="356" width="384.0" height="88" rx="10" class="card"/>
+  <text class="lbl-sm" x="700.0" y="390">AggregateRoot · DomainEvent</text>
+  <text class="txt" x="700.0" y="414">Aggregates, events, Specification</text>
+  <rect x="70" y="458" width="152" height="88" rx="10" class="slate"/>
+  <text class="lbl-sm" x="84" y="492">infrastructure</text>
+  <text class="txt-xs" x="84" y="514">Implementation</text>
+  <path class="edge" d="M238 502.0 L268 502.0"/>
+  <rect x="276.0" y="458" width="384.0" height="88" rx="10" class="card"/>
+  <text class="lbl-sm" x="296.0" y="492">ddk-mybatis</text>
+  <text class="txt" x="296.0" y="516">Generic repository · query parsing · paging</text>
+  <rect x="680.0" y="458" width="384.0" height="88" rx="10" class="card"/>
+  <text class="lbl-sm" x="700.0" y="492">redis · cache · db · tracer · seata</text>
+  <text class="txt" x="700.0" y="516">Infrastructure starters</text>
+  <rect x="56" y="586" width="1008" height="90" rx="12" class="amber"/>
+  <text class="kicker" x="80" y="616">Build time</text>
+  <text class="lbl-sm" x="80" y="642">ddk-archguard-starter</text>
+  <text class="txt" x="296" y="642">"Adapters hold no business logic, the domain depends on no framework" becomes an ArchUnit test that fails the build.</text>
+  <text class="txt-xs" x="1064" y="87" text-anchor="end">Install locally with scripts/ddk.sh</text>
+
+</svg>

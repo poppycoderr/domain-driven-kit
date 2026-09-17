@@ -3,7 +3,7 @@
 [简体中文](./ROADMAP.zh-CN.md)
 
 <p align="center">
-  <img src="./assets/diagrams/ddk-roadmap.svg" alt="DDK roadmap" />
+  <img src="./assets/diagrams/ddk-roadmap.en.svg" alt="DDK roadmap" />
 </p>
 
 This roadmap answers three questions: what DDK should become, in which order the work happens, and how the project stays both good-looking and genuinely useful. Every milestone must be releasable and demoable on its own, and everything marked done is backed by tests.

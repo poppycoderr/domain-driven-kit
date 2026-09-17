@@ -1,0 +1,136 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 650" width="1120" height="650"
+     role="img" aria-labelledby="ttl dsc" style="max-width:100%;height:auto">
+  <title id="ttl">DDK four-layer request flow and dependency direction</title>
+  <desc id="dsc">A request passes through adapter, application and domain; infrastructure sits below the domain and depends on it by implementing the repository contracts the domain defines; a domain-to-infrastructure dependency is forbidden by ArchUnit rules.</desc>
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="mk" d="M0 0 L10 5 L0 10 z"/>
+    </marker>
+    <marker id="ar-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="mk-b" d="M0 0 L10 5 L0 10 z"/>
+    </marker>
+    <marker id="ar-v" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="mk-v" d="M0 0 L10 5 L0 10 z"/>
+    </marker>
+</defs>
+  <style>
+    text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",Inter,Roboto,sans-serif;}
+    .bg{fill:#FBFCFE}
+    .title{font-size:27px;font-weight:700;fill:#0F172A;letter-spacing:-.2px}
+    .sub{font-size:14px;font-weight:400;fill:#64748B}
+    .kicker{font-size:11.5px;font-weight:700;fill:#94A3B8;letter-spacing:1.4px}
+    .lbl{font-size:15px;font-weight:650;fill:#0F172A}
+    .lbl-sm{font-size:13.5px;font-weight:650;fill:#0F172A}
+    .txt{font-size:12.5px;font-weight:400;fill:#64748B}
+    .txt-xs{font-size:11.5px;font-weight:400;fill:#94A3B8}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;font-size:12px;font-weight:500;fill:#334155}
+    .mono-sm{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;font-size:11px;font-weight:500;fill:#64748B}
+    .edgelbl{font-size:11.5px;font-weight:500;fill:#64748B}
+
+    .card{fill:#FFFFFF;stroke:#E2E8F0;stroke-width:1.25}
+    .group{fill:#F1F5F9;fill-opacity:.55;stroke:#E2E8F0;stroke-width:1.25}
+    .blue{fill:#EFF6FF;stroke:#BFDBFE;stroke-width:1.25}
+    .teal{fill:#F0FDFA;stroke:#99F6E4;stroke-width:1.25}
+    .violet{fill:#F5F3FF;stroke:#DDD6FE;stroke-width:1.25}
+    .amber{fill:#FFFBEB;stroke:#FDE68A;stroke-width:1.25}
+    .rose{fill:#FFF1F2;stroke:#FECDD3;stroke-width:1.25}
+    .slate{fill:#F8FAFC;stroke:#E2E8F0;stroke-width:1.25}
+
+    .t-blue{fill:#1D4ED8} .t-teal{fill:#0F766E} .t-violet{fill:#6D28D9}
+    .t-amber{fill:#B45309} .t-rose{fill:#BE123C} .t-ink{fill:#0F172A}
+
+    .edge{stroke:#94A3B8;stroke-width:1.6;fill:none;marker-end:url(#ar)}
+    .edge-b{stroke:#3B82F6;stroke-width:1.8;fill:none;marker-end:url(#ar-b)}
+    .edge-v{stroke:#8B5CF6;stroke-width:1.6;fill:none;stroke-dasharray:6 5;marker-end:url(#ar-v)}
+    .edge-x{stroke:#F43F5E;stroke-width:1.6;fill:none;stroke-dasharray:5 5}
+    .rail{stroke:#E2E8F0;stroke-width:2;fill:none}
+    .hair{stroke:#E2E8F0;stroke-width:1.25;fill:none}
+    .mk{fill:#94A3B8} .mk-b{fill:#3B82F6} .mk-v{fill:#8B5CF6}
+
+    @media (prefers-color-scheme: dark) {
+      .bg{fill:#0B1120}
+      .title{fill:#F1F5F9} .sub{fill:#94A3B8} .kicker{fill:#64748B}
+      .lbl,.lbl-sm{fill:#E2E8F0} .txt{fill:#94A3B8} .txt-xs{fill:#64748B}
+      .mono{fill:#CBD5E1} .mono-sm{fill:#94A3B8} .edgelbl{fill:#94A3B8}
+      .card{fill:#111827;stroke:#283548}
+      .group{fill:#0F172A;fill-opacity:.7;stroke:#1E293B}
+      .blue{fill:#111E38;stroke:#1E40AF}
+      .teal{fill:#0C2620;stroke:#115E59}
+      .violet{fill:#1A1333;stroke:#5B21B6}
+      .amber{fill:#271B08;stroke:#92400E}
+      .rose{fill:#2A0F17;stroke:#9F1239}
+      .slate{fill:#131C2B;stroke:#283548}
+      .t-blue{fill:#93C5FD} .t-teal{fill:#5EEAD4} .t-violet{fill:#C4B5FD}
+      .t-amber{fill:#FCD34D} .t-rose{fill:#FDA4AF} .t-ink{fill:#E2E8F0}
+      .edge{stroke:#64748B} .edge-b{stroke:#60A5FA} .edge-v{stroke:#A78BFA}
+      .edge-x{stroke:#FB7185}
+      .rail{stroke:#1E293B} .hair{stroke:#1E293B}
+      .mk{fill:#64748B} .mk-b{fill:#60A5FA} .mk-v{fill:#A78BFA}
+    }
+</style>
+  <rect class="bg" width="1120" height="650" rx="18"/>
+  <text class="title" x="56" y="60">One request through four layers</text>
+  <text class="sub" x="56" y="87">Solid inward arrows are calls; the dashed upward arrow is dependency inversion: the domain defines contracts and infrastructure implements them.</text>
+  <rect x="56" y="150" width="300" height="180" rx="14" class="blue"/>
+  <text class="lbl" x="80" y="186">adapter</text>
+  <text class="mono" x="80" y="210">UserController</text>
+  <circle cx="85" cy="238" r="2.5" fill="#94A3B8"/>
+  <text class="txt" x="98" y="242">Receives HTTP / MQ</text>
+  <circle cx="85" cy="264" r="2.5" fill="#94A3B8"/>
+  <text class="txt" x="98" y="268">Builds commands, wraps ApiResponse</text>
+  <circle cx="85" cy="290" r="2.5" fill="#94A3B8"/>
+  <text class="txt" x="98" y="294">No business decisions</text>
+  <rect x="408" y="150" width="300" height="180" rx="14" class="teal"/>
+  <text class="lbl" x="432" y="186">application</text>
+  <text class="mono" x="432" y="210">UserService</text>
+  <circle cx="437" cy="238" r="2.5" fill="#94A3B8"/>
+  <text class="txt" x="450" y="242">Loads aggregates, calls the domain</text>
+  <circle cx="437" cy="264" r="2.5" fill="#94A3B8"/>
+  <text class="txt" x="450" y="268">Owns transactions and orchestration</text>
+  <circle cx="437" cy="290" r="2.5" fill="#94A3B8"/>
+  <text class="txt" x="450" y="294">No business rules</text>
+  <rect x="760" y="150" width="300" height="180" rx="14" class="violet"/>
+  <text class="lbl" x="784" y="186">domain</text>
+  <text class="mono" x="784" y="210">User aggregate root</text>
+  <circle cx="789" cy="238" r="2.5" fill="#94A3B8"/>
+  <text class="txt" x="802" y="242">Invariants and state live here</text>
+  <circle cx="789" cy="264" r="2.5" fill="#94A3B8"/>
+  <text class="txt" x="802" y="268">Records domain events</text>
+  <circle cx="789" cy="290" r="2.5" fill="#94A3B8"/>
+  <text class="txt" x="802" y="294">No framework dependencies</text>
+  <path class="edge-b" d="M362 240.0 L400 240.0"/>
+  <text class="edgelbl" x="382.0" y="226.0" text-anchor="middle">Command / Query</text>
+  <path class="edge-b" d="M714 240.0 L752 240.0"/>
+  <text class="edgelbl" x="734.0" y="226.0" text-anchor="middle">calls</text>
+  <text class="txt-xs" x="56" y="134">① HTTP / MQ in</text>
+  <text class="txt-xs" x="1060" y="134" text-anchor="end">returns UserDTO → ApiResponse</text>
+  <rect x="760" y="420" width="300" height="180" rx="14" class="slate"/>
+  <text class="lbl" x="784" y="454">infrastructure</text>
+  <text class="mono" x="784" y="478">UserRepositoryImpl</text>
+  <circle cx="789" cy="506" r="2.5" fill="#94A3B8"/>
+  <text class="txt" x="802" y="510">Explicit Entity ↔ PO mapping</text>
+  <circle cx="789" cy="530" r="2.5" fill="#94A3B8"/>
+  <text class="txt" x="802" y="534">MyBatis-Plus / Redis / MQ</text>
+  <circle cx="789" cy="554" r="2.5" fill="#94A3B8"/>
+  <text class="txt" x="802" y="558">Drains events after saving</text>
+  <path class="edge-v" d="M860 414 L860 338"/>
+  <text class="edgelbl" x="876" y="376">implements the domain’s</text>
+  <text class="edgelbl" x="876" y="394">repository contract (inversion)</text>
+  <rect x="56" y="420" width="652" height="180" rx="14" class="rose"/>
+  <text class="kicker" x="80" y="454">Forbidden dependency</text>
+  <text class="lbl-sm" x="80" y="484">The domain must not depend on infrastructure</text>
+  <text class="txt" x="80" y="514">Once @Mapper, RedisTemplate or a PO shows up in the domain,</text>
+  <text class="txt" x="80" y="535">the business model is tied to storage and can no longer</text>
+  <text class="txt" x="80" y="556">be unit tested without a container.</text>
+  <rect x="576" y="460" width="112" height="32" rx="8" class="card"/>
+  <text class="mono-sm" x="632" y="481" text-anchor="middle">domain</text>
+  <rect x="576" y="530" width="112" height="32" rx="8" class="card"/>
+  <text class="mono-sm" x="632" y="551" text-anchor="middle">infrastructure</text>
+  <path class="edge-x" d="M632 494 L632 528"/>
+  <circle cx="632" cy="511" r="9" fill="#FFF1F2"/>
+  <circle cx="632" cy="511" r="9" fill="none" stroke="#F43F5E" stroke-width="1.4"/>
+  <path d="M628 507 L636 515 M636 507 L628 515" stroke="#F43F5E" stroke-width="1.6" fill="none"/>
+  <text class="txt-xs" x="632" y="584" text-anchor="middle">Blocked by ArchUnit</text>
+  <text class="txt-xs" x="56" y="628">Rules: CommonArchRules.LAYERED_ARCHITECTURE_RULE and DOMAIN_MUST_NOT_DEPEND_ON_FRAMEWORKS</text>
+
+</svg>
