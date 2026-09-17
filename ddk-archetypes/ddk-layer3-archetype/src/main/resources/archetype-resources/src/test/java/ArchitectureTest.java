@@ -20,4 +20,9 @@ class ArchitectureTest {
     void layeredArchitectureIsRespected() {
         CommonArchRules.THREE_LAYER_ARCHITECTURE_RULE.check(classes);
     }
+
+    @Test
+    void ddkInternalsAreNotUsed() {
+        CommonArchRules.DDK_INTERNALS_MUST_NOT_BE_USED.check(classes);
+    }
 }
