@@ -1,4 +1,4 @@
-package com.ddk.event.starter.config;
+package com.ddk.event.starter.internal;
 
 import com.ddk.core.domain.DomainEvent;
 import com.ddk.core.domain.DomainEventPublisher;
