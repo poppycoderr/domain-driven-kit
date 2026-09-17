@@ -56,7 +56,7 @@ curl -fsSL https://raw.githubusercontent.com/poppycoderr/domain-driven-kit/main/
 cd order-service && mvn verify
 ```
 
-加 `--layers 3` 生成三层骨架，设置 `DDK_REF=v0.1.0` 构建指定发布版本，`ddk.sh help` 查看全部选项。
+加 `--layers 3` 生成三层骨架，设置 `DDK_REF=v0.2.0` 构建指定发布版本，`ddk.sh help` 查看全部选项。
 
 手动构建 DDK：
 
@@ -83,7 +83,7 @@ mvn -B install
         <dependency>
             <groupId>com.ddk</groupId>
             <artifactId>ddk-dependencies</artifactId>
-            <version>0.2.0-SNAPSHOT</version>
+            <version>0.3.0-SNAPSHOT</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>

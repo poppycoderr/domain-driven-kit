@@ -56,7 +56,7 @@ curl -fsSL https://raw.githubusercontent.com/poppycoderr/domain-driven-kit/main/
 cd order-service && mvn verify
 ```
 
-Use `--layers 3` for the three-layer skeleton, or `DDK_REF=v0.1.0` to build a released version. Run `ddk.sh help` for all options.
+Use `--layers 3` for the three-layer skeleton, or `DDK_REF=v0.2.0` to build a released version. Run `ddk.sh help` for all options.
 
 To build DDK by hand instead:
 
@@ -83,7 +83,7 @@ Use in another project. Import the BOM first, then drop the versions:
         <dependency>
             <groupId>com.ddk</groupId>
             <artifactId>ddk-dependencies</artifactId>
-            <version>0.2.0-SNAPSHOT</version>
+            <version>0.3.0-SNAPSHOT</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
