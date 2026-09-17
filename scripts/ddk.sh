@@ -59,11 +59,19 @@ install_ddk() {
     if [[ -d "$SRC_DIR/.git" ]]; then
         info "Updating DDK source ($DDK_REF)"
         git -C "$SRC_DIR" fetch -q --depth 1 origin "$DDK_REF"
-        git -C "$SRC_DIR" checkout -q --detach FETCH_HEAD
+        git -C "$SRC_DIR" checkout -q --force --detach FETCH_HEAD
     else
         info "Cloning DDK ($DDK_REF)"
         mkdir -p "$DDK_HOME"
         git clone -q --depth 1 --branch "$DDK_REF" "$DDK_REPO" "$SRC_DIR"
+    fi
+
+    # 仓库里始终是 SNAPSHOT 版本，发布版本号只在发布流程中按 tag 改写；按 tag 构建时同样改写，装出来的才是 X.Y.Z
+    if [[ "$DDK_REF" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+        local release="${BASH_REMATCH[1]}"
+        mvn -f "$SRC_DIR/pom.xml" -B -ntp -q versions:set -DnewVersion="$release" -DprocessAllModules=true -DgenerateBackupPoms=false
+        sed -i.bak "s|<ddk.version>.*</ddk.version>|<ddk.version>$release</ddk.version>|" "$SRC_DIR/ddk-dependencies/pom.xml"
+        rm -f "$SRC_DIR/ddk-dependencies/pom.xml.bak"
     fi
 
     info "Installing DDK $(ddk_version) into the local Maven repository"
