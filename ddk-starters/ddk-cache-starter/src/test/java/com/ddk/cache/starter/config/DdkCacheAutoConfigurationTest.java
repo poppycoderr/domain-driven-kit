@@ -1,6 +1,6 @@
 package com.ddk.cache.starter.config;
 
-import com.ddk.cache.starter.metrics.MicrometerCacheMetrics;
+import com.ddk.cache.starter.internal.MicrometerCacheMetrics;
 import com.ddk.cache.starter.support.DdkCacheManager;
 import com.ddk.cache.starter.support.TwoLevelCache;
 import com.ddk.redis.starter.config.DdkRedisAutoConfiguration;
