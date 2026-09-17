@@ -65,13 +65,15 @@ ${package}
 | `package-info.java` | 每个包一份，写明这个包放什么、命名约定是什么 |
 | `ArchitectureTest` | 用 `CommonArchRules.THREE_LAYER_ARCHITECTURE_RULE` 校验依赖方向，违反即构建失败；空的层不会导致失败 |
 | `ApplicationTest` | 上下文能否启动 |
+| `AGENTS.md` / `CLAUDE.md` | 写给 AI 编码代理的分层职责、编码约定与完成标准，Claude Code、Codex 会自动读取 |
+| `.claude/skills/` | Claude Code Skills：`ddk-add-feature` |
 | `application.yml` | 内存 H2 与 `ddk.mybatis.db-type=h2`，开箱即可启动 |
 
 依赖：`ddk-web-starter`、`ddk-mybatis-starter`、`ddk-event-starter`，测试期 `ddk-archguard-starter`。一个完整的业务用例怎么落在这些包里，见 [`ddk-examples/ddk-example-user`](../../ddk-examples/ddk-example-user)。
 
 ## 开发这个骨架
 
-模板位于 `src/main/resources/archetype-resources`，由 Velocity 在生成时渲染（`${package}`、`${artifactId}` 等）。集成测试会用 `src/test/resources/projects/basic` 的参数生成一个项目并对它执行 `mvn verify`：
+模板位于 `src/main/resources/archetype-resources`，由 Velocity 在生成时渲染（`${package}`、`${artifactId}` 等）。Markdown 模板里 `##` 是 Velocity 注释，二级、三级标题要写成 `$h2`、`$h3`。集成测试会用 `src/test/resources/projects/basic` 的参数生成一个项目并对它执行 `mvn verify`：
 
 ```bash
 mvn install -Parchetype-it
