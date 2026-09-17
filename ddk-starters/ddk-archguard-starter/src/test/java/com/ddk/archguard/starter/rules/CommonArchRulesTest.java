@@ -50,10 +50,22 @@ class CommonArchRulesTest {
     }
 
     @Test
+    void internalsRuleRejectsApplicationCodeUsingDdkInternals() {
+        JavaClasses classes = new ClassFileImporter()
+                .importPackages("com.ddk.archguard.fixture.internal", "com.ddk.archguard.fixture.api", "com.example.archguard.fixture");
+
+        assertThatThrownBy(() -> CommonArchRules.DDK_INTERNALS_MUST_NOT_BE_USED.check(classes))
+                .isInstanceOf(AssertionError.class)
+                .hasMessageContaining("com.example.archguard.fixture.UsesInternal")
+                .hasMessageNotContaining("com.example.archguard.fixture.UsesPublicApi");
+    }
+
+    @Test
     void rulesPassOnFreshProjectsWithoutLayerClasses() {
         passes(CommonArchRules.LAYERED_ARCHITECTURE_RULE, "empty");
         passes(CommonArchRules.THREE_LAYER_ARCHITECTURE_RULE, "empty");
         passes(CommonArchRules.DOMAIN_MUST_NOT_DEPEND_ON_FRAMEWORKS, "empty");
         passes(CommonArchRules.DOMAIN_MUST_NOT_DEPEND_ON_OUTER_LAYERS, "empty");
+        passes(CommonArchRules.DDK_INTERNALS_MUST_NOT_BE_USED, "empty");
     }
 }

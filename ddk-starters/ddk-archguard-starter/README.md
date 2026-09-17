@@ -45,6 +45,7 @@ class ArchitectureTest {
 | `THREE_LAYER_ARCHITECTURE_RULE` | Three layers: `..adapter..` → `..business..`; `..infrastructure..` implements business interfaces and is referenced by no other layer |
 | `DOMAIN_MUST_NOT_DEPEND_ON_FRAMEWORKS` | `..domain..` does not use Spring, MyBatis(-Plus), Jackson or JPA |
 | `DOMAIN_MUST_NOT_DEPEND_ON_OUTER_LAYERS` | `..domain..` does not depend on application, adapter or infrastructure packages |
+| `DDK_INTERNALS_MUST_NOT_BE_USED` | Application code does not depend on `com.ddk..internal..`, which holds starter implementation details that may change in any release |
 
 ```text
 four layers                               three layers

@@ -112,4 +112,16 @@ public final class CommonArchRules {
             .resideInAnyPackage("..application..", "..adapter..", "..ui..", "..infrastructure..")
             .because("依赖方向必须指向内层，领域层是依赖图的终点")
             .allowEmptyShould(true);
+
+    /**
+     * 应用代码不得依赖 DDK 的 {@code internal} 包。
+     * <p>
+     * {@code internal} 包里是 starter 的实现细节，可能在任何版本中改名或删除；
+     * 依赖它们的代码会在升级 DDK 时无声地坏掉。需要定制时，覆盖对应的 Bean 或实现公开接口。
+     */
+    public static final ArchRule DDK_INTERNALS_MUST_NOT_BE_USED = noClasses()
+            .that().resideOutsideOfPackage("com.ddk..")
+            .should().dependOnClassesThat().resideInAPackage("com.ddk..internal..")
+            .because("DDK 的 internal 包不属于公开 API，可能在任何版本中变更")
+            .allowEmptyShould(true);
 }
