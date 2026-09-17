@@ -2,22 +2,22 @@ package com.ddk.web.config;
 
 import com.ddk.web.handler.BaseExceptionHandler;
 import com.ddk.web.properties.DdkWebProperties;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
-import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
-import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration;
+import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
+import org.springframework.boot.webmvc.autoconfigure.WebMvcAutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.module.SimpleModule;
+import tools.jackson.databind.ser.std.ToStringSerializer;
 
 /**
  * Web 自动配置：全局异常处理、Jackson 默认行为、跨域。
@@ -38,24 +38,25 @@ public class WebAutoConfiguration {
     }
 
     /**
-     * 以 customizer 的形式参与 Jackson 构建，而不是替换整个 {@code ObjectMapper} Bean。
+     * 以 customizer 的形式参与 Jackson 构建，而不是替换整个 {@code JsonMapper} Bean。
      * <p>
-     * 早期版本直接注册了一个 {@code ObjectMapper} Bean，副作用是使用方在
+     * 早期版本直接注册了一个 {@code JsonMapper} Bean，副作用是使用方在
      * {@code spring.jackson.*} 里写的配置全部失效——Boot 的 {@code JacksonAutoConfiguration}
      * 见到已有同类型 Bean 就退让了。customizer 不会吃掉使用方的定制。
      */
     @Bean
     @ConditionalOnProperty(prefix = DdkWebProperties.PREFIX, name = "jackson", matchIfMissing = true)
-    public Jackson2ObjectMapperBuilderCustomizer ddkJacksonCustomizer(DdkWebProperties properties) {
+    public JsonMapperBuilderCustomizer ddkJacksonCustomizer(DdkWebProperties properties) {
         return builder -> {
-            builder.modules(new JavaTimeModule())
-                    // 时间序列化成 ISO-8601 字符串，而不是时间戳数组
-                    .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            // 时间序列化成 ISO-8601 字符串，而不是时间戳数组
+            builder.disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
                     // 请求体里多出来的字段忽略掉，而不是直接 400——否则前端加一个字段就会打挂后端
-                    .featuresToDisable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+                    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
             if (properties.isWriteLongAsString()) {
-                builder.serializerByType(Long.class, ToStringSerializer.instance)
-                        .serializerByType(Long.TYPE, ToStringSerializer.instance);
+                SimpleModule longAsString = new SimpleModule("ddk-long-as-string")
+                        .addSerializer(Long.class, ToStringSerializer.instance)
+                        .addSerializer(Long.TYPE, ToStringSerializer.instance);
+                builder.addModule(longAsString);
             }
         };
     }
