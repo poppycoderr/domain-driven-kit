@@ -78,7 +78,7 @@ Release readiness:
 
 - [x] Version `0.1.0`, with a documented 0.x policy: minor versions may break, and every break is in the release notes
 - [x] Separate public and internal packages, with internals under `internal` and guarded by ArchUnit
-- [ ] Javadoc for public APIs
+- [x] Javadoc for public APIs, with Javadoc and sources jars attached to releases
 - [x] `CHANGELOG.md`, with GitHub release notes taken from it
 - [x] CI creates a GitHub Release on tag: release notes, source archive and module jars
 - [x] One script that installs DDK locally and generates a project, with the README quick start written around it
