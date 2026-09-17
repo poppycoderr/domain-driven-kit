@@ -28,7 +28,8 @@
 - 🛡️ **让构建失败的架构规则**：三层 / 四层 ArchUnit 规则，每个生成的项目都自带
 - 🗄️ **安全的持久化**：带乐观锁的 MyBatis-Plus 通用仓储，映射器缺失或重复在启动期就报错
 - ⚡ **两级缓存**：Caffeine + Redis，跨实例失效广播、Redis 故障降级、反序列化白名单
-- 🧩 **9 个 Spring Boot starter**，统一 `ddk.*` 配置：Web、MyBatis、Redis、缓存、多数据源、链路追踪、Seata、领域事件、ArchGuard
+- 🤖 **为 AI 编码代理准备好**：生成的项目自带 `AGENTS.md`、`CLAUDE.md` 与 Claude Code Skills；架构测试失败时输出代理能照着改的报告；用例可以暴露为 MCP 工具
+- 🧩 **10 个 Spring Boot starter**，统一 `ddk.*` 配置：Web、MyBatis、Redis、缓存、多数据源、链路追踪、Seata、领域事件、MCP、ArchGuard
 - 🚀 **几分钟上手**：Maven archetype 与可运行示例，CI 在 Java 21 与 25 上构建测试
 
 ## 项目定位
@@ -121,6 +122,7 @@ DDK 由个人维护，仍处于发布前阶段：适合本地构建、试用 arc
 | `ddk-web-starter` | Jackson、CORS、全局异常处理，`ddk.web.*` 可配 | 可用 |
 | `ddk-mybatis-starter` | 分页、乐观锁、防全表更新删除、雪花 ID，`ddk.mybatis.*` 可配 | 可用 |
 | `ddk-event-starter` | 领域事件的 Spring 发布实现 | 可用 |
+| `ddk-mcp-starter` | 把应用用例暴露为 MCP 工具：参数校验、错误码、审计日志，默认 streamable HTTP | 可用，含 MCP 客户端端到端测试 |
 | `ddk-redis-starter` | 带类型白名单的 JSON `RedisTemplate` | 可用 |
 | `ddk-cache-starter` | Caffeine（L1）+ Redis（L2）两级缓存，跨实例失效广播，Redis 故障降级 | 可用，含 Redis 集成测试 |
 | `ddk-archguard-starter` | DDD 分层与领域层纯度的 ArchUnit 规则 | 可用 |
@@ -203,6 +205,8 @@ domain-driven-kit
 │   ├── ddk-db-starter
 │   ├── ddk-tracer-starter
 │   ├── ddk-seata-starter
+│   ├── ddk-event-starter
+│   ├── ddk-mcp-starter
 │   └── ddk-archguard-starter
 ├── ddk-archetypes        三层 / 四层项目骨架
 └── ddk-examples          示例工程
@@ -226,7 +230,7 @@ com.ddk.core
     <img src="./assets/diagrams/ddk-roadmap.svg" alt="DDK roadmap" />
 </p>
 
-基础层（领域模型、仓储、9 个 starter、archetype 与示例）已经完成。接下来的里程碑：
+基础层（领域模型、仓储、9 个 starter、archetype 与示例）已经完成，v0.1.0 已发布。接下来的里程碑：
 
 1. **v0.1 现代基线与首次发布**：升级到 Spring Boot 4.1 / Jackson 3，发布首个 GitHub Release
 2. **v0.2 AI 协作**：生成项目自带 `AGENTS.md` 与 Skills，ArchGuard 输出代理可读的违规报告，基于 Spring AI 的 MCP starter

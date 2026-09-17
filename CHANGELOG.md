@@ -18,6 +18,9 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 - Claude Code Skills in generated projects: `ddk-add-aggregate`, `ddk-add-use-case` and `ddk-add-domain-event` for the four-layer template, `ddk-add-feature` for the three-layer template
 - Generated projects include `spring-boot-starter-webmvc-test` for MockMvc tests
 - `AGENTS.md` and `CLAUDE.md` for contributors to DDK itself
+- `ddk-mcp-starter`: exposes application use cases as MCP tools on top of Spring AI 2.0, with streamable HTTP by default, Bean Validation on tool arguments, error-coded tool errors, hidden internals for unexpected exceptions and an audit log line per call
+- `CommonArchRules.MCP_TOOLS_MUST_RESIDE_IN_ADAPTER` keeps `@McpTool` methods in the adapter layer
+- The user example exposes `register_user`, `get_user` and `disable_user` as MCP tools
 - `ArchGuard.check` evaluates all architecture rules at once and writes `target/archguard/violations.json` and `violations.md`, each violation with its rule, class and a concrete fix; generated projects and the example use it
 
 ### Fixed

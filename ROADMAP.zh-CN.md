@@ -57,7 +57,7 @@
 - **工程基线**：真实 BOM、CI、Spotless、按模块的 JaCoCo 门槛（行 ≥ 70%、分支 ≥ 50%），213 个测试
 - **领域模型**：`Identifier`、`ValueObject`、`Entity`、`AggregateRoot`、`DomainEvent`、`Specification`，领域层零框架依赖并由测试保证
 - **映射与仓储**：映射器缺失或重复在启动期失败，通用仓储支持乐观锁，H2 集成测试
-- **Starter 规范化**：Web、MyBatis、Redis、两级缓存、多数据源、链路追踪、Seata、领域事件、ArchGuard 共 9 个 starter，统一 `ddk.*` 配置
+- **Starter 规范化**：Web、MyBatis、Redis、两级缓存、多数据源、链路追踪、Seata、领域事件、ArchGuard 共 9 个 starter（v0.2 新增 MCP，共 10 个），统一 `ddk.*` 配置
 - **骨架与示例**：三层 / 四层 Maven archetype（带生成项目集成测试），可运行的用户注册示例
 
 ## v0.1 · 现代基线与首次发布
@@ -92,13 +92,14 @@
 - [x] archetype 生成 `AGENTS.md` 与 `CLAUDE.md`：分层职责、命名约定、禁止事项、提交前必须通过的命令
 - [x] 生成的项目自带 Claude Code Skills：新增聚合、用例、领域事件（四层）或业务功能（三层）；Codex 等代理通过 `AGENTS.md` 获得同样的约定
 - [x] ArchGuard 输出机器可读的违规报告（哪条规则、哪个类、怎么改），代理可以据此自我修正
-- [ ] 文档站增加「用 AI 代理开发 DDK 项目」专题，附真实对话录屏
+- [x] 文档站增加「用 AI 编码代理开发 DDK 项目」专题
+- [ ] 专题附一段真实的代理协作录屏
 
 AI 能力（基于 Spring AI 2.0）：
 
-- [ ] `ddk-ai-starter`：`ChatClient` 默认配置、结构化输出直接映射为值对象、Token 用量接入 Micrometer
-- [ ] `ddk-mcp-starter`：把应用服务的命令 / 查询暴露为 MCP 工具，复用 Bean Validation、权限与审计，禁止直接暴露仓储
-- [ ] 示例：让代理通过 MCP 调用用户示例的注册、禁用用例
+- [x] ~~`ddk-ai-starter`~~ 不做：`ChatClient` 配置、结构化输出（`.entity(...)`）、Token 用量指标（`gen_ai_client_token_usage_total`）Spring AI 2.0 都已内置，再封装一层违反集成原则
+- [x] `ddk-mcp-starter`：默认 streamable HTTP、工具参数 Bean Validation、业务异常转为带错误码的工具错误、隐藏未预期异常细节、审计日志；`MCP_TOOLS_MUST_RESIDE_IN_ADAPTER` 规则让工具只能经由应用服务访问领域。鉴权交给 Spring Security
+- [x] 示例：用户示例通过 MCP 暴露注册、查询、禁用用例，并有 MCP 客户端端到端测试
 
 ## v0.3 · 可靠领域事件
 

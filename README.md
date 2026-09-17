@@ -28,7 +28,8 @@
 - 🛡️ **Architecture rules that fail the build**: ArchUnit rules for three- and four-layer projects, included in every generated project
 - 🗄️ **Safe persistence**: a generic MyBatis-Plus repository with optimistic locking; missing or duplicate mappers fail at startup
 - ⚡ **Two-level cache**: Caffeine + Redis with cross-instance invalidation, Redis failure fallback and a deserialization allow-list
-- 🧩 **Nine Spring Boot starters** under one `ddk.*` namespace: web, MyBatis, Redis, cache, data sources, tracing, Seata, domain events, ArchGuard
+- 🤖 **AI-agent ready**: generated projects ship `AGENTS.md`, `CLAUDE.md` and Claude Code Skills; architecture failures come with a report agents can act on; use cases can be exposed as MCP tools
+- 🧩 **Ten Spring Boot starters** under one `ddk.*` namespace: web, MyBatis, Redis, cache, data sources, tracing, Seata, domain events, MCP, ArchGuard
 - 🚀 **Start in minutes**: Maven archetypes and a runnable example, built and tested in CI on Java 21 and 25
 
 ## Why DDK
@@ -121,6 +122,7 @@ DDK is maintained by one person and is still pre-release: build it locally, try 
 | `ddk-web-starter` | Jackson, CORS, global exception handling, configurable under `ddk.web.*` | Usable |
 | `ddk-mybatis-starter` | Pagination, optimistic locking, full-table update/delete guard, snowflake IDs, configurable under `ddk.mybatis.*` | Usable |
 | `ddk-event-starter` | Spring-backed domain event publisher | Usable |
+| `ddk-mcp-starter` | Application use cases as MCP tools: argument validation, error codes, audit log, streamable HTTP by default | Usable, with MCP client end-to-end tests |
 | `ddk-redis-starter` | JSON `RedisTemplate` with a deserialization type allow-list | Usable |
 | `ddk-cache-starter` | Caffeine (L1) + Redis (L2) two-level cache with cross-instance invalidation and Redis failure fallback | Usable, with Redis integration tests |
 | `ddk-archguard-starter` | ArchUnit rules for layering and domain purity | Usable |
@@ -203,6 +205,8 @@ domain-driven-kit
 │   ├── ddk-db-starter
 │   ├── ddk-tracer-starter
 │   ├── ddk-seata-starter
+│   ├── ddk-event-starter
+│   ├── ddk-mcp-starter
 │   └── ddk-archguard-starter
 ├── ddk-archetypes        3-layer / 4-layer project skeletons
 └── ddk-examples          Example applications
@@ -226,7 +230,7 @@ com.ddk.core
     <img src="./assets/diagrams/ddk-roadmap.en.svg" alt="DDK roadmap" />
 </p>
 
-The foundation (domain model, repositories, nine starters, archetypes and examples) is complete. Next milestones:
+The foundation (domain model, repositories, nine starters, archetypes and examples) is complete, and v0.1.0 is released. Next milestones:
 
 1. **v0.1 Modern baseline and first release**: Spring Boot 4.1 / Jackson 3 and the first GitHub Release
 2. **v0.2 AI collaboration**: generated projects ship `AGENTS.md` and Skills, ArchGuard reports violations agents can act on, an MCP starter on Spring AI

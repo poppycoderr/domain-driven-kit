@@ -57,7 +57,7 @@ Former Phases 1–5 are complete and form the starting point:
 - **Engineering baseline**: a real BOM, CI, Spotless, per-module JaCoCo minimums (70% lines, 50% branches), 213 tests
 - **Domain model**: `Identifier`, `ValueObject`, `Entity`, `AggregateRoot`, `DomainEvent`, `Specification`, with a framework-free domain layer enforced by tests
 - **Mapping and repositories**: missing or duplicate mappers fail at startup, the generic repository supports optimistic locking, H2 integration tests
-- **Starter normalization**: nine starters (Web, MyBatis, Redis, two-level cache, multiple data sources, tracing, Seata, domain events, ArchGuard) under a unified `ddk.*` configuration
+- **Starter normalization**: nine starters (Web, MyBatis, Redis, two-level cache, multiple data sources, tracing, Seata, domain events, ArchGuard) under a unified `ddk.*` configuration, ten with MCP in v0.2
 - **Archetypes and examples**: three- and four-layer Maven archetypes with generated-project integration tests, plus a runnable user registration example
 
 ## v0.1 · Modern baseline and first release
@@ -92,13 +92,14 @@ Agent guardrails:
 - [x] Archetypes generate `AGENTS.md` and `CLAUDE.md`: layer responsibilities, naming, prohibitions, and the commands that must pass before committing
 - [x] Claude Code Skills in generated projects: add an aggregate, a use case, a domain event (four layers) or a feature (three layers); `AGENTS.md` covers Codex and other agents
 - [x] ArchGuard emits machine-readable violations (which rule, which class, how to fix) that agents can use to self-correct
-- [ ] A docs topic on developing DDK projects with AI agents, with real session recordings
+- [x] A docs topic on developing DDK projects with AI coding agents
+- [ ] A real agent session recording for that topic
 
 AI capabilities (on Spring AI 2.0):
 
-- [ ] `ddk-ai-starter`: `ChatClient` defaults, structured output mapped straight to value objects, token usage in Micrometer
-- [ ] `ddk-mcp-starter`: expose application-service commands and queries as MCP tools, reusing Bean Validation, permissions and auditing; repositories are never exposed directly
-- [ ] Example: an agent registering and disabling users through MCP in the user example
+- [x] ~~`ddk-ai-starter`~~ dropped: `ChatClient` configuration, structured output (`.entity(...)`) and token usage metrics (`gen_ai_client_token_usage_total`) are built into Spring AI 2.0, so wrapping them would break the integration principles
+- [x] `ddk-mcp-starter`: streamable HTTP by default, Bean Validation on tool arguments, business exceptions as tool errors with error codes, hidden internals for unexpected exceptions, audit log; `MCP_TOOLS_MUST_RESIDE_IN_ADAPTER` keeps tools behind application services. Authorization is left to Spring Security
+- [x] Example: the user example exposes register, get and disable as MCP tools, with end-to-end tests through an MCP client
 
 ## v0.3 · Reliable domain events
 
