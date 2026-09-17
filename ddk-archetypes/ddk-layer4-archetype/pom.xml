@@ -5,47 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.ddk</groupId>
-        <artifactId>domain-driven-kit</artifactId>
+        <artifactId>ddk-archetypes</artifactId>
         <version>1.0.0-SNAPSHOT</version>
-        <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <artifactId>ddk-layer4-archetype</artifactId>
+    <packaging>maven-archetype</packaging>
     <name>DDK 4-Layer Archetype</name>
-    <description>DDD 4-layer architecture template (Adapter / Application / Domain / Infrastructure)</description>
-
-    <dependencies>
-        <dependency>
-            <groupId>com.ddk</groupId>
-            <artifactId>ddk-web-starter</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.ddk</groupId>
-            <artifactId>ddk-mybatis-starter</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>com.ddk</groupId>
-            <artifactId>ddk-event-starter</artifactId>
-        </dependency>
-
-        <!--
-            架构守卫以 test 作用域引入：ArchUnit 只落在测试类路径上，
-            不会进生产包。分层规则由 ArchitectureTest 在每次构建时执行。
-        -->
-        <dependency>
-            <groupId>com.ddk</groupId>
-            <artifactId>ddk-archguard-starter</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.tngtech.archunit</groupId>
-            <artifactId>archunit-junit5</artifactId>
-            <version>${archunit.version}</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
-
+    <description>Generates a four-layer DDD service: adapter / application / domain / infrastructure</description>
 </project>
