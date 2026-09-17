@@ -1,5 +1,6 @@
 package com.example.user;
 
+import com.ddk.archguard.starter.report.ArchGuard;
 import com.ddk.archguard.starter.rules.CommonArchRules;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
@@ -14,22 +15,11 @@ class ArchitectureTest {
             .importPackages("com.example.user");
 
     @Test
-    void layeredArchitectureIsRespected() {
-        CommonArchRules.LAYERED_ARCHITECTURE_RULE.check(classes);
-    }
-
-    @Test
-    void domainStaysFrameworkFree() {
-        CommonArchRules.DOMAIN_MUST_NOT_DEPEND_ON_FRAMEWORKS.check(classes);
-    }
-
-    @Test
-    void domainDoesNotDependOnOuterLayers() {
-        CommonArchRules.DOMAIN_MUST_NOT_DEPEND_ON_OUTER_LAYERS.check(classes);
-    }
-
-    @Test
-    void ddkInternalsAreNotUsed() {
-        CommonArchRules.DDK_INTERNALS_MUST_NOT_BE_USED.check(classes);
+    void architectureIsRespected() {
+        ArchGuard.check(classes,
+                CommonArchRules.LAYERED_ARCHITECTURE_RULE,
+                CommonArchRules.DOMAIN_MUST_NOT_DEPEND_ON_FRAMEWORKS,
+                CommonArchRules.DOMAIN_MUST_NOT_DEPEND_ON_OUTER_LAYERS,
+                CommonArchRules.DDK_INTERNALS_MUST_NOT_BE_USED);
     }
 }
