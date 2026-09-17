@@ -1,4 +1,4 @@
-package com.ddk.tracer.starter.web;
+package com.ddk.tracer.starter.internal;
 
 import com.ddk.tracer.starter.TracingAutoConfigurations;
 import io.micrometer.tracing.Span;
