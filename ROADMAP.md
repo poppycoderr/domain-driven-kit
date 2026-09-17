@@ -69,7 +69,7 @@
 - [x] 升级到 Spring Boot 4.1 / Spring Framework 7，适配 Jackson 3 与 Jakarta EE 11
 - [x] MyBatis-Plus 切换到 `mybatis-plus-spring-boot4-starter`
 - [x] 评估 Seata 对 Boot 4 的支持：Seata 2.6 自动配置只引用 Boot 4 仍保留的 API，DDK 装配测试通过，暂留主线；Seata 运行时尚未在 Boot 4 下验证
-- [ ] Java 基线保持 21，CI 增加 Java 25 矩阵
+- [x] Java 基线保持 21，CI 增加 Java 25 矩阵
 - [ ] 公开 API 标注 JSpecify 空安全注解
 - [x] 链路追踪 starter 改为基于 `spring-boot-starter-opentelemetry`，不再引入整个 actuator，只保留 traceId 响应头等 DDK 特有能力
 - [ ] 使用 Spring Framework 7 自带的 `@Retryable` / `@ConcurrencyLimit`，不再引入额外的重试库

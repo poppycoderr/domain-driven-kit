@@ -69,7 +69,7 @@ Platform upgrade (Spring Boot 3.4 left OSS support in December 2025, so this com
 - [x] Upgrade to Spring Boot 4.1 / Spring Framework 7, adapting to Jackson 3 and Jakarta EE 11
 - [x] Switch MyBatis-Plus to `mybatis-plus-spring-boot4-starter`
 - [x] Assess Seata's Boot 4 support: Seata 2.6 auto-configuration only references Boot APIs still present in 4, and DDK's wiring tests pass, so the starter stays; Seata's runtime is not yet verified on Boot 4
-- [ ] Keep Java 21 as the baseline and add Java 25 to the CI matrix
+- [x] Keep Java 21 as the baseline and add Java 25 to the CI matrix
 - [ ] Annotate public APIs with JSpecify nullness annotations
 - [x] Build the tracer starter on `spring-boot-starter-opentelemetry` instead of the whole actuator, keeping only DDK-specific features such as the trace ID response header
 - [ ] Use Spring Framework 7's built-in `@Retryable` / `@ConcurrencyLimit` instead of adding a retry library
