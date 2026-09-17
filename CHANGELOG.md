@@ -21,7 +21,7 @@ The first release: the DDD foundation on a Spring Boot 4.1 baseline.
 - Starters under a unified `ddk.*` namespace: web, MyBatis, domain events, Redis, two-level cache, named data sources, tracing, Seata and ArchGuard
 - `ddk-cache-starter`: Caffeine (L1) + Redis (L2) with cross-instance invalidation, Redis failure fallback, TTL jitter and Micrometer metrics
 - `ddk-redis-starter`: a JSON `RedisTemplate` whose deserialization only accepts allow-listed packages
-- `ddk-archguard-starter`: three- and four-layer ArchUnit rules plus domain purity rules
+- `ddk-archguard-starter`: three- and four-layer ArchUnit rules, domain purity rules, and `DDK_INTERNALS_MUST_NOT_BE_USED`
 - Three- and four-layer Maven archetypes, and the runnable `ddk-example-user` application
 - `scripts/ddk.sh` to install DDK locally and generate projects in one command
 - Null-safety: every package in `ddk-core`, `ddk-mybatis` and the starters is `@NullMarked` with JSpecify, and NullAway checks it at compile time
@@ -38,6 +38,10 @@ The first release: the DDD foundation on a Spring Boot 4.1 baseline.
 ### Removed
 
 - `RedisUtil`; inject `RedisTemplate<String, Object>` directly
+
+### Internal
+
+Starter implementation classes live in `com.ddk.<starter>.starter.internal` packages and are not public API: `CacheInvalidationListener`, `CacheInvalidationMessage`, `RedisCacheInvalidationPublisher`, `MicrometerCacheMetrics`, `JitteredTtlFunction`, `SpringDomainEventPublisher` and `TraceIdResponseFilter`. Generated projects check this with `DDK_INTERNALS_MUST_NOT_BE_USED`.
 - The springdoc dependency from `ddk-web-starter`; add it in the application when API docs are needed
 
 [0.1.0]: https://github.com/poppycoderr/domain-driven-kit/releases/tag/v0.1.0

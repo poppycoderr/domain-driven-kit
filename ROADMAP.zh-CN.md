@@ -77,7 +77,7 @@
 发布就绪：
 
 - [x] 版本号改为 `0.1.0`，写明 0.x 期间的兼容策略：次版本号可以有破坏性变更，但必须写进发布说明
-- [ ] 梳理公开包与内部包，内部实现放进 `internal` 包并由 ArchUnit 约束
+- [x] 梳理公开包与内部包，内部实现放进 `internal` 包并由 ArchUnit 约束
 - [ ] 公开 API 的 Javadoc
 - [x] `CHANGELOG.md`，GitHub Release 的发布说明从中提取
 - [x] 打 tag 时由 CI 创建 GitHub Release：发布说明、源码包与各模块 jar

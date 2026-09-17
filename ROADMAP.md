@@ -77,7 +77,7 @@ Platform upgrade (Spring Boot 3.4 left OSS support in December 2025, so this com
 Release readiness:
 
 - [x] Version `0.1.0`, with a documented 0.x policy: minor versions may break, and every break is in the release notes
-- [ ] Separate public and internal packages, with internals under `internal` and guarded by ArchUnit
+- [x] Separate public and internal packages, with internals under `internal` and guarded by ArchUnit
 - [ ] Javadoc for public APIs
 - [x] `CHANGELOG.md`, with GitHub release notes taken from it
 - [x] CI creates a GitHub Release on tag: release notes, source archive and module jars
