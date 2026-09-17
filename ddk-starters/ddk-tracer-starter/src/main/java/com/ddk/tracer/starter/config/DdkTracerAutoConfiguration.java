@@ -2,13 +2,13 @@ package com.ddk.tracer.starter.config;
 
 import com.ddk.tracer.starter.web.TraceIdResponseFilter;
 import io.micrometer.tracing.Tracer;
-import org.springframework.boot.actuate.autoconfigure.tracing.MicrometerTracingAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.micrometer.tracing.autoconfigure.MicrometerTracingAutoConfiguration;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +18,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 /**
  * 链路追踪自动配置。
  * <p>
- * Tracer、上下文传播、OTLP 导出都由 Spring Boot actuator 的自动配置提供，
+ * Tracer、上下文传播、OTLP 导出都由 Spring Boot 的 OpenTelemetry 自动配置提供，
  * 这里只补上 DDK 自己的能力：把 traceId 返回给调用方。
  *
  * @author Elijah Du
