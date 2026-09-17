@@ -48,3 +48,4 @@ A `new RestTemplate()` or `RestClient.create()` bypasses the builders and does n
 - The header is added only inside a global transaction, and a `TX_XID` header set explicitly by the caller is kept.
 - `spring-web` is optional; without it nothing HTTP-related is registered.
 - Data source proxying, `@GlobalTransactional` scanning and inbound XID binding come from `seata-spring-boot-starter`.
+- Seata 2.6 does not declare Spring Boot 4 support. Its auto-configuration only references Boot APIs that still exist in 4.1, and DDK's own wiring is tested, but Seata's runtime (TC connection, data source proxy) has not been verified against Boot 4.
