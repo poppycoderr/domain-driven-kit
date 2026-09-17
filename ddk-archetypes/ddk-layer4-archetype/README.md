@@ -20,7 +20,7 @@ mvn install -DskipTests
 mvn archetype:generate \
   -DarchetypeGroupId=com.ddk \
   -DarchetypeArtifactId=ddk-layer4-archetype \
-  -DarchetypeVersion=0.1.0-SNAPSHOT \
+  -DarchetypeVersion=0.2.0-SNAPSHOT \
   -DgroupId=com.acme \
   -DartifactId=order-service \
   -Dpackage=com.acme.order \
