@@ -30,7 +30,7 @@ Options for "new":
   --layers <3|4>            Three- or four-layer architecture (default: 4)
 
 Environment:
-  DDK_REF    Branch or tag to build (default: main), e.g. DDK_REF=v0.1.0
+  DDK_REF    Branch or tag to build (default: main), e.g. DDK_REF=v0.2.0
   DDK_REPO   Git repository to clone
   DDK_HOME   Working directory for the source checkout (default: ~/.ddk)
 EOF
