@@ -14,6 +14,8 @@ mvn verify
 
 它会运行 `ArchitectureTest`。分层被破坏、引用 DDK 的 `internal` 包时构建失败。**不要为了让构建通过而删除或放宽 `ArchitectureTest`**，应当修改代码去满足规则。
 
+`ArchitectureTest` 失败时，先读 `target/archguard/violations.md`（或结构化的 `violations.json`）：每条违规列出规则、所在类、ArchUnit 的原始描述与修复建议，按建议修改后重新运行 `mvn verify`。
+
 $h2 分层与依赖方向
 
 ```text

@@ -66,7 +66,7 @@ ${package}
 | 文件 | 作用 |
 |---|---|
 | `package-info.java` | 每个包一份，写明这个包放什么、命名约定是什么 |
-| `ArchitectureTest` | 用 `CommonArchRules.LAYERED_ARCHITECTURE_RULE` 校验依赖方向，违反即构建失败；空的层不会导致失败 |
+| `ArchitectureTest` | 用 `ArchGuard.check` 一次执行分层、领域纯度与 internal 包规则，违反即构建失败，违规明细与修复建议写入 `target/archguard/`；空的层不会导致失败 |
 | `ApplicationTest` | 上下文能否启动 |
 | `AGENTS.md` / `CLAUDE.md` | 写给 AI 编码代理的分层职责、编码约定与完成标准，Claude Code、Codex 会自动读取 |
 | `.claude/skills/` | Claude Code Skills：`ddk-add-aggregate`、`ddk-add-use-case`、`ddk-add-domain-event` |
