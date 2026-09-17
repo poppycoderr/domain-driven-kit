@@ -1,9 +1,9 @@
 package com.ddk.cache.starter.invalidation;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.UUID;
 
@@ -51,7 +51,7 @@ public class RedisCacheInvalidationPublisher implements CacheInvalidationPublish
         String payload;
         try {
             payload = objectMapper.writeValueAsString(message);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new IllegalStateException("Cannot serialize cache invalidation message", e);
         }
         try {

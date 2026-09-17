@@ -2,7 +2,7 @@ package com.ddk.redis.starter.serializer;
 
 import com.ddk.redis.starter.config.fixture.CachedUser;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 
 import java.math.BigDecimal;
@@ -18,11 +18,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class RedisJsonMapperTest {
 
-    private final GenericJackson2JsonRedisSerializer trusting =
-            new GenericJackson2JsonRedisSerializer(RedisJsonMapper.create(List.of("com.ddk.redis.starter.config.fixture")));
+    private final GenericJacksonJsonRedisSerializer trusting =
+            new GenericJacksonJsonRedisSerializer(RedisJsonMapper.create(List.of("com.ddk.redis.starter.config.fixture")));
 
-    private final GenericJackson2JsonRedisSerializer jdkOnly =
-            new GenericJackson2JsonRedisSerializer(RedisJsonMapper.create(List.of()));
+    private final GenericJacksonJsonRedisSerializer jdkOnly =
+            new GenericJacksonJsonRedisSerializer(RedisJsonMapper.create(List.of()));
 
     @Test
     void roundTripsRecordFromTrustedPackage() {

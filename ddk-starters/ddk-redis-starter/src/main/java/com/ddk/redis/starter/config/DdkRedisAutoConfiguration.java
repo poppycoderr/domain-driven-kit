@@ -7,12 +7,12 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
 import java.util.ArrayList;
@@ -21,7 +21,7 @@ import java.util.List;
 /**
  * Redis 自动配置：注册 key 为字符串、value 为带类型信息 JSON 的 {@code RedisTemplate}。
  * <p>
- * 排在 Spring Boot 自己的 {@link RedisAutoConfiguration} 之前，
+ * 排在 Spring Boot 自己的 {@link DataRedisAutoConfiguration} 之前，
  * 这样同名的 {@code redisTemplate} 由这里提供，Boot 的那个（JDK 序列化）不再注册；
  * {@code stringRedisTemplate} 仍由 Boot 提供。
  * <p>
@@ -30,7 +30,7 @@ import java.util.List;
  *
  * @author Elijah Du
  */
-@AutoConfiguration(before = RedisAutoConfiguration.class)
+@AutoConfiguration(before = DataRedisAutoConfiguration.class)
 @ConditionalOnClass(RedisTemplate.class)
 @EnableConfigurationProperties(DdkRedisProperties.class)
 public class DdkRedisAutoConfiguration {
@@ -50,7 +50,7 @@ public class DdkRedisAutoConfiguration {
         if (AutoConfigurationPackages.has(beanFactory)) {
             trusted.addAll(AutoConfigurationPackages.get(beanFactory));
         }
-        return new GenericJackson2JsonRedisSerializer(RedisJsonMapper.create(trusted));
+        return new GenericJacksonJsonRedisSerializer(RedisJsonMapper.create(trusted));
     }
 
     @Bean

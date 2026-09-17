@@ -3,15 +3,18 @@ package com.ddk.redis.starter.serializer;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.core.TreeNode;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
-import com.fasterxml.jackson.databind.jsontype.PolymorphicTypeValidator;
 import org.springframework.util.ClassUtils;
+import tools.jackson.core.TreeNode;
+import tools.jackson.databind.DefaultTyping;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.cfg.DateTimeFeature;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
+import tools.jackson.databind.jsontype.PolymorphicTypeValidator;
+import tools.jackson.databind.jsontype.impl.DefaultTypeResolverBuilder;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -45,20 +48,18 @@ public final class RedisJsonMapper {
 
     public static ObjectMapper create(Collection<String> trustedPackages) {
         PolymorphicTypeValidator validator = validator(trustedPackages);
-        ObjectMapper mapper = JsonMapper.builder()
+        return JsonMapper.builder()
                 .findAndAddModules()
-                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
                 .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                // 按字段存取：领域对象不一定有 getter，且 getter 里可能带计算逻辑
+                .changeDefaultVisibility(checker -> checker
+                        .withVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
+                        .withVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY)
+                        .withVisibility(PropertyAccessor.CREATOR, JsonAutoDetect.Visibility.ANY))
+                .setDefaultTyping(new TypeResolverBuilder(validator))
                 .build();
-        // 按字段存取：领域对象不一定有 getter，且 getter 里可能带计算逻辑
-        mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE);
-        mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-        mapper.setVisibility(PropertyAccessor.CREATOR, JsonAutoDetect.Visibility.ANY);
-        mapper.setDefaultTyping(new TypeResolverBuilder(validator)
-                .init(JsonTypeInfo.Value.construct(JsonTypeInfo.Id.CLASS, JsonTypeInfo.As.PROPERTY,
-                        "@class", null, false, null), null));
-        return mapper;
     }
 
     private static PolymorphicTypeValidator validator(Collection<String> trustedPackages) {
@@ -76,10 +77,10 @@ public final class RedisJsonMapper {
         return builder.build();
     }
 
-    private static final class TypeResolverBuilder extends ObjectMapper.DefaultTypeResolverBuilder {
+    private static final class TypeResolverBuilder extends DefaultTypeResolverBuilder {
 
         TypeResolverBuilder(PolymorphicTypeValidator validator) {
-            super(ObjectMapper.DefaultTyping.NON_FINAL, validator);
+            super(validator, DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY, JsonTypeInfo.Id.CLASS, "@class");
         }
 
         @Override

@@ -8,21 +8,19 @@ import com.ddk.cache.starter.metrics.MicrometerCacheMetrics;
 import com.ddk.cache.starter.support.DdkCacheManager;
 import com.ddk.cache.starter.support.JitteredTtlFunction;
 import com.ddk.redis.starter.config.DdkRedisAutoConfiguration;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
+import org.springframework.boot.cache.autoconfigure.CacheAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -39,6 +37,8 @@ import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -57,7 +57,7 @@ import java.util.function.Function;
  */
 @Slf4j
 @AutoConfiguration(
-        after = {RedisAutoConfiguration.class, DdkRedisAutoConfiguration.class},
+        after = {DataRedisAutoConfiguration.class, DdkRedisAutoConfiguration.class},
         before = CacheAutoConfiguration.class)
 @ConditionalOnClass({CacheManager.class, Caffeine.class})
 @ConditionalOnProperty(prefix = DdkCacheProperties.PREFIX, name = "enabled", matchIfMissing = true)

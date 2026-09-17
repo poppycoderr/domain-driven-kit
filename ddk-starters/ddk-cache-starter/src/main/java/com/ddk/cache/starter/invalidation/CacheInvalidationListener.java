@@ -1,12 +1,11 @@
 package com.ddk.cache.starter.invalidation;
 
 import com.ddk.cache.starter.support.DdkCacheManager;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
-
-import java.io.IOException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * 接收其他实例的失效广播，只清本地 L1，不再转发。
@@ -33,7 +32,7 @@ public class CacheInvalidationListener implements MessageListener {
         CacheInvalidationMessage event;
         try {
             event = objectMapper.readValue(message.getBody(), CacheInvalidationMessage.class);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             log.warn("Ignoring malformed cache invalidation message: {}", e.getMessage());
             return;
         }

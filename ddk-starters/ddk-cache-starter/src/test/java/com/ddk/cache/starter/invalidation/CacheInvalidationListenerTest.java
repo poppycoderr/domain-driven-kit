@@ -4,12 +4,12 @@ import com.ddk.cache.starter.config.DdkCacheProperties;
 import com.ddk.cache.starter.metrics.CacheMetrics;
 import com.ddk.cache.starter.support.DdkCacheManager;
 import com.ddk.cache.starter.support.TwoLevelCache;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.data.redis.connection.DefaultMessage;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.nio.charset.StandardCharsets;
 

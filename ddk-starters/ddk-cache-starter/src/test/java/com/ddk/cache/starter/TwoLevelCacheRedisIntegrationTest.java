@@ -7,8 +7,8 @@ import com.ddk.redis.starter.config.DdkRedisAutoConfiguration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration;
-import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
+import org.springframework.boot.cache.autoconfigure.CacheAutoConfiguration;
+import org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration;
 import org.springframework.boot.test.context.assertj.AssertableApplicationContext;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cache.annotation.Cacheable;
@@ -41,7 +41,7 @@ class TwoLevelCacheRedisIntegrationTest {
     static final GenericContainer<?> REDIS = new GenericContainer<>("redis:7-alpine").withExposedPorts(6379);
 
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
-            .withConfiguration(AutoConfigurations.of(RedisAutoConfiguration.class, DdkRedisAutoConfiguration.class,
+            .withConfiguration(AutoConfigurations.of(DataRedisAutoConfiguration.class, DdkRedisAutoConfiguration.class,
                     DdkCacheAutoConfiguration.class, CacheAutoConfiguration.class))
             .withUserConfiguration(ServiceConfiguration.class)
             .withPropertyValues(
@@ -144,7 +144,7 @@ class TwoLevelCacheRedisIntegrationTest {
 
     private static void awaitListening(AssertableApplicationContext... contexts) {
         await().atMost(Duration.ofSeconds(5)).until(() -> Arrays.stream(contexts)
-                .allMatch(context -> context.getBean(RedisMessageListenerContainer.class).isListening()));
+                .allMatch(context -> context.getBean("ddkCacheInvalidationListenerContainer", RedisMessageListenerContainer.class).isListening()));
     }
 
     private static Product product(Long id) {
