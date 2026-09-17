@@ -7,6 +7,7 @@ import com.ddk.core.response.ApiResponse;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.stream.Collectors;
 
@@ -88,6 +90,19 @@ public class BaseExceptionHandler {
                 .map(BaseExceptionHandler::describe)
                 .collect(Collectors.joining("; "));
         log.warn("Validation failed: {}", message);
+        return ResponseEntity.badRequest().body(ApiResponse.ofError(CommonError.VALIDATION_ERROR, message));
+    }
+
+    /**
+     * 路径变量或查询参数无法转换成目标类型，例如 {@code /users/abc} 匹配到了 {@code /users/{id}}。
+     * 它不实现 {@link ErrorResponse}，不单独处理会落到兜底变成 500。
+     */
+    @ExceptionHandler(TypeMismatchException.class)
+    public ResponseEntity<ApiResponse<Void>> handleTypeMismatch(TypeMismatchException e) {
+        String name = e instanceof MethodArgumentTypeMismatchException mismatch ? mismatch.getName() : e.getPropertyName();
+        Class<?> requiredType = e.getRequiredType();
+        String message = name + ": must be " + (requiredType == null ? "a valid value" : requiredType.getSimpleName());
+        log.warn("Type mismatch: {}", message);
         return ResponseEntity.badRequest().body(ApiResponse.ofError(CommonError.VALIDATION_ERROR, message));
     }
 
