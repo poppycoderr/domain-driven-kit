@@ -119,7 +119,7 @@ com.ddk.core
 
 - JDK 21
 - Maven 3.9+
-- Spring Boot 3.4.x
+- Spring Boot 4.1.x（Jackson 3）
 
 本地构建：
 
