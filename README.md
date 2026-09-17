@@ -46,8 +46,9 @@
 | `ddk-cache-starter` | Caffeine（L1）+ Redis（L2）两级缓存，跨实例失效广播，Redis 故障降级 | 可用，含 Redis 集成测试 |
 | `ddk-archguard-starter` | DDD 分层与领域层纯度的 ArchUnit 规则 | 可用 |
 | `ddk-dependencies` | BOM，下游 import 后无需再写版本号 | 可用 |
-| `ddk-db-starter` | 多数据源动态注册 | 可试用 |
-| `ddk-tracer-starter` / `ddk-seata-starter` | 链路追踪 / 分布式事务 | 可试用 |
+| `ddk-db-starter` | 按名字注册多数据源，连接池参数可配，主数据源启动期校验 | 可用 |
+| `ddk-tracer-starter` | 链路追踪，traceId 写入响应头 | 可用 |
+| `ddk-seata-starter` | 分布式事务，出站 HTTP 调用传播 XID | 可用 |
 | `ddk-archetypes` | 四层骨架已可读可测，三层骨架仍是空壳 | 待改造成真正 Maven archetype |
 | `ddk-examples` | 示例工程入口 | 待补完整可运行示例 |
 
@@ -212,8 +213,7 @@ class ArchitectureTest {
 
 1. 把 `ddk-archetypes` 改造成真正的 Maven archetype，补齐三层骨架
 2. 补一个完整可运行的 `ddk-examples` 示例
-3. 给 DB、Tracer、Seata starter 统一 `ddk.*` 配置前缀并补装配测试
-4. 引入 Spotless 与 JaCoCo 覆盖率门槛
+3. 引入 Spotless 与 JaCoCo 覆盖率门槛
 
 完整路线图见 [ROADMAP.md](./ROADMAP.md)。
 
