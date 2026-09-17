@@ -62,7 +62,7 @@ Former Phases 1–5 are complete and form the starting point:
 
 ## v0.1 · Modern baseline and first release
 
-**Goal: anyone can use DDK within five minutes.** Until it is on Maven Central, people can only look at it.
+**Goal: anyone can use DDK within five minutes.** Maven Central is deferred; first make "clone → one install command → generate a project" smooth.
 
 Platform upgrade (Spring Boot 3.4 left OSS support in December 2025, so this comes first):
 
@@ -79,7 +79,8 @@ Release readiness:
 - [ ] Version `0.1.0`, with a documented 0.x policy: minor versions may break, and every break is in the release notes
 - [ ] Separate public and internal packages, with internals under `internal` and guarded by ArchUnit
 - [ ] Javadoc for public APIs, `CHANGELOG.md`, and generated GitHub release notes
-- [ ] Publish to Maven Central (signed, with sources and javadoc jars), released by CI on tag
+- [ ] CI creates a GitHub Release on tag: release notes, source archive and module jars
+- [ ] One script that installs DDK locally and generates a project, with the README quick start written around it
 
 ## v0.2 · AI collaboration
 
@@ -136,6 +137,7 @@ Testing:
 - [ ] GraalVM `RuntimeHints` for every starter, with a native image build of the example
 - [ ] Verified behavior on virtual threads (locks, ThreadLocal context propagation)
 - [ ] Public API freeze, strict semantic versioning from here on
+- [ ] Publish to Maven Central once stars and usage feedback grow noticeably, using the GitHub-backed `io.github.poppycoderr` namespace so no owned domain is needed
 - [ ] Bilingual documentation site
 
 ## Ongoing: good-looking and useful
@@ -144,7 +146,7 @@ Stars come from two things: **the first screen explains the value**, and **it ac
 
 Good-looking:
 
-- [ ] README first screen: a one-line value proposition, badges (CI, coverage, Maven Central, license), and a 20-second GIF of "generate project → break layering → test fails → fix"
+- [ ] README first screen: a one-line value proposition, badges (CI, coverage, latest release, license), and a 20-second GIF of "generate project → break layering → test fails → fix"
 - [ ] A comparison with COLA, Spring Modulith and jMolecules that explains where each fits, without disparaging anyone
 - [ ] A social preview image and GitHub topics (`ddd`, `spring-boot`, `archunit`, `mybatis-plus`, `ai-agents`)
 - [ ] Diagrams in one visual system, with dark mode
