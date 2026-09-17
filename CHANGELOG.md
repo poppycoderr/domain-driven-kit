@@ -18,6 +18,7 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 - Claude Code Skills in generated projects: `ddk-add-aggregate`, `ddk-add-use-case` and `ddk-add-domain-event` for the four-layer template, `ddk-add-feature` for the three-layer template
 - Generated projects include `spring-boot-starter-webmvc-test` for MockMvc tests
 - `AGENTS.md` and `CLAUDE.md` for contributors to DDK itself
+- `ArchGuard.check` evaluates all architecture rules at once and writes `target/archguard/violations.json` and `violations.md`, each violation with its rule, class and a concrete fix; generated projects and the example use it
 
 ### Fixed
 
