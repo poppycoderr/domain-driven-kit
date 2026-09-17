@@ -35,6 +35,14 @@ public class DdkWebProperties {
      */
     private boolean jackson = true;
 
+    /**
+     * 是否把 {@code Long} / {@code long} 序列化成 JSON 字符串，仅在 {@code ddk.web.jackson} 启用时生效。
+     * <p>
+     * JavaScript 的 Number 只能精确表示 2^53 以内的整数，雪花 ID 远超这个范围，
+     * 前端解析后会被静默改成另一个值。默认开启，代价是所有 64 位整数（包括计数）都以字符串返回。
+     */
+    private boolean writeLongAsString = true;
+
     @NestedConfigurationProperty
     private Cors cors = new Cors();
 

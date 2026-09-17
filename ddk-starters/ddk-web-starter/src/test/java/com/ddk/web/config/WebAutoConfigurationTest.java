@@ -2,10 +2,12 @@ package com.ddk.web.config;
 
 import com.ddk.web.handler.BaseExceptionHandler;
 import com.ddk.web.properties.DdkWebProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
+import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -23,6 +25,28 @@ class WebAutoConfigurationTest {
         runner.run(context -> assertThat(context)
                 .hasSingleBean(BaseExceptionHandler.class)
                 .hasSingleBean(Jackson2ObjectMapperBuilderCustomizer.class));
+    }
+
+    @Test
+    @DisplayName("Long 默认序列化成字符串，避免雪花 ID 在 JavaScript 里丢精度")
+    void writesLongAsStringByDefault() {
+        runner.withConfiguration(AutoConfigurations.of(JacksonAutoConfiguration.class)).run(context -> {
+            ObjectMapper mapper = context.getBean(ObjectMapper.class);
+            assertThat(mapper.writeValueAsString(new IdHolder(2100517430039306240L, 3L)))
+                    .isEqualTo("{\"id\":\"2100517430039306240\",\"count\":\"3\"}");
+        });
+    }
+
+    @Test
+    @DisplayName("关闭后 Long 恢复为 JSON 数字")
+    void longAsStringCanBeDisabled() {
+        runner.withConfiguration(AutoConfigurations.of(JacksonAutoConfiguration.class))
+                .withPropertyValues("ddk.web.write-long-as-string=false")
+                .run(context -> assertThat(context.getBean(ObjectMapper.class).writeValueAsString(new IdHolder(1L, 3L)))
+                        .isEqualTo("{\"id\":1,\"count\":3}"));
+    }
+
+    record IdHolder(Long id, long count) {
     }
 
     @Test
