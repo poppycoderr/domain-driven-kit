@@ -13,5 +13,6 @@
     <artifactId>ddk-examples</artifactId>
 
     <modules>
+        <module>ddk-example-user</module>
     </modules>
 </project>
