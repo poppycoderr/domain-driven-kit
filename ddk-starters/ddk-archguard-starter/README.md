@@ -1,85 +1,60 @@
 # DDK ArchGuard Starter
 
-This starter helps integrate ArchUnit into your DDK project for architecture governance.
-It provides core ArchUnit dependencies and a set of predefined architectural rules.
+Executable architecture rules for DDD projects, built on ArchUnit. Layering written in a document is a suggestion; written as a test it fails the build.
 
-## Features
+## Usage
 
-- Provides `archunit-junit5-api` and `archunit-junit5-engine` dependencies.
-- Includes `CommonArchRules.java` with a predefined layered architecture rule (`CommonArchRules.LAYERED_ARCHITECTURE_RULE`).
+```xml
+<dependency>
+    <groupId>com.ddk</groupId>
+    <artifactId>ddk-archguard-starter</artifactId>
+    <scope>test</scope>
+</dependency>
+```
 
-## Prerequisites
+Always use `test` scope: the rules expose ArchUnit types, so ArchUnit is a compile dependency of this module.
 
-Your project should be set up to use JUnit 5 for ArchUnit tests.
+```java
+class ArchitectureTest {
 
-## How to Use
+    private final JavaClasses classes = new ClassFileImporter()
+            .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_JARS)
+            .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+            .importPackages("com.example.app");
 
-1.  **Include the starter in your project's `pom.xml`:**
-
-    ```xml
-    <dependency>
-        <groupId>com.ddk</groupId>
-        <artifactId>ddk-archguard-starter</artifactId>
-        <version>${ddk.version}</version> <!-- Ensure this matches your project's ddk version -->
-        <scope>test</scope> <!-- Typically, architecture tests are in test scope -->
-    </dependency>
-    ```
-
-2.  **Create an ArchUnit test class:**
-
-    In your test sources (e.g., `src/test/java/com/example/architecture/ArchitectureTest.java`):
-
-    ```java
-    import com.tngtech.archunit.core.importer.ClassFileImporter;
-    import com.tngtech.archunit.core.domain.JavaClasses;
-    import com.tngtech.archunit.junit.AnalyzeClasses;
-    import com.tngtech.archunit.junit.ArchTest;
-    import com.tngtech.archunit.lang.ArchRule;
-    import static com.ddk.archguard.starter.rules.CommonArchRules.LAYERED_ARCHITECTURE_RULE;
-    // If you have your own rules or want to customize:
-    // import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
-
-
-    // Specify the packages to analyze
-    @AnalyzeClasses(packages = "com.example.yourproject")
-    public class ArchitectureTest {
-
-        @ArchTest
-        public static final ArchRule checkLayeredArchitecture = LAYERED_ARCHITECTURE_RULE;
-
-        // Example of a custom rule if needed:
-        // @ArchTest
-        // public static final ArchRule myCustomRule = layeredArchitecture()
-        //     .consideringAllDependencies()
-        //     .layer("MyService").definedBy("..service..")
-        //     .layer("MyRepository").definedBy("..repository..")
-        //     .whereLayer("MyService").mayOnlyAccessLayers("MyRepository");
+    @Test
+    void layeredArchitectureIsRespected() {
+        CommonArchRules.LAYERED_ARCHITECTURE_RULE.check(classes);
     }
-    ```
 
-3.  **Customize Package Identifiers in Rules (Important):**
+    @Test
+    void domainStaysFrameworkFree() {
+        CommonArchRules.DOMAIN_MUST_NOT_DEPEND_ON_FRAMEWORKS.check(classes);
+    }
+}
+```
 
-    The predefined `LAYERED_ARCHITECTURE_RULE` in `CommonArchRules` uses generic package identifiers like `"..ui.."` or `"..application.."`. You will likely need to adjust these to match your project's actual package structure.
+- `DO_NOT_INCLUDE_JARS` keeps library classes whose packages happen to match a layer, such as `com.ddk.core.domain`, out of the analysis.
+- `DO_NOT_INCLUDE_TESTS` skips test classes, which often reach across layers to set up scenarios.
 
-    To do this, you can either:
-    a. Copy the rule definition from `CommonArchRules.java` into your `ArchitectureTest.java` and modify the `definedBy(...)` parts.
-    b. (Advanced) If the starter evolves, it might provide a way to configure these package names.
+## Rules
 
-## Provided Rules
+| Rule | Checks |
+|---|---|
+| `LAYERED_ARCHITECTURE_RULE` | Four layers: `..adapter..`/`..ui..` → `..application..` → `..domain..`; `..infrastructure..` only implements domain ports |
+| `THREE_LAYER_ARCHITECTURE_RULE` | Three layers: `..adapter..` → `..business..`; `..infrastructure..` implements business interfaces and is referenced by no other layer |
+| `DOMAIN_MUST_NOT_DEPEND_ON_FRAMEWORKS` | `..domain..` does not use Spring, MyBatis(-Plus), Jackson or JPA |
+| `DOMAIN_MUST_NOT_DEPEND_ON_OUTER_LAYERS` | `..domain..` does not depend on application, adapter or infrastructure packages |
 
--   **`CommonArchRules.LAYERED_ARCHITECTURE_RULE`**:
-    Checks for adherence to a typical layered architecture:
-    - UI layer (`..ui..`, `..adapter..`)
-    - Application layer (`..application..`)
-    - Domain layer (`..domain..`)
-    - Infrastructure layer (`..infrastructure..`)
+```text
+four layers                               three layers
+  adapter ──► application ──► domain        adapter ──► business
+                   │            ▲                          ▲
+                   └──► infrastructure                infrastructure
+```
 
-    Access permissions:
-    - UI: Should not be accessed by other layers.
-    - Application: May only be accessed by UI.
-    - Domain: May only be accessed by Application and Infrastructure.
-    - Infrastructure: May only be accessed by Application and Domain.
+Every rule passes on projects where a layer has no classes yet, so a freshly generated skeleton builds without placeholder code.
 
-## Further Customization
+## Custom package names
 
-You can define your own ArchUnit rules alongside or instead of the provided ones. Refer to the [ArchUnit documentation](https://www.archunit.org/userguide/html/000_Index.html) for more details on writing rules.
+Layers are matched by package name. If your packages differ, copy the rule from `CommonArchRules` and change its `definedBy(...)` patterns.
