@@ -9,7 +9,11 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer;
 import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -75,6 +79,37 @@ class WebAutoConfigurationTest {
                 .run(context -> assertThat(context).hasFailed()
                         .getFailure().rootCause()
                         .hasMessageContaining("allow-credentials"));
+    }
+
+    @Test
+    @DisplayName("跨域配置把路径、来源、凭证与预检缓存时长原样交给 Spring MVC")
+    void corsMappingReflectsProperties() {
+        runner.withPropertyValues(
+                        "ddk.web.cors.enabled=true",
+                        "ddk.web.cors.path-pattern=/api/**",
+                        "ddk.web.cors.allowed-origins=https://*.example.com",
+                        "ddk.web.cors.exposed-headers=X-Trace-Id",
+                        "ddk.web.cors.allow-credentials=true",
+                        "ddk.web.cors.max-age=10m")
+                .run(context -> {
+                    InspectableCorsRegistry registry = new InspectableCorsRegistry();
+                    context.getBean("ddkCorsConfigurer", WebMvcConfigurer.class).addCorsMappings(registry);
+
+                    CorsConfiguration cors = registry.configurations().get("/api/**");
+                    assertThat(cors.getAllowedOriginPatterns()).containsExactly("https://*.example.com");
+                    assertThat(cors.getExposedHeaders()).containsExactly("X-Trace-Id");
+                    assertThat(cors.getAllowCredentials()).isTrue();
+                    assertThat(cors.getMaxAge()).isEqualTo(600L);
+                    assertThat(cors.checkOrigin("https://app.example.com")).isEqualTo("https://app.example.com");
+                    assertThat(cors.checkOrigin("https://evil.com")).isNull();
+                });
+    }
+
+    static class InspectableCorsRegistry extends CorsRegistry {
+
+        Map<String, CorsConfiguration> configurations() {
+            return getCorsConfigurations();
+        }
     }
 
     @Test
