@@ -98,6 +98,13 @@ class DdkDataSourceAutoConfigurationTest {
     }
 
     @Test
+    void registersConcretePoolTypeBeforeInstantiation() {
+        runner.withPropertyValues("ddk.datasource.sources.main.url=" + h2("typed")).run(context ->
+                assertThat(context.getBeanFactory().getBeanNamesForType(HikariDataSource.class, false, false))
+                        .containsExactly("mainDataSource"));
+    }
+
+    @Test
     void supportsDataSourcesWithoutCloseMethod() {
         runner.withPropertyValues(
                 "ddk.datasource.sources.main.url=" + h2("simple"),
