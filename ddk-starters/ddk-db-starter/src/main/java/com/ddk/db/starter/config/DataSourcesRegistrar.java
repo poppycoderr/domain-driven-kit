@@ -87,11 +87,20 @@ class DataSourcesRegistrar implements ImportBeanDefinitionRegistrar, Environment
         if (!StringUtils.hasText(source.getUrl())) {
             throw new IllegalStateException(DdkDataSourceProperties.PREFIX + ".sources." + name + ".url must be set");
         }
-        RootBeanDefinition definition = new RootBeanDefinition(DataSource.class, () -> build(binder, name, source));
+        // 登记具体的连接池类型，按 HikariDataSource 等实现类做类型查找时不必先实例化
+        RootBeanDefinition definition = new RootBeanDefinition(poolType(source), () -> build(binder, name, source));
         definition.setPrimary(isPrimary);
         // 连接池有 close()，SimpleDriverDataSource 之类没有；按实际类型推断销毁方法
         definition.setDestroyMethodName(AbstractBeanDefinition.INFER_METHOD);
         return definition;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Class<DataSource> poolType(DdkDataSourceProperties.Source source) {
+        Class<? extends DataSource> type = source.getType() != null
+                ? source.getType()
+                : DataSourceBuilder.findType(DataSourcesRegistrar.class.getClassLoader());
+        return (Class<DataSource>) (type != null ? type : DataSource.class);
     }
 
     private static DataSource build(Binder binder, String name, DdkDataSourceProperties.Source source) {
