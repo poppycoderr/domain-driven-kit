@@ -72,6 +72,7 @@ Rules outside `CommonArchRules` are reported with the rule ID `CUSTOM` and a gen
 | `DOMAIN_MUST_NOT_DEPEND_ON_FRAMEWORKS` | `..domain..` does not use Spring, MyBatis(-Plus), Jackson or JPA |
 | `DOMAIN_MUST_NOT_DEPEND_ON_OUTER_LAYERS` | `..domain..` does not depend on application, adapter or infrastructure packages |
 | `DDK_INTERNALS_MUST_NOT_BE_USED` | Application code does not depend on `com.ddk..internal..`, which holds starter implementation details that may change in any release |
+| `MCP_TOOLS_MUST_RESIDE_IN_ADAPTER` | `@McpTool` methods are declared in `..adapter..` classes, so tools reach the domain only through application services |
 
 ```text
 four layers                               three layers
