@@ -48,6 +48,17 @@ It is designed for teams that want to:
 
 ## Quick Start
 
+Generate a four-layer service in one command. The script builds DDK, installs it into your local Maven repository and runs the archetype:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/poppycoderr/domain-driven-kit/main/scripts/ddk.sh | bash -s -- new order-service --group com.acme
+cd order-service && mvn verify
+```
+
+Use `--layers 3` for the three-layer skeleton, or `DDK_REF=v0.1.0` to build a released version. Run `ddk.sh help` for all options.
+
+To build DDK by hand instead:
+
 Requirements:
 
 - JDK 21

@@ -76,11 +76,12 @@ Platform upgrade (Spring Boot 3.4 left OSS support in December 2025, so this com
 
 Release readiness:
 
-- [ ] Version `0.1.0`, with a documented 0.x policy: minor versions may break, and every break is in the release notes
+- [x] Version `0.1.0`, with a documented 0.x policy: minor versions may break, and every break is in the release notes
 - [ ] Separate public and internal packages, with internals under `internal` and guarded by ArchUnit
-- [ ] Javadoc for public APIs, `CHANGELOG.md`, and generated GitHub release notes
-- [ ] CI creates a GitHub Release on tag: release notes, source archive and module jars
-- [ ] One script that installs DDK locally and generates a project, with the README quick start written around it
+- [ ] Javadoc for public APIs
+- [x] `CHANGELOG.md`, with GitHub release notes taken from it
+- [x] CI creates a GitHub Release on tag: release notes, source archive and module jars
+- [x] One script that installs DDK locally and generates a project, with the README quick start written around it
 
 ## v0.2 · AI collaboration
 
