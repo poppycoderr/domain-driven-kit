@@ -1,0 +1,56 @@
+name: release
+
+on:
+  push:
+    tags: [ 'v*' ]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      # 仓库里始终是 SNAPSHOT 版本，发布时按 tag 改写版本号；ddk-dependencies 不继承父 pom，它的 ddk.version 属性单独改
+      - name: Set release version
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          mvn -B -ntp versions:set -DnewVersion="$VERSION" -DprocessAllModules=true -DgenerateBackupPoms=false
+          sed -i "s|<ddk.version>.*</ddk.version>|<ddk.version>$VERSION</ddk.version>|" ddk-dependencies/pom.xml
+
+      - name: Build and test
+        run: mvn -B -ntp install -Parchetype-it
+
+      - name: Collect artifacts
+        run: |
+          mkdir -p dist
+          find . -path ./ddk-examples -prune -o -path '*/target/*.jar' -print \
+            | grep -v -e '-tests\.jar$' -e '/test-classes/' \
+            | xargs -I{} cp {} dist/
+          cp ddk-dependencies/pom.xml "dist/ddk-dependencies-$VERSION.pom"
+          ls -l dist
+
+      # 发布说明取自 CHANGELOG.md 中对应版本的一节
+      - name: Extract release notes
+        run: |
+          awk -v version="$VERSION" '
+            $0 ~ "^## \\[" version "\\]" { found = 1; next }
+            found && /^## / { exit }
+            found { print }
+          ' CHANGELOG.md > notes.md
+          test -s notes.md || { echo "CHANGELOG.md has no section for $VERSION"; exit 1; }
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --title "$GITHUB_REF_NAME" --notes-file notes.md
