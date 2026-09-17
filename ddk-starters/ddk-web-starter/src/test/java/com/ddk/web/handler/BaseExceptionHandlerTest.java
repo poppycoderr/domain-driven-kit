@@ -77,6 +77,11 @@ class BaseExceptionHandlerTest {
         void create(@Valid @RequestBody CreateRequest request) {
         }
 
+        @GetMapping("/items/{id}")
+        String item(@PathVariable("id") Long id) {
+            return "item";
+        }
+
         @GetMapping("/ok")
         String ok() {
             return "ok";
@@ -137,6 +142,15 @@ class BaseExceptionHandlerTest {
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
                 .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("name")))
                 .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("quantity")));
+    }
+
+    @Test
+    @DisplayName("路径变量类型不匹配 -> 400，而不是落到兜底变成 500")
+    void typeMismatchBecomes400() throws Exception {
+        mvc.perform(get("/t/items/abc"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message").value("id: must be Long"));
     }
 
     @Test
