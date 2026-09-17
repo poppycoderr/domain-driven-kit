@@ -1,7 +1,6 @@
 package com.ddk.redis.starter.config;
 
 import com.ddk.redis.starter.config.fixture.CachedUser;
-import com.ddk.redis.starter.util.RedisUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackage;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -31,7 +30,6 @@ class DdkRedisAutoConfigurationTest {
     @Test
     void replacesBootRedisTemplateWithJsonTemplate() {
         runner.run(context -> {
-            assertThat(context).hasSingleBean(RedisUtil.class);
             assertThat(context).hasSingleBean(StringRedisTemplate.class);
             RedisTemplate<?, ?> template = context.getBean("redisTemplate", RedisTemplate.class);
             assertThat(template.getKeySerializer()).isEqualTo(RedisSerializer.string());

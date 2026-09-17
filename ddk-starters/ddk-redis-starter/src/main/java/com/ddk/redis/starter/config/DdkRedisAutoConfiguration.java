@@ -1,7 +1,6 @@
 package com.ddk.redis.starter.config;
 
 import com.ddk.redis.starter.serializer.RedisJsonMapper;
-import com.ddk.redis.starter.util.RedisUtil;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -66,11 +65,5 @@ public class DdkRedisAutoConfiguration {
         template.setValueSerializer(valueSerializer);
         template.setHashValueSerializer(valueSerializer);
         return template;
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    public RedisUtil redisUtil(RedisTemplate<String, Object> redisTemplate) {
-        return new RedisUtil(redisTemplate);
     }
 }
