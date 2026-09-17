@@ -89,8 +89,8 @@
 
 代理护栏：
 
-- [ ] archetype 生成 `AGENTS.md` 与 `CLAUDE.md`：分层职责、命名约定、禁止事项、提交前必须通过的命令
-- [ ] 提供 Claude Code Skills / Codex 提示模板：新增聚合、新增用例、新增领域事件、接入 starter
+- [x] archetype 生成 `AGENTS.md` 与 `CLAUDE.md`：分层职责、命名约定、禁止事项、提交前必须通过的命令
+- [x] 生成的项目自带 Claude Code Skills：新增聚合、用例、领域事件（四层）或业务功能（三层）；Codex 等代理通过 `AGENTS.md` 获得同样的约定
 - [ ] ArchGuard 输出机器可读的违规报告（哪条规则、哪个类、怎么改），代理可以据此自我修正
 - [ ] 文档站增加「用 AI 代理开发 DDK 项目」专题，附真实对话录屏
 
