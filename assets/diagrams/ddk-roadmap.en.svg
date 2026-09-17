@@ -1,0 +1,164 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 560" width="1120" height="560"
+     role="img" aria-labelledby="ttl dsc" style="max-width:100%;height:auto">
+  <title id="ttl">DDK roadmap</title>
+  <desc id="dsc">The foundation is done; v0.1 moves to Spring Boot 4 and ships the first GitHub Release, v0.2 AI collaboration, v0.3 reliable domain events, v0.4 middleware integrations, v1.0 production ready; looking good and being useful is ongoing.</desc>
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="mk" d="M0 0 L10 5 L0 10 z"/>
+    </marker>
+    <marker id="ar-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="mk-b" d="M0 0 L10 5 L0 10 z"/>
+    </marker>
+    <marker id="ar-v" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="mk-v" d="M0 0 L10 5 L0 10 z"/>
+    </marker>
+</defs>
+  <style>
+    text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",Inter,Roboto,sans-serif;}
+    .bg{fill:#FBFCFE}
+    .title{font-size:27px;font-weight:700;fill:#0F172A;letter-spacing:-.2px}
+    .sub{font-size:14px;font-weight:400;fill:#64748B}
+    .kicker{font-size:11.5px;font-weight:700;fill:#94A3B8;letter-spacing:1.4px}
+    .lbl{font-size:15px;font-weight:650;fill:#0F172A}
+    .lbl-sm{font-size:13.5px;font-weight:650;fill:#0F172A}
+    .txt{font-size:12.5px;font-weight:400;fill:#64748B}
+    .txt-xs{font-size:11.5px;font-weight:400;fill:#94A3B8}
+    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;font-size:12px;font-weight:500;fill:#334155}
+    .mono-sm{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;font-size:11px;font-weight:500;fill:#64748B}
+    .edgelbl{font-size:11.5px;font-weight:500;fill:#64748B}
+
+    .card{fill:#FFFFFF;stroke:#E2E8F0;stroke-width:1.25}
+    .group{fill:#F1F5F9;fill-opacity:.55;stroke:#E2E8F0;stroke-width:1.25}
+    .blue{fill:#EFF6FF;stroke:#BFDBFE;stroke-width:1.25}
+    .teal{fill:#F0FDFA;stroke:#99F6E4;stroke-width:1.25}
+    .violet{fill:#F5F3FF;stroke:#DDD6FE;stroke-width:1.25}
+    .amber{fill:#FFFBEB;stroke:#FDE68A;stroke-width:1.25}
+    .rose{fill:#FFF1F2;stroke:#FECDD3;stroke-width:1.25}
+    .slate{fill:#F8FAFC;stroke:#E2E8F0;stroke-width:1.25}
+
+    .t-blue{fill:#1D4ED8} .t-teal{fill:#0F766E} .t-violet{fill:#6D28D9}
+    .t-amber{fill:#B45309} .t-rose{fill:#BE123C} .t-ink{fill:#0F172A}
+
+    .edge{stroke:#94A3B8;stroke-width:1.6;fill:none;marker-end:url(#ar)}
+    .edge-b{stroke:#3B82F6;stroke-width:1.8;fill:none;marker-end:url(#ar-b)}
+    .edge-v{stroke:#8B5CF6;stroke-width:1.6;fill:none;stroke-dasharray:6 5;marker-end:url(#ar-v)}
+    .edge-x{stroke:#F43F5E;stroke-width:1.6;fill:none;stroke-dasharray:5 5}
+    .rail{stroke:#E2E8F0;stroke-width:2;fill:none}
+    .hair{stroke:#E2E8F0;stroke-width:1.25;fill:none}
+    .mk{fill:#94A3B8} .mk-b{fill:#3B82F6} .mk-v{fill:#8B5CF6}
+
+    @media (prefers-color-scheme: dark) {
+      .bg{fill:#0B1120}
+      .title{fill:#F1F5F9} .sub{fill:#94A3B8} .kicker{fill:#64748B}
+      .lbl,.lbl-sm{fill:#E2E8F0} .txt{fill:#94A3B8} .txt-xs{fill:#64748B}
+      .mono{fill:#CBD5E1} .mono-sm{fill:#94A3B8} .edgelbl{fill:#94A3B8}
+      .card{fill:#111827;stroke:#283548}
+      .group{fill:#0F172A;fill-opacity:.7;stroke:#1E293B}
+      .blue{fill:#111E38;stroke:#1E40AF}
+      .teal{fill:#0C2620;stroke:#115E59}
+      .violet{fill:#1A1333;stroke:#5B21B6}
+      .amber{fill:#271B08;stroke:#92400E}
+      .rose{fill:#2A0F17;stroke:#9F1239}
+      .slate{fill:#131C2B;stroke:#283548}
+      .t-blue{fill:#93C5FD} .t-teal{fill:#5EEAD4} .t-violet{fill:#C4B5FD}
+      .t-amber{fill:#FCD34D} .t-rose{fill:#FDA4AF} .t-ink{fill:#E2E8F0}
+      .edge{stroke:#64748B} .edge-b{stroke:#60A5FA} .edge-v{stroke:#A78BFA}
+      .edge-x{stroke:#FB7185}
+      .rail{stroke:#1E293B} .hair{stroke:#1E293B}
+      .mk{fill:#64748B} .mk-b{fill:#60A5FA} .mk-v{fill:#A78BFA}
+    }
+</style>
+  <rect class="bg" width="1120" height="560" rx="18"/>
+  <text class="title" x="56" y="60">Roadmap</text>
+  <text class="sub" x="56" y="87">The foundation is in place. Next: Spring Boot 4 and a first release, then AI collaboration, reliable events and middleware.</text>
+  <path class="rail" d="M132.5 176 L987.5 176"/>
+  <path d="M132.5 176 L303.5 176" stroke="#14B8A6" stroke-width="2" fill="none"/>
+  <rect x="56" y="200" width="153" height="232" rx="12" class="card"/>
+  <circle cx="132.5" cy="176" r="7" fill="#14B8A6"/>
+  <circle cx="132.5" cy="176" r="11" fill="none" stroke="#14B8A6" stroke-opacity=".35" stroke-width="2"/>
+  <path class="hair" d="M132.5 187 L132.5 200"/>
+  <text class="kicker" x="74" y="234">BASE</text>
+  <text class="lbl-sm" x="74" y="262">Foundation</text>
+  <rect x="74" y="276" width="66" height="24" rx="7" class="teal"/>
+  <text class="txt-xs" x="84" y="293">Done</text>
+  <circle cx="78" cy="324" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="88" y="328">Domain model</text>
+  <circle cx="78" cy="358" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="88" y="362">9 starters</text>
+  <circle cx="78" cy="392" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="88" y="396">Archetypes</text>
+  <rect x="227" y="200" width="153" height="232" rx="12" class="card"/>
+  <circle cx="303.5" cy="176" r="7" fill="#3B82F6"/>
+  <circle cx="303.5" cy="176" r="11" fill="none" stroke="#3B82F6" stroke-opacity=".35" stroke-width="2"/>
+  <path class="hair" d="M303.5 187 L303.5 200"/>
+  <text class="kicker" x="245" y="234">V0.1</text>
+  <text class="lbl-sm" x="245" y="262">Modern baseline</text>
+  <rect x="245" y="276" width="66" height="24" rx="7" class="blue"/>
+  <text class="txt-xs" x="255" y="293">Next</text>
+  <circle cx="249" cy="324" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="259" y="328">Spring Boot 4.1</text>
+  <circle cx="249" cy="358" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="259" y="362">JSpecify nullness</text>
+  <circle cx="249" cy="392" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="259" y="396">GitHub Release</text>
+  <rect x="398" y="200" width="153" height="232" rx="12" class="card"/>
+  <circle cx="474.5" cy="176" r="7" fill="#94A3B8"/>
+  <circle cx="474.5" cy="176" r="11" fill="none" stroke="#94A3B8" stroke-opacity=".35" stroke-width="2"/>
+  <path class="hair" d="M474.5 187 L474.5 200"/>
+  <text class="kicker" x="416" y="234">V0.2</text>
+  <text class="lbl-sm" x="416" y="262">AI collaboration</text>
+  <rect x="416" y="276" width="66" height="24" rx="7" class="slate"/>
+  <text class="txt-xs" x="426" y="293">Planned</text>
+  <circle cx="420" cy="324" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="430" y="328">AGENTS.md · Skills</text>
+  <circle cx="420" cy="358" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="430" y="362">Agent reports</text>
+  <circle cx="420" cy="392" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="430" y="396">Spring AI · MCP</text>
+  <rect x="569" y="200" width="153" height="232" rx="12" class="card"/>
+  <circle cx="645.5" cy="176" r="7" fill="#94A3B8"/>
+  <circle cx="645.5" cy="176" r="11" fill="none" stroke="#94A3B8" stroke-opacity=".35" stroke-width="2"/>
+  <path class="hair" d="M645.5 187 L645.5 200"/>
+  <text class="kicker" x="587" y="234">V0.3</text>
+  <text class="lbl-sm" x="587" y="262">Reliable events</text>
+  <rect x="587" y="276" width="66" height="24" rx="7" class="slate"/>
+  <text class="txt-xs" x="597" y="293">Planned</text>
+  <circle cx="591" cy="324" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="601" y="328">Outbox</text>
+  <circle cx="591" cy="358" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="601" y="362">RocketMQ · Kafka</text>
+  <circle cx="591" cy="392" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="601" y="396">Idempotency</text>
+  <rect x="740" y="200" width="153" height="232" rx="12" class="card"/>
+  <circle cx="816.5" cy="176" r="7" fill="#94A3B8"/>
+  <circle cx="816.5" cy="176" r="11" fill="none" stroke="#94A3B8" stroke-opacity=".35" stroke-width="2"/>
+  <path class="hair" d="M816.5 187 L816.5 200"/>
+  <text class="kicker" x="758" y="234">V0.4</text>
+  <text class="lbl-sm" x="758" y="262">Middleware</text>
+  <rect x="758" y="276" width="66" height="24" rx="7" class="slate"/>
+  <text class="txt-xs" x="768" y="293">Planned</text>
+  <circle cx="762" cy="324" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="772" y="328">Redisson locks</text>
+  <circle cx="762" cy="358" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="772" y="362">XXL-Job · Flyway</text>
+  <circle cx="762" cy="392" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="772" y="396">ES read models</text>
+  <rect x="911" y="200" width="153" height="232" rx="12" class="card"/>
+  <circle cx="987.5" cy="176" r="7" fill="#94A3B8"/>
+  <circle cx="987.5" cy="176" r="11" fill="none" stroke="#94A3B8" stroke-opacity=".35" stroke-width="2"/>
+  <path class="hair" d="M987.5 187 L987.5 200"/>
+  <text class="kicker" x="929" y="234">V1.0</text>
+  <text class="lbl-sm" x="929" y="262">Production ready</text>
+  <rect x="929" y="276" width="66" height="24" rx="7" class="slate"/>
+  <text class="txt-xs" x="939" y="293">Planned</text>
+  <circle cx="933" cy="324" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="943" y="328">ddk-mall app</text>
+  <circle cx="933" cy="358" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="943" y="362">Native images</text>
+  <circle cx="933" cy="392" r="2.5" fill="#94A3B8"/>
+  <text class="txt-xs" x="943" y="396">Public API freeze</text>
+  <rect x="56" y="456" width="1008" height="56" rx="12" class="group"/>
+  <text class="kicker" x="80" y="489">ONGOING</text>
+  <text class="txt" x="168" y="489">README demo GIF · one-command project setup · online generator · comparison with COLA / Spring Modulith · a design article per release</text>
+  <text class="txt-xs" x="1064" y="538" text-anchor="end">See ROADMAP.md</text>
+</svg>
