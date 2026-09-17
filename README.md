@@ -209,10 +209,13 @@ class ArchitectureTest {
     <img src="./assets/diagrams/ddk-roadmap.svg" alt="DDK roadmap" />
 </p>
 
-短期优先级：
+基础层（领域模型、仓储、9 个 starter、archetype 与示例）已经完成。接下来的里程碑：
 
-1. 引入 Spotless 与 JaCoCo 覆盖率门槛
-2. 稳定包名与公开契约，为发布做准备
+1. **v0.1 现代基线与首次发布**：升级到 Spring Boot 4.1 / Jackson 3，发布到 Maven Central
+2. **v0.2 AI 协作**：生成项目自带 `AGENTS.md` 与 Skills，ArchGuard 输出代理可读的违规报告，基于 Spring AI 的 MCP starter
+3. **v0.3 可靠领域事件**：事务性 Outbox、RocketMQ / Kafka 投递、幂等消费
+4. **v0.4 中间件集成**：Redisson 聚合锁、XXL-Job、Flyway、springdoc、Elasticsearch 读模型
+5. **v1.0 生产就绪**：`ddk-mall` 参考应用、原生镜像、公开 API 冻结
 
 完整路线图见 [ROADMAP.md](./ROADMAP.md)。
 
