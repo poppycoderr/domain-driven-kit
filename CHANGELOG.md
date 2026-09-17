@@ -10,7 +10,9 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 - **1.0 onwards**: breaking changes only in major releases.
 - Releases are tagged `vX.Y.Z` and published as [GitHub Releases](https://github.com/poppycoderr/domain-driven-kit/releases). DDK is not on Maven Central yet; install it locally with [`scripts/ddk.sh`](./scripts/ddk.sh).
 
-## [Unreleased]
+## [0.2.0] - 2026-09-18
+
+AI collaboration: guardrails for coding agents in generated projects, actionable architecture reports, and use cases as MCP tools.
 
 ### Added
 
@@ -22,6 +24,11 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 - `CommonArchRules.MCP_TOOLS_MUST_RESIDE_IN_ADAPTER` keeps `@McpTool` methods in the adapter layer
 - The user example exposes `register_user`, `get_user` and `disable_user` as MCP tools
 - `ArchGuard.check` evaluates all architecture rules at once and writes `target/archguard/violations.json` and `violations.md`, each violation with its rule, class and a concrete fix; generated projects and the example use it
+
+### Changed
+
+- Generated projects and the example check architecture in one `ArchitectureTest.architectureIsRespected()` through `ArchGuard.check`, instead of one test per rule
+- The planned `ddk-ai-starter` is dropped: chat client configuration, structured output and token usage metrics are built into Spring AI 2.0
 
 ### Fixed
 
@@ -62,5 +69,5 @@ The first release: the DDD foundation on a Spring Boot 4.1 baseline.
 Starter implementation classes live in `com.ddk.<starter>.starter.internal` packages and are not public API: `CacheInvalidationListener`, `CacheInvalidationMessage`, `RedisCacheInvalidationPublisher`, `MicrometerCacheMetrics`, `JitteredTtlFunction`, `SpringDomainEventPublisher` and `TraceIdResponseFilter`. Generated projects check this with `DDK_INTERNALS_MUST_NOT_BE_USED`.
 - The springdoc dependency from `ddk-web-starter`; add it in the application when API docs are needed
 
-[Unreleased]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.1.0...HEAD
+[0.2.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/poppycoderr/domain-driven-kit/releases/tag/v0.1.0
