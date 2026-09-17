@@ -1,6 +1,7 @@
 package com.ddk.event.starter.config;
 
 import com.ddk.core.domain.DomainEventPublisher;
+import com.ddk.event.starter.internal.SpringDomainEventPublisher;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

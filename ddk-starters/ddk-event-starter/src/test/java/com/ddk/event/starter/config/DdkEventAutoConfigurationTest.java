@@ -5,13 +5,14 @@ import com.ddk.core.domain.AggregateRoot;
 import com.ddk.core.domain.DomainEvent;
 import com.ddk.core.domain.DomainEventPublisher;
 import com.ddk.core.domain.Identifier;
+import com.ddk.event.starter.internal.SpringDomainEventPublisher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.context.event.EventListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.EventListener;
 
 import java.util.ArrayList;
 import java.util.List;
