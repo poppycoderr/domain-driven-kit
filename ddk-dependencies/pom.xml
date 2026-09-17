@@ -14,7 +14,7 @@
     -->
     <groupId>com.ddk</groupId>
     <artifactId>ddk-dependencies</artifactId>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.2.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>DDK Dependencies (BOM)</name>
     <description>Bill of Materials for Domain Driven Kit - 下游项目 import 后无需再写 DDK 模块的版本号</description>
@@ -42,7 +42,7 @@
     </scm>
 
     <properties>
-        <ddk.version>0.1.0-SNAPSHOT</ddk.version>
+        <ddk.version>0.2.0-SNAPSHOT</ddk.version>
     </properties>
 
     <dependencyManagement>
