@@ -95,7 +95,7 @@ Each repository uses one of two modes. The project-specific section states which
   - A branch contains only its own change. Resolve conflicts by rebasing onto `main`; merges are rebase-only. Don't merge a PR, publish a release or run a deployment without explicit instruction.
   - **PR title:** English, same format as a commit.
   - **PR description:** bilingual. Write the full English version first, then a horizontal rule (`---`), then a Chinese version with the same content. Describe the change itself: background, scope, contract or data model changes, key design decisions. Leave out sections such as testing, risks or deployment (CI shows test results), and leave out AI attribution footers. A first PR for a feature describes it as new rather than listing bugs fixed during development.
-  - **PR diagrams:** 1–3 per PR, the smallest view that makes the point (a shallow file tree, a call tree or `mermaid` sequence, a `diff`, pseudocode), written as `text`, `diff` or `mermaid` code blocks next to the text they support. Put them in the English section; the Chinese section refers to them.
+  - **PR diagrams:** write them with the `show-me` skill. Pick the smallest view for each point (pseudocode for logic, a call tree for control flow, a shallow file tree for layout, `mermaid` for interaction or data flow, a `diff` for what changes), usually 1–3 per PR, as `text`, `diff` or `mermaid` code blocks placed next to the text they support. Put them in the English section; the Chinese section refers to them.
 
 ### CI and automation
 
