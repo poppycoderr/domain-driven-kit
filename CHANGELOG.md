@@ -12,6 +12,17 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ## [Unreleased]
 
+### Added
+
+- `ConcurrentUpdateException` (`CONCURRENT_UPDATE`), which the web starter maps to 409 Conflict
+- `GenericRepositoryImpl` accepts typed identifiers such as `UserId` and unwraps them to key values; the example and archetype skills use `GenericRepository<User, UserId>`
+
+### Fixed
+
+- `GenericRepositoryImpl.update` silently ignored an optimistic-lock conflict or a removed row and still published the aggregate's domain events; it now throws `ConcurrentUpdateException` and publishes nothing
+- `updateAll` checks each row's version instead of a batch update that cannot report per-row conflicts
+
+
 ## [0.2.0] - 2026-09-18
 
 AI collaboration: guardrails for coding agents in generated projects, actionable architecture reports, and use cases as MCP tools.
