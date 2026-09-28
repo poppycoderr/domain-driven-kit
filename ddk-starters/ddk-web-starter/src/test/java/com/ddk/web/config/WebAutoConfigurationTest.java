@@ -1,5 +1,6 @@
 package com.ddk.web.config;
 
+import com.ddk.core.domain.Identifier;
 import com.ddk.web.handler.BaseExceptionHandler;
 import com.ddk.web.properties.DdkWebProperties;
 import org.junit.jupiter.api.DisplayName;
@@ -51,6 +52,32 @@ class WebAutoConfigurationTest {
     }
 
     record IdHolder(Long id, long count) {
+    }
+
+    static final class OrderId extends Identifier<Long> {
+
+        private OrderId(Long value) {
+            super(value);
+        }
+
+        static OrderId of(Long value) {
+            return new OrderId(value);
+        }
+    }
+
+    record OrderView(
+            OrderId id
+    ) {
+    }
+
+    @Test
+    @DisplayName("类型化标识以原始值读写，与 Long 转字符串的规则一起生效")
+    void writesTypedIdentifiersAsRawValues() {
+        runner.withConfiguration(AutoConfigurations.of(JacksonAutoConfiguration.class)).run(context -> {
+            JsonMapper mapper = context.getBean(JsonMapper.class);
+            assertThat(mapper.writeValueAsString(new OrderView(OrderId.of(7L)))).isEqualTo("{\"id\":\"7\"}");
+            assertThat(mapper.readValue("{\"id\":\"7\"}", OrderView.class)).isEqualTo(new OrderView(OrderId.of(7L)));
+        });
     }
 
     @Test
