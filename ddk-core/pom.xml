@@ -20,6 +20,13 @@
             <artifactId>jspecify</artifactId>
         </dependency>
 
+        <!-- 可选：只有引入 Jackson 的应用才会用到 com.ddk.core.jackson -->
+        <dependency>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
