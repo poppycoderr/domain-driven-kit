@@ -14,8 +14,8 @@ import java.lang.annotation.Target;
  * 注解是纯 JDK 的，领域层不因此依赖任何框架或消息中间件。
  *
  * <pre>{@code
- * @IntegrationEvent(value = "user-events", key = "userId")
- * public record UserRegisteredEvent(UserId userId, String username, Instant occurredOn) implements DomainEvent {
+ * @IntegrationEvent(value = "user-events", key = "userId", id = "eventId")
+ * public record UserRegisteredEvent(UUID eventId, UserId userId, String username, Instant occurredOn) implements DomainEvent {
  * }
  * }</pre>
  */
@@ -34,4 +34,12 @@ public @interface IntegrationEvent {
      * 属性值是 {@link Identifier} 时取它的原始值。留空表示不设置 key。
      */
     String key() default "";
+
+    /**
+     * 作为事件唯一标识的属性名，取值写进消息头 {@code ddk-event-id}，消费端据此去重。
+     * <p>
+     * 标识必须是事件自身的数据（例如创建事件时生成的 UUID），而不是投递时生成的值：
+     * 投递失败后重投的是同一个事件，只有它自带的标识在重投前后保持不变。留空表示不设置该消息头。
+     */
+    String id() default "";
 }
