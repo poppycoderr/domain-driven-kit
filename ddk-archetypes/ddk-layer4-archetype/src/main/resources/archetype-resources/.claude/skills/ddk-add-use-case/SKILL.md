@@ -19,7 +19,7 @@ $h2 2. 应用层
 | `application/command/CancelOrderCommand.java` | record，只含用例需要的数据，不带校验注解 |
 | `application/query/*Query.java` | 读用例使用；分页查询继承 `PageQuery` |
 | `application/response/OrderResponse.java` | record，提供 `static from(Order)`；敏感字段在这里脱敏 |
-| `application/service/OrderService.java` | 写用例加 `@Transactional`：`find` 取聚合（不存在抛 `NOT_FOUND` 错误码）→ 调用领域方法 → `update` 保存 → `OrderResponse.from(...)`。这里不写 if 业务判断 |
+| `application/service/OrderService.java` | 写用例加 `@Transactional`：`find` 取聚合（不存在抛 `NOT_FOUND` 错误码）→ 调用领域方法 → `update` 保存 → `OrderResponse.from(...)`。这里不写 if 业务判断。基于旧版本的保存会抛 `ConcurrentUpdateException`（Web 层返回 409），不要捕获后重试整个用例，让调用方重新加载 |
 
 $h2 3. 适配层
 

@@ -10,6 +10,7 @@ import com.example.user.domain.acl.UserIdGenerator;
 import com.example.user.domain.acl.UserRepository;
 import com.example.user.domain.error.UserError;
 import com.example.user.domain.model.entity.User;
+import com.example.user.domain.model.entity.UserId;
 import com.example.user.domain.model.enums.Gender;
 import com.example.user.domain.model.valueobject.Email;
 import com.example.user.domain.model.valueobject.PhoneNumber;
@@ -17,6 +18,8 @@ import com.example.user.domain.service.PasswordEncryptionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 /**
  * 用户应用服务：取出聚合、调用领域方法、保存、转换响应。业务规则在 {@link User} 里，这里只做编排与事务。
@@ -71,13 +74,21 @@ public class UserService {
 
     @Transactional
     public void delete(Long id) {
-        if (!userRepository.remove(id)) {
+        if (!isValidId(id) || !userRepository.remove(UserId.of(id))) {
             throw new BusinessException(UserError.USER_NOT_FOUND, id);
         }
     }
 
     private User requireUser(Long id) {
-        return userRepository.find(id).orElseThrow(() -> new BusinessException(UserError.USER_NOT_FOUND, id));
+        return (isValidId(id) ? userRepository.find(UserId.of(id)) : Optional.<User>empty())
+                .orElseThrow(() -> new BusinessException(UserError.USER_NOT_FOUND, id));
+    }
+
+    /**
+     * 外部传入的 ID 可能是任意数字；不合法的 ID 与不存在的用户一样处理，不让 {@link UserId} 的构造校验变成 500。
+     */
+    private static boolean isValidId(Long id) {
+        return id != null && id > 0;
     }
 
     private void requireUsernameAvailable(String username) {

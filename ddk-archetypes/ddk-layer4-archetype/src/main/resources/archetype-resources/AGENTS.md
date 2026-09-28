@@ -31,7 +31,7 @@ adapter ──► application ──► domain ◄── infrastructure
 | `application.handler` | 领域事件订阅方，`@TransactionalEventListener(phase = AFTER_COMMIT)` | 需要与原事务一起提交的写操作 |
 | `domain.model` | 聚合根（继承 `AggregateRoot`）、类型化标识（继承 `Identifier`）、值对象（record 实现 `ValueObject`）、枚举 | Spring、MyBatis、Jackson 的任何类型 |
 | `domain.event` | 领域事件（record 实现 `DomainEvent`，过去式命名） | |
-| `domain.acl` | 仓储契约（继承 `GenericRepository`）与外部能力端口 | 实现类 |
+| `domain.acl` | 仓储契约（继承 `GenericRepository<聚合, 类型化标识>`）与外部能力端口 | 实现类 |
 | `domain.service` | 跨聚合、不属于任何单个聚合的领域逻辑 | 事务、编排 |
 | `domain.error` | 错误码枚举（实现 `ErrorCode`） | |
 | `infrastructure.acl.impl` | 仓储实现（继承 `GenericRepositoryImpl`）与端口实现 | 业务规则 |
@@ -45,7 +45,8 @@ $h3 领域模型
 - 聚合根没有公开构造器和 setter。创建用 `static register(...)` 之类的工厂方法并登记领域事件；从数据库重建用 `static restore(...)`，不登记事件。
 - 状态变更与校验写在聚合的方法里（充血模型），应用服务只编排。
 - 值对象用 record，在紧凑构造器里校验，非法时抛 `BusinessException(错误码, 参数)`。
-- 标识用 `Identifier` 子类（如 `OrderId`），不要在领域方法签名里裸用 `Long`。
+- 标识用 `Identifier` 子类（如 `OrderId`），不要在领域方法签名和仓储契约里裸用 `Long`。
+- 仓储的 `update` 按加载时的版本保存，版本已被推进时抛 `ConcurrentUpdateException`，Web 层返回 409；同一个聚合要再次保存时使用 `update` 的返回值。
 
 $h3 应用层与适配层
 
