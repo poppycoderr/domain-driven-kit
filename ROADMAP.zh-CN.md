@@ -105,10 +105,11 @@ AI 能力（基于 Spring AI 2.0）：
 
 **目标：领域事件从「进程内通知」升级为「可靠的集成事件」。**
 
-- [ ] 事务性 Outbox：事件与聚合在同一事务写入，中继器异步投递，失败重试并有死信
-- [ ] 投递适配：RocketMQ、Kafka、RabbitMQ
-- [ ] 消费端幂等：基于消息 ID 的 Inbox 表，`@IdempotentConsumer`
-- [ ] 与 Spring Modulith 事件发布注册表、jMolecules `@Externalized` 互通，不重复实现
+- [x] 事务性 Outbox：复用 Spring Modulith 的 JDBC 事件发布记录，与 MyBatis-Plus 同事务登记、提交后投递，失败记录停在 `FAILED` 可重新提交；领域层用纯 JDK 的 `@IntegrationEvent` 声明
+- [x] 投递适配：Kafka、RabbitMQ（AMQP）、JMS、Spring Messaging 由 Modulith 外发模块提供
+- [ ] RocketMQ 投递适配（Modulith 没有对应模块）
+- [x] 消费端幂等：`IdempotentConsumer` 按（消费者，消息 ID）登记已处理消息，保存点隔离重复；消息 ID 来自事件自带标识（`ddk-event-id` 消息头）
+- [x] 与 Spring Modulith 事件发布注册表互通，不重复实现；应用自己声明外发配置时 DDK 让位
 - [ ] 事件契约：版本号、Schema 演进规则、按事件类型的序列化配置
 
 ## v0.4 · 中间件与类库集成

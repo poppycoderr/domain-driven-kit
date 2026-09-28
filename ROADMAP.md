@@ -105,10 +105,11 @@ AI capabilities (on Spring AI 2.0):
 
 **Goal: domain events grow from in-process notifications into reliable integration events.**
 
-- [ ] Transactional outbox: events are written in the aggregate's transaction and relayed asynchronously, with retries and a dead letter
-- [ ] Delivery adapters: RocketMQ, Kafka, RabbitMQ
-- [ ] Idempotent consumers: an inbox table keyed by message ID, `@IdempotentConsumer`
-- [ ] Interoperate with the Spring Modulith event publication registry and jMolecules `@Externalized` rather than duplicating them
+- [x] Transactional outbox: reuse Spring Modulith's JDBC event publication registry, recorded in the MyBatis-Plus transaction and delivered after commit, with failed records kept as `FAILED` for resubmission; the domain layer declares events with the plain-JDK `@IntegrationEvent`
+- [x] Delivery adapters: Kafka, RabbitMQ (AMQP), JMS and Spring Messaging through Modulith's externalization modules
+- [ ] RocketMQ delivery adapter (Modulith has no module for it)
+- [x] Idempotent consumers: `IdempotentConsumer` registers processed (consumer, message ID) pairs behind a savepoint; the message ID is the event's own identifier, sent as the `ddk-event-id` header
+- [x] Interoperate with the Spring Modulith event publication registry rather than duplicating it; DDK backs off when the application declares its own externalization configuration
 - [ ] Event contracts: versions, schema evolution rules, per-event serialization settings
 
 ## v0.4 · Middleware and library integrations
