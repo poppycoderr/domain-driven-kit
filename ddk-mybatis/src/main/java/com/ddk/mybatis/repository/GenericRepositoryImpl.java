@@ -9,10 +9,12 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.spring.service.impl.ServiceImpl;
 import com.ddk.core.domain.AggregateRoot;
 import com.ddk.core.domain.DomainEventPublisher;
+import com.ddk.core.domain.Identifier;
 import com.ddk.core.mapper.MapperProvider;
 import com.ddk.core.mapper.ObjectMapper;
 import com.ddk.core.page.PageQuery;
 import com.ddk.core.page.PageResponse;
+import com.ddk.core.repository.ConcurrentUpdateException;
 import com.ddk.core.repository.GenericRepository;
 import com.ddk.mybatis.page.MybatisPlusPageAdapter;
 import com.ddk.mybatis.query.QueryParser;
@@ -120,30 +122,35 @@ public class GenericRepositoryImpl<E, ID extends Serializable, P, M extends Base
         return saved;
     }
 
+    /**
+     * 影响 0 行说明版本已被推进或记录已被删除：必须抛出而不是静默返回，否则基于旧状态的修改看起来成功了，
+     * 它登记的领域事件还会被发布出去，下游收到一件并没有发生的事。
+     */
     @Override
     public E update(E entity) {
         P po = toPo().map(entity);
-        super.updateById(po);
+        if (getBaseMapper().updateById(po) == 0) {
+            throw new ConcurrentUpdateException(eClass.getSimpleName());
+        }
         E saved = toEntity().map(po);
         publishEventsOf(entity);
         return saved;
     }
 
+    /**
+     * 逐条更新而不是 {@code updateBatchById}：批量执行拿不到每一行的影响行数，无法发现其中某一条的版本冲突。
+     */
     @Override
     public List<E> updateAll(List<E> entities) {
         if (entities == null || entities.isEmpty()) {
             return List.of();
         }
-        List<P> pos = toPo().map(entities);
-        super.updateBatchById(pos);
-        List<E> saved = toEntity().map(pos);
-        entities.forEach(this::publishEventsOf);
-        return saved;
+        return entities.stream().map(this::update).toList();
     }
 
     @Override
     public Optional<E> find(ID id) {
-        P po = getBaseMapper().selectById(id);
+        P po = getBaseMapper().selectById(keyOf(id));
         return Optional.ofNullable(po).map(toEntity()::map);
     }
 
@@ -152,12 +159,12 @@ public class GenericRepositoryImpl<E, ID extends Serializable, P, M extends Base
         if (ids == null || ids.isEmpty()) {
             return List.of();
         }
-        return toEntity().map(getBaseMapper().selectByIds(ids));
+        return toEntity().map(getBaseMapper().selectByIds(keysOf(ids)));
     }
 
     @Override
     public boolean remove(ID id) {
-        return getBaseMapper().deleteById(id) > 0;
+        return getBaseMapper().deleteById(keyOf(id)) > 0;
     }
 
     @Override
@@ -165,7 +172,7 @@ public class GenericRepositoryImpl<E, ID extends Serializable, P, M extends Base
         if (ids == null || ids.isEmpty()) {
             return 0L;
         }
-        return getBaseMapper().deleteByIds(ids);
+        return getBaseMapper().deleteByIds(keysOf(ids));
     }
 
     @Override
@@ -185,7 +192,7 @@ public class GenericRepositoryImpl<E, ID extends Serializable, P, M extends Base
             return false;
         }
         QueryWrapper<P> wrapper = new QueryWrapper<P>().select("1")
-                .eq(keyColumn(), id)
+                .eq(keyColumn(), keyOf(id))
                 .last(Constants.LIMIT + " 1");
         return getBaseMapper().exists(wrapper);
     }
@@ -208,6 +215,17 @@ public class GenericRepositoryImpl<E, ID extends Serializable, P, M extends Base
                 publisher.publishEventsOf(aggregate);
             }
         }
+    }
+
+    /**
+     * 类型化标识（{@link Identifier} 子类）拆成它包装的原始值，MyBatis-Plus 只认识后者。
+     */
+    protected Serializable keyOf(ID id) {
+        return id instanceof Identifier<?> identifier ? identifier.value() : id;
+    }
+
+    private List<Serializable> keysOf(List<ID> ids) {
+        return ids.stream().map(this::keyOf).toList();
     }
 
     /**

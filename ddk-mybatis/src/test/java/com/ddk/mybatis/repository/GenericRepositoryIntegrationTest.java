@@ -7,8 +7,10 @@ import com.ddk.core.domain.DomainEvent;
 import com.ddk.core.domain.DomainEventPublisher;
 import com.ddk.core.mapper.MapperProvider;
 import com.ddk.core.page.PageResponse;
+import com.ddk.core.repository.ConcurrentUpdateException;
 import com.ddk.mybatis.repository.IntegrationFixtures.User;
 import com.ddk.mybatis.repository.IntegrationFixtures.UserDisabledEvent;
+import com.ddk.mybatis.repository.IntegrationFixtures.UserId;
 import com.ddk.mybatis.repository.IntegrationFixtures.UserPageQuery;
 import com.ddk.mybatis.repository.IntegrationFixtures.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -79,6 +81,11 @@ class GenericRepositoryIntegrationTest {
         }
 
         @Bean
+        IntegrationFixtures.TypedUserRepository typedUserRepository() {
+            return new IntegrationFixtures.TypedUserRepository();
+        }
+
+        @Bean
         RecordingPublisher recordingPublisher() {
             return new RecordingPublisher();
         }
@@ -103,6 +110,9 @@ class GenericRepositoryIntegrationTest {
 
     @Autowired
     private UserRepository repository;
+
+    @Autowired
+    private IntegrationFixtures.TypedUserRepository typedRepository;
 
     @Autowired
     private RecordingPublisher publisher;
@@ -192,7 +202,7 @@ class GenericRepositoryIntegrationTest {
     }
 
     @Test
-    @DisplayName("乐观锁：版本号随更新自增，拿旧版本再更新会失败")
+    @DisplayName("乐观锁：版本号随更新自增，拿旧版本更新时抛出冲突且不发布事件")
     void optimisticLocking() {
         User saved = persistedUser("dave", 0);
         Long id = saved.id().value();
@@ -202,15 +212,56 @@ class GenericRepositoryIntegrationTest {
         assertEquals(0L, first.version());
 
         first.rename("dave-1");
-        repository.update(first);
+        assertEquals(1L, repository.update(first).version(), "返回值带有推进后的版本号");
         assertEquals(1L, repository.find(id).orElseThrow().version(), "更新后版本号应当自增");
 
-        // second 还持有旧版本号，它的更新不应生效
+        publisher.published.clear();
         second.rename("dave-2");
-        repository.update(second);
+        second.disable();
+        assertThrows(ConcurrentUpdateException.class, () -> repository.update(second));
 
-        assertEquals("dave-1", repository.find(id).orElseThrow().username(),
-                "基于旧版本的更新被乐观锁挡下，不应覆盖");
+        assertEquals("dave-1", repository.find(id).orElseThrow().username(), "基于旧版本的更新不应覆盖");
+        assertTrue(publisher.published.isEmpty(), "冲突的更新不应发布它登记的事件");
+    }
+
+    @Test
+    @DisplayName("更新已被删除的聚合时抛出冲突")
+    void updatingARemovedAggregateConflicts() {
+        User saved = persistedUser("gary", 0);
+        User loaded = repository.find(saved.id().value()).orElseThrow();
+        repository.remove(saved.id().value());
+
+        loaded.rename("gary-2");
+        assertThrows(ConcurrentUpdateException.class, () -> repository.update(loaded));
+    }
+
+    @Test
+    @DisplayName("updateAll 逐条检查版本，任何一条冲突都会抛出")
+    void updateAllDetectsConflicts() {
+        Long a = persistedUser("hank", 0).id().value();
+        Long b = persistedUser("iris", 1).id().value();
+        User staleB = repository.find(b).orElseThrow();
+        repository.update(repository.find(b).orElseThrow());
+
+        User freshA = repository.find(a).orElseThrow();
+        freshA.rename("hank-2");
+        staleB.rename("iris-2");
+
+        assertThrows(ConcurrentUpdateException.class, () -> repository.updateAll(List.of(freshA, staleB)));
+        assertEquals("iris", repository.find(b).orElseThrow().username());
+    }
+
+    @Test
+    @DisplayName("仓储可以直接使用类型化标识")
+    void acceptsTypedIdentifiers() {
+        User saved = persistedUser("judy", 0);
+        UserId id = saved.id();
+
+        assertEquals("judy", typedRepository.find(id).orElseThrow().username());
+        assertEquals(1, typedRepository.findAll(List.of(id, UserId.of(Long.MAX_VALUE))).size());
+        assertTrue(typedRepository.existsById(id));
+        assertTrue(typedRepository.remove(id));
+        assertFalse(typedRepository.existsById(id));
     }
 
     @Test
@@ -237,9 +288,9 @@ class GenericRepositoryIntegrationTest {
         User reloaded = repository.find(saved.id().value()).orElseThrow();
 
         reloaded.disable();
-        repository.update(reloaded);
-        reloaded.disable();
-        repository.update(reloaded);
+        User updated = repository.update(reloaded);
+        updated.disable();
+        repository.update(updated);
 
         assertEquals(1, publisher.published.size());
     }
