@@ -90,9 +90,14 @@ class TwoLevelCacheRedisIntegrationTest {
         });
     }
 
+    /**
+     * 关闭失效广播：A 回源后写缓存会异步通知其他实例清理本地缓存，这条消息可能晚于 B 的回填到达并把它清掉。
+     * 这里只验证 B 从 Redis 读取并回填本地缓存，广播由下面的用例单独覆盖。
+     */
     @Test
     void secondInstanceReadsFromRedisAndBackfillsItsLocalLevel() {
-        runner.run(a -> runner.run(b -> {
+        ApplicationContextRunner withoutBroadcast = runner.withPropertyValues("ddk.cache.local.broadcast-evict=false");
+        withoutBroadcast.run(a -> withoutBroadcast.run(b -> {
             a.getBean(ProductService.class).find(1L);
 
             ProductService serviceB = b.getBean(ProductService.class);
