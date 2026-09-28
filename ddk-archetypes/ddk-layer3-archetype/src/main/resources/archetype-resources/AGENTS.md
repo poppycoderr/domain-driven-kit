@@ -32,7 +32,7 @@ adapter ──► business ◄── infrastructure
 | `business.service` | 业务服务：用例编排与事务 | 可以写进实体方法的状态判断 |
 | `business.model` | 实体、值对象（record）、枚举，可继承 DDK 领域模型基类 | PO、Mapper |
 | `business.event` / `handler` | 业务事件（record 实现 `DomainEvent`）与订阅方（`AFTER_COMMIT`） | |
-| `business.acl` | 仓储契约（继承 `GenericRepository`）与外部能力接口 `*Gateway` | 实现类 |
+| `business.acl` | 仓储契约（继承 `GenericRepository<聚合, 类型化标识>`）与外部能力接口 `*Gateway` | 实现类 |
 | `business.error` | 错误码枚举（实现 `ErrorCode`） | |
 | `infrastructure.acl.impl` | 仓储实现（继承 `GenericRepositoryImpl`）与接口实现 | 业务规则 |
 | `infrastructure.converter` | 实体 ↔ PO 转换器（`@EnhancedMapper` + `ObjectMapper`，两个方向各一个） | |
@@ -45,6 +45,8 @@ $h3 业务模型
 - 状态变更与校验优先写在实体方法里，避免业务服务变成一堆 setter 调用。
 - 值对象用 record，在紧凑构造器里校验，非法时抛 `BusinessException(错误码, 参数)`。
 - 实体没有公开 setter；创建与从数据库重建分别用不同的静态工厂方法，重建时不登记事件。
+- 标识用 `Identifier` 子类（如 `CouponId`），仓储契约也用它，不裸用 `Long`。
+- 仓储的 `update` 按加载时的版本保存，版本已被推进时抛 `ConcurrentUpdateException`，Web 层返回 409；同一个实体要再次保存时使用 `update` 的返回值。
 
 $h3 接口与持久化
 

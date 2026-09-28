@@ -15,7 +15,7 @@ $h2 1. 业务模型（business.model / error / acl）
 | `business/model/Coupon.java` | 可继承 `AggregateRoot<CouponId>`；私有构造器；创建工厂方法校验规则并登记事件，重建工厂方法不登记；状态变更方法守卫规则；不写公开 setter |
 | `business/model/CouponId.java` | `final class CouponId extends Identifier<Long>`，提供 `static of(Long)` |
 | `business/error/CouponError.java` | `enum CouponError implements ErrorCode` |
-| `business/acl/CouponRepository.java` | `interface CouponRepository extends GenericRepository<Coupon, Long>` |
+| `business/acl/CouponRepository.java` | `interface CouponRepository extends GenericRepository<Coupon, CouponId>` |
 
 $h2 2. 业务服务（business.command / response / service）
 
@@ -30,7 +30,7 @@ $h2 3. 基础设施（infrastructure）
 | `infrastructure/orm/po/CouponPO.java` | `@Data`，`@TableId(type = IdType.ASSIGN_ID)`，`@Version private Long version` |
 | `infrastructure/orm/mapper/CouponMapper.java` | `@Mapper interface CouponMapper extends BaseMapper<CouponPO>` |
 | `infrastructure/converter/*Converter.java` | 两个方向各一个：`@Component` + `@EnhancedMapper(source = ..., target = ...)` 实现 `ObjectMapper` |
-| `infrastructure/acl/impl/CouponRepositoryImpl.java` | `@Repository`，`extends GenericRepositoryImpl<Coupon, Long, CouponPO, CouponMapper> implements CouponRepository` |
+| `infrastructure/acl/impl/CouponRepositoryImpl.java` | `@Repository`，`extends GenericRepositoryImpl<Coupon, CouponId, CouponPO, CouponMapper> implements CouponRepository` |
 
 在建表脚本中加表：主键 `BIGINT`、`version BIGINT NOT NULL DEFAULT 0`、`create_time`、`update_time`。
 
