@@ -58,6 +58,34 @@ The Modulith versions are managed by the DDK BOM.
 
 If the application declares its own `EventExternalizationConfiguration`, DDK's selection backs off.
 
+## Event contracts
+
+Every delivered integration event carries contract headers:
+
+| Header | Source | Purpose |
+|---|---|---|
+| `ddk-event-type` | `type()`, defaults to the simple class name | Consumers dispatch on this stable name, not on the Java class, so moving or renaming the class does not break them. Put the old name in `type()` when renaming |
+| `ddk-event-version` | `version()`, defaults to `1` | Which shape of the payload this is |
+| `ddk-event-id` | `id()` accessor | Deduplication, see below |
+
+Evolution rules:
+
+```text
+same version     add optional fields only; consumers must ignore fields they don't know
+breaking change  remove / rename a field, change its meaning or type
+                 → new event class with version = N + 1 and the same type()
+                 → publish both versions until every consumer has moved
+                 → then remove the old one
+```
+
+At startup the starter scans the application's packages for `@IntegrationEvent` classes and fails fast when a declaration is wrong:
+
+- `key()` or `id()` does not name a no-argument accessor
+- `version()` is below 1 or the target is blank
+- two classes declare the same type and version
+
+Without this check a typo would surface only after commit, when delivery fails and the publication is left `FAILED`.
+
 ## Idempotent consumers
 
 Delivery is at least once, so a consumer can see the same message twice. `IdempotentConsumer` runs a handler only once per consumer and message ID:
