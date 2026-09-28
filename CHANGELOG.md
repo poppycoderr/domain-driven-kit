@@ -17,6 +17,8 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 - `@IntegrationEvent` in `com.ddk.core.domain` marks domain events for delivery outside the process and names their target and message key, without framework annotations in the domain layer
 - `ddk-event-starter` hands `@IntegrationEvent` events to Spring Modulith's event externalization when it is on the classpath, so they are recorded in the business transaction and delivered after commit; the BOM manages Spring Modulith 2.1
 - `@IntegrationEvent(id = ...)` puts the event's own identifier into the `ddk-event-id` message header, so it stays stable across resubmissions
+- `@IntegrationEvent(type, version)` and the `ddk-event-type` / `ddk-event-version` headers give each integration event a stable contract name and version
+- The event starter verifies `@IntegrationEvent` declarations at startup (accessors, version, duplicate contracts) instead of failing at delivery time
 - `IdempotentConsumer` (`ddk.event.inbox.enabled=true`) runs a handler once per consumer and message ID, registering the message in the handler's transaction behind a savepoint
 - `ConcurrentUpdateException` (`CONCURRENT_UPDATE`), which the web starter maps to 409 Conflict
 - `IdentifierJacksonModule` writes typed identifiers such as `UserId` as their raw value and reads them back through the subclass's `of(...)` factory; the web and event starters register it. Without it Jackson wrote identifiers as `{}`, so a serialized domain event lost its IDs
