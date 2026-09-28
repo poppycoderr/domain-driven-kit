@@ -110,7 +110,7 @@ AI capabilities (on Spring AI 2.0):
 - [ ] RocketMQ delivery adapter (Modulith has no module for it)
 - [x] Idempotent consumers: `IdempotentConsumer` registers processed (consumer, message ID) pairs behind a savepoint; the message ID is the event's own identifier, sent as the `ddk-event-id` header
 - [x] Interoperate with the Spring Modulith event publication registry rather than duplicating it; DDK backs off when the application declares its own externalization configuration
-- [ ] Event contracts: versions, schema evolution rules, per-event serialization settings
+- [x] Event contracts: a stable type name and version in message headers, documented evolution rules, and startup verification of declarations
 
 ## v0.4 · Middleware and library integrations
 
