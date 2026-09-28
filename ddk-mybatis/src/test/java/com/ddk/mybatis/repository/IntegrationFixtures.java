@@ -179,6 +179,9 @@ final class IntegrationFixtures {
         }
     }
 
+    public static class TypedUserRepository extends GenericRepositoryImpl<User, UserId, UserPO, UserMapper> {
+    }
+
     public static class UserRepository extends GenericRepositoryImpl<User, Long, UserPO, UserMapper> {
     }
 

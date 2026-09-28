@@ -15,6 +15,10 @@ import java.util.Optional;
  * 「可以只用一部分」的，把仓储绑死在聚合根上会让还没引入领域模型的项目无法使用它。
  * 但如果 {@code E} 确实是聚合根，实现方应当在写入成功后排空并发布它累积的领域事件。
  *
+ * <h2>标识类型</h2>
+ * {@code ID} 推荐使用 {@link com.ddk.core.domain.Identifier} 子类（如 {@code OrderId}），让「把用户 ID 当订单 ID 传」在编译期报错；
+ * 使用 {@code Long} 等原始类型也可以，实现方负责把类型化标识拆成存储使用的值。
+ *
  * <h2>方法命名</h2>
  * 单个与批量用不同的方法名（{@code find} / {@code findAll}）而不是重载。
  * 重载在 {@code ID} 本身是 {@code List} 时会产生歧义，而且调用点也更难读。
@@ -43,15 +47,19 @@ public interface GenericRepository<E, ID> {
     List<E> createAll(List<E> entities);
 
     /**
-     * 更新已有实体。
+     * 按加载时的版本更新已有实体。
+     * <p>
+     * 记录已被其他操作修改（版本已被推进）或已被删除时，更新影响 0 行，此时抛出异常，实体上累积的领域事件不会发布。
      *
-     * @return 更新后的实体
-     * @throws com.ddk.core.exception.AbstractException 实现方可在乐观锁冲突时抛出
+     * @return 更新后的实体，带有推进后的版本号。传入的实例不会被就地修改，同一个聚合需要再次保存时使用返回值
+     * @throws ConcurrentUpdateException 记录已被其他操作修改或删除
      */
     E update(E entity);
 
     /**
-     * 批量更新已有实体。
+     * 逐个按版本更新已有实体。任何一个冲突都会抛出异常，调用方的事务随之回滚。
+     *
+     * @throws ConcurrentUpdateException 任何一条记录已被其他操作修改或删除
      */
     List<E> updateAll(List<E> entities);
 

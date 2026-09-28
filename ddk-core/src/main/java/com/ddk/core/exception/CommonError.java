@@ -23,6 +23,9 @@ public enum CommonError implements ErrorCode {
     /** 请求体无法解析，通常是 JSON 格式错误 */
     MALFORMED_REQUEST("请求体格式不正确"),
 
+    /** 保存时发现数据已被其他操作修改或删除（乐观锁冲突）。调用方应重新加载后重试 */
+    CONCURRENT_UPDATE("数据已被其他操作修改，请刷新后重试：{0}"),
+
     /** 兜底：未被任何处理器识别的异常。对外不暴露原始异常信息 */
     SYSTEM_ERROR("服务器内部错误"),
     ;
