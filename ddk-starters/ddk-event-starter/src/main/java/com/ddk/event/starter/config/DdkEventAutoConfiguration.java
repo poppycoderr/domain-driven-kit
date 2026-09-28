@@ -4,9 +4,12 @@ import com.ddk.core.domain.DomainEventPublisher;
 import com.ddk.core.domain.IntegrationEvent;
 import com.ddk.core.jackson.IdentifierJacksonModule;
 import com.ddk.event.starter.inbox.IdempotentConsumer;
+import com.ddk.event.starter.internal.IntegrationEventContractVerifier;
 import com.ddk.event.starter.internal.IntegrationEventRouting;
 import com.ddk.event.starter.internal.SpringDomainEventPublisher;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfigurationPackages;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -20,6 +23,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import tools.jackson.databind.JacksonModule;
 
 import java.time.Clock;
+import java.util.List;
 
 /**
  * 领域事件自动配置。
@@ -51,9 +55,19 @@ public class DdkEventAutoConfiguration {
     static class IntegrationEventConfiguration {
 
         @Bean
+        IntegrationEventRouting ddkIntegrationEventRouting() {
+            return new IntegrationEventRouting();
+        }
+
+        @Bean
+        IntegrationEventContractVerifier ddkIntegrationEventContractVerifier(BeanFactory beanFactory, IntegrationEventRouting routing) {
+            List<String> packages = AutoConfigurationPackages.has(beanFactory) ? AutoConfigurationPackages.get(beanFactory) : List.of();
+            return new IntegrationEventContractVerifier(packages, routing, IntegrationEventContractVerifier.class.getClassLoader());
+        }
+
+        @Bean
         @ConditionalOnMissingBean
-        EventExternalizationConfiguration ddkIntegrationEventExternalization() {
-            IntegrationEventRouting routing = new IntegrationEventRouting();
+        EventExternalizationConfiguration ddkIntegrationEventExternalization(IntegrationEventRouting routing) {
             return EventExternalizationConfiguration.externalizing()
                     .selectAndRoute(IntegrationEvent.class, routing::route)
                     .headers(routing::headers)
