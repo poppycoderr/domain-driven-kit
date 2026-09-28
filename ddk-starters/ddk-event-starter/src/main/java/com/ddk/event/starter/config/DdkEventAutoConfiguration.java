@@ -1,6 +1,8 @@
 package com.ddk.event.starter.config;
 
 import com.ddk.core.domain.DomainEventPublisher;
+import com.ddk.core.domain.IntegrationEvent;
+import com.ddk.event.starter.internal.IntegrationEventRouting;
 import com.ddk.core.jackson.IdentifierJacksonModule;
 import com.ddk.event.starter.internal.SpringDomainEventPublisher;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -11,6 +13,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.modulith.events.EventExternalizationConfiguration;
 import tools.jackson.databind.JacksonModule;
 
 /**
@@ -22,7 +25,7 @@ import tools.jackson.databind.JacksonModule;
  *
  * @author Elijah Du
  */
-@AutoConfiguration
+@AutoConfiguration(beforeName = "org.springframework.modulith.events.config.EventExternalizationAutoConfiguration")
 @EnableConfigurationProperties(DdkEventProperties.class)
 @ConditionalOnProperty(prefix = DdkEventProperties.PREFIX, name = "enabled", matchIfMissing = true)
 public class DdkEventAutoConfiguration {
@@ -31,6 +34,25 @@ public class DdkEventAutoConfiguration {
     @ConditionalOnMissingBean
     public DomainEventPublisher domainEventPublisher(ApplicationEventPublisher delegate) {
         return new SpringDomainEventPublisher(delegate);
+    }
+
+    /**
+     * 引入 Spring Modulith 的事件外发模块后，把标了 {@link IntegrationEvent} 的领域事件交给它：
+     * 选择由注解决定，领域层不需要 Modulith 自己的 {@code @Externalized}。应用自己声明了
+     * {@link EventExternalizationConfiguration} 时以应用为准。
+     */
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(EventExternalizationConfiguration.class)
+    static class IntegrationEventConfiguration {
+
+        @Bean
+        @ConditionalOnMissingBean
+        EventExternalizationConfiguration ddkIntegrationEventExternalization() {
+            IntegrationEventRouting routing = new IntegrationEventRouting();
+            return EventExternalizationConfiguration.externalizing()
+                    .selectAndRoute(IntegrationEvent.class, routing::route)
+                    .build();
+        }
     }
 
     /**
