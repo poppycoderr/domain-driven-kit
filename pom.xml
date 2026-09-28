@@ -63,6 +63,7 @@
         <nullaway.version>0.14.1</nullaway.version>
         <seata.version>2.6.0</seata.version>
         <spring-ai.version>2.0.1</spring-ai.version>
+        <spring-modulith.version>2.1.1</spring-modulith.version>
         <maven-archetype.version>3.4.1</maven-archetype.version>
     </properties>
 
@@ -91,6 +92,15 @@
                 <groupId>org.springframework.ai</groupId>
                 <artifactId>spring-ai-bom</artifactId>
                 <version>${spring-ai.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- Spring Modulith BOM：事件发布记录与事件外发 -->
+            <dependency>
+                <groupId>org.springframework.modulith</groupId>
+                <artifactId>spring-modulith-bom</artifactId>
+                <version>${spring-modulith.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

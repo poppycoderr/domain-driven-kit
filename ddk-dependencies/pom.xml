@@ -42,11 +42,20 @@
     </scm>
 
     <properties>
+        <spring-modulith.version>2.1.1</spring-modulith.version>
         <ddk.version>0.3.0-SNAPSHOT</ddk.version>
     </properties>
 
     <dependencyManagement>
         <dependencies>
+            <!-- 事件外发模块（spring-modulith-events-kafka 等）由应用按需引入，版本与 DDK 验证过的保持一致 -->
+            <dependency>
+                <groupId>org.springframework.modulith</groupId>
+                <artifactId>spring-modulith-bom</artifactId>
+                <version>${spring-modulith.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <!-- 核心抽象 -->
             <dependency>
                 <groupId>com.ddk</groupId>
