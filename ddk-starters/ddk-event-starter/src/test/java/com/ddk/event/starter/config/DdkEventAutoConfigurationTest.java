@@ -5,14 +5,17 @@ import com.ddk.core.domain.AggregateRoot;
 import com.ddk.core.domain.DomainEvent;
 import com.ddk.core.domain.DomainEventPublisher;
 import com.ddk.core.domain.Identifier;
+import com.ddk.core.jackson.IdentifierJacksonModule;
 import com.ddk.event.starter.internal.SpringDomainEventPublisher;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
+import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -149,6 +152,17 @@ class DdkEventAutoConfigurationTest {
             publisher.publishEventsOf(null);
             publisher.publishEventsOf(new Order(OrderId.of(1L)));
             publisher.publish(null);
+        });
+    }
+
+    @Test
+    @DisplayName("事件序列化时类型化标识写成原始值，并能读回")
+    void registersIdentifierJsonModule() {
+        runner.withConfiguration(AutoConfigurations.of(JacksonAutoConfiguration.class)).run(context -> {
+            assertThat(context).hasSingleBean(IdentifierJacksonModule.class);
+            JsonMapper mapper = context.getBean(JsonMapper.class);
+            assertThat(mapper.writeValueAsString(OrderId.of(9L))).isEqualTo("9");
+            assertThat(mapper.readValue("9", OrderId.class)).isEqualTo(OrderId.of(9L));
         });
     }
 }

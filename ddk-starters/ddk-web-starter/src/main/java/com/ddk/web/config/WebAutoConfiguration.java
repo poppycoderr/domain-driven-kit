@@ -1,5 +1,6 @@
 package com.ddk.web.config;
 
+import com.ddk.core.jackson.IdentifierJacksonModule;
 import com.ddk.web.handler.BaseExceptionHandler;
 import com.ddk.web.properties.DdkWebProperties;
 import lombok.extern.slf4j.Slf4j;
@@ -59,6 +60,16 @@ public class WebAutoConfiguration {
                 builder.addModule(longAsString);
             }
         };
+    }
+
+    /**
+     * 类型化标识写成原始值，{@code UserId} 在响应里是 {@code 42} 而不是 {@code {}}；请求体里的原始值也能绑定成 {@code UserId}。
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = DdkWebProperties.PREFIX, name = "jackson", matchIfMissing = true)
+    public IdentifierJacksonModule identifierJacksonModule() {
+        return new IdentifierJacksonModule();
     }
 
     /**
