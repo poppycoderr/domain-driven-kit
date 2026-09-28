@@ -30,7 +30,7 @@ import static org.awaitility.Awaitility.await;
         "spring.datasource.url=jdbc:h2:mem:events;DB_CLOSE_DELAY=-1",
         "spring.modulith.events.jdbc.schema-initialization.enabled=true"
 })
-class IntegrationEventExternalizationTest {
+public class IntegrationEventExternalizationTest {
 
     @Autowired
     private DomainEventPublisher publisher;
@@ -56,7 +56,8 @@ class IntegrationEventExternalizationTest {
 
         await().atMost(Duration.ofSeconds(5)).until(() -> orderEvents.messages.size() == 1);
         Message<?> message = orderEvents.messages.getFirst();
-        assertThat(message.getPayload()).isEqualTo(new OrderPaid(OrderId.of(42L), Instant.EPOCH));
+        assertThat(message.getPayload()).isEqualTo(new OrderPaid("evt-42", OrderId.of(42L), Instant.EPOCH));
+        assertThat(message.getHeaders()).containsEntry("ddk-event-id", "evt-42");
         assertThat(String.valueOf(message.getHeaders().get("springModulith_routingTarget"))).contains("orderEvents").contains("42");
 
         String serialized = jdbc.queryForObject("SELECT serialized_event FROM event_publication", String.class);
@@ -92,8 +93,10 @@ class IntegrationEventExternalizationTest {
         }
     }
 
-    @IntegrationEvent(value = "orderEvents", key = "orderId")
+    @IntegrationEvent(value = "orderEvents", key = "orderId", id = "eventId")
     record OrderPaid(
+            String eventId,
+
             OrderId orderId,
 
             Instant occurredOn
@@ -112,7 +115,7 @@ class IntegrationEventExternalizationTest {
         static Order pay(OrderId id) {
             Order order = new Order();
             order.assignId(id);
-            order.registerEvent(new OrderPaid(id, Instant.EPOCH));
+            order.registerEvent(new OrderPaid("evt-" + id.value(), id, Instant.EPOCH));
             return order;
         }
     }
@@ -130,7 +133,7 @@ class IntegrationEventExternalizationTest {
 
     @SpringBootConfiguration
     @EnableAutoConfiguration
-    static class TestApplication {
+    public static class TestApplication {
 
         @Bean
         RecordingChannel orderEvents() {
