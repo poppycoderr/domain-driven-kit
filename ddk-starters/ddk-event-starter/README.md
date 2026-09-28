@@ -27,8 +27,8 @@ aggregate.registerEvent(e) ──► repository save ──► DomainEventPublis
 Mark a domain event that other services need, and name its destination:
 
 ```java
-@IntegrationEvent(value = "user-events", key = "userId")
-public record UserRegisteredEvent(UserId userId, String username, Instant occurredOn) implements DomainEvent {
+@IntegrationEvent(value = "user-events", key = "userId", id = "eventId")
+public record UserRegisteredEvent(UUID eventId, UserId userId, String username, Instant occurredOn) implements DomainEvent {
 }
 ```
 
@@ -52,19 +52,55 @@ The Modulith versions are managed by the DDK BOM.
 | Publish | The event is written to `event_publication` in the business transaction. It shares the `DataSource` and transaction with MyBatis-Plus, so a rollback leaves no record |
 | Deliver | After commit, Modulith sends the event to `value()`: a Kafka topic, an AMQP exchange, a JMS destination or a `MessageChannel` bean |
 | Key | `key()` names a no-argument accessor; a typed identifier contributes its raw value. Messages with the same key keep their order in Kafka |
+| Event ID | `id()` names an accessor whose value goes into the `ddk-event-id` header. It must be part of the event, not generated at delivery time, so that a resubmitted event keeps the same ID |
 | Failure | A failed delivery stays in `event_publication` and can be resubmitted through Modulith's `IncompleteEventPublications` / `FailedEventPublications` |
 | Payload | Typed identifiers are written as raw JSON values, e.g. `"userId":42`, by the `IdentifierJacksonModule` this starter registers |
 
 If the application declares its own `EventExternalizationConfiguration`, DDK's selection backs off.
+
+## Idempotent consumers
+
+Delivery is at least once, so a consumer can see the same message twice. `IdempotentConsumer` runs a handler only once per consumer and message ID:
+
+```java
+@KafkaListener(topics = "user-events")
+void on(UserRegisteredEvent event, @Header("ddk-event-id") String eventId) {
+    idempotentConsumer.handle("welcome-mail", eventId, () -> mailService.sendWelcome(event.userId()));
+}
+```
+
+```text
+handle(consumer, messageId, handler)            joins the caller's transaction, or starts one
+  savepoint: INSERT (consumer, message_id)       primary key conflict → roll back to savepoint, return false
+  handler.run()                                  throws → the whole transaction, including the insert, rolls back
+  return true
+```
+
+- The insert and the handler's own writes share one transaction. A failed handler leaves the message unprocessed, so a redelivery runs it again.
+- The savepoint matters on PostgreSQL, which aborts the whole transaction after a failed statement. A duplicate rolls back only to the savepoint, and the caller's other writes still commit. A Testcontainers test verifies this.
+- `purgeOlderThan(Duration)` removes old records. Keep them longer than the broker's longest redelivery window.
+
+Enable it with `ddk.event.inbox.enabled=true`. It needs a `JdbcTemplate` and a transaction manager, and creates `ddk_processed_message` with `CREATE TABLE IF NOT EXISTS`, which works on MySQL, PostgreSQL and H2. On other databases, or when a migration tool owns the schema, create the table yourself and set `initialize-schema=false`:
+
+```sql
+CREATE TABLE ddk_processed_message (
+    consumer     VARCHAR(200) NOT NULL,
+    message_id   VARCHAR(200) NOT NULL,
+    processed_at TIMESTAMP    NOT NULL,
+    PRIMARY KEY (consumer, message_id)
+);
+```
 
 ## Configuration
 
 | Property | Default | Description |
 |---|---|---|
 | `ddk.event.enabled` | `true` | Register the Spring-backed `DomainEventPublisher` |
+| `ddk.event.inbox.enabled` | `false` | Register `IdempotentConsumer` |
+| `ddk.event.inbox.table` | `ddk_processed_message` | Processed message table |
+| `ddk.event.inbox.initialize-schema` | `true` | Create the table on startup |
 | `spring.modulith.events.*` | Spring Modulith | Registry schema, republishing on restart, completion mode, staleness |
 
 ## Not covered yet
 
-- Idempotent consumers: delivery is at least once, so consumers must deduplicate. DDK support for this is planned for v0.3
 - RocketMQ: Spring Modulith has no RocketMQ module

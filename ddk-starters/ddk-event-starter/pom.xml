@@ -31,6 +31,13 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- 可选：开启消费端幂等时需要 JdbcTemplate -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-jdbc</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <!-- 可选：应用使用 Jackson 时才注册类型化标识的 JSON 模块 -->
         <dependency>
             <groupId>tools.jackson.core</groupId>
@@ -74,6 +81,23 @@
         <dependency>
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- 在真实的 PostgreSQL 上验证：重复登记只回滚到保存点，不会让外层事务失效 -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

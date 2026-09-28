@@ -2,8 +2,9 @@ package com.ddk.event.starter.config;
 
 import com.ddk.core.domain.DomainEventPublisher;
 import com.ddk.core.domain.IntegrationEvent;
-import com.ddk.event.starter.internal.IntegrationEventRouting;
 import com.ddk.core.jackson.IdentifierJacksonModule;
+import com.ddk.event.starter.inbox.IdempotentConsumer;
+import com.ddk.event.starter.internal.IntegrationEventRouting;
 import com.ddk.event.starter.internal.SpringDomainEventPublisher;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -13,8 +14,12 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.modulith.events.EventExternalizationConfiguration;
+import org.springframework.transaction.PlatformTransactionManager;
 import tools.jackson.databind.JacksonModule;
+
+import java.time.Clock;
 
 /**
  * 领域事件自动配置。
@@ -51,7 +56,28 @@ public class DdkEventAutoConfiguration {
             IntegrationEventRouting routing = new IntegrationEventRouting();
             return EventExternalizationConfiguration.externalizing()
                     .selectAndRoute(IntegrationEvent.class, routing::route)
+                    .headers(routing::headers)
                     .build();
+        }
+    }
+
+    /**
+     * 消费端幂等，显式开启后注册。
+     */
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(JdbcTemplate.class)
+    @ConditionalOnProperty(prefix = DdkEventProperties.PREFIX + ".inbox", name = "enabled", havingValue = "true")
+    static class InboxConfiguration {
+
+        @Bean
+        @ConditionalOnMissingBean
+        IdempotentConsumer idempotentConsumer(JdbcTemplate jdbc, PlatformTransactionManager transactionManager, DdkEventProperties properties) {
+            DdkEventProperties.Inbox inbox = properties.getInbox();
+            IdempotentConsumer consumer = new IdempotentConsumer(jdbc, transactionManager, inbox.getTable(), Clock.systemUTC());
+            if (inbox.isInitializeSchema()) {
+                jdbc.execute(consumer.schema());
+            }
+            return consumer;
         }
     }
 
