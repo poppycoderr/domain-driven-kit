@@ -57,7 +57,10 @@ public class IntegrationEventExternalizationTest {
         await().atMost(Duration.ofSeconds(5)).until(() -> orderEvents.messages.size() == 1);
         Message<?> message = orderEvents.messages.getFirst();
         assertThat(message.getPayload()).isEqualTo(new OrderPaid("evt-42", OrderId.of(42L), Instant.EPOCH));
-        assertThat(message.getHeaders()).containsEntry("ddk-event-id", "evt-42");
+        assertThat(message.getHeaders())
+                .containsEntry("ddk-event-id", "evt-42")
+                .containsEntry("ddk-event-type", "OrderPaid")
+                .containsEntry("ddk-event-version", "1");
         assertThat(String.valueOf(message.getHeaders().get("springModulith_routingTarget"))).contains("orderEvents").contains("42");
 
         String serialized = jdbc.queryForObject("SELECT serialized_event FROM event_publication", String.class);

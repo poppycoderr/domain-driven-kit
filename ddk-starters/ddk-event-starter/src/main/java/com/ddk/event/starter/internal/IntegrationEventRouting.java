@@ -7,6 +7,7 @@ import org.springframework.modulith.events.RoutingTarget;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -22,16 +23,53 @@ public final class IntegrationEventRouting {
 
     public static final String EVENT_ID_HEADER = "ddk-event-id";
 
+    public static final String EVENT_TYPE_HEADER = "ddk-event-type";
+
+    public static final String EVENT_VERSION_HEADER = "ddk-event-version";
+
     /**
-     * 事件声明了 {@link IntegrationEvent#id()} 时返回包含 {@value #EVENT_ID_HEADER} 的消息头。
+     * 契约相关的消息头：{@value #EVENT_TYPE_HEADER}、{@value #EVENT_VERSION_HEADER}，事件声明了 {@link IntegrationEvent#id()} 时
+     * 还有 {@value #EVENT_ID_HEADER}。
      */
     public Map<String, Object> headers(Object event) {
         IntegrationEvent annotation = event.getClass().getAnnotation(IntegrationEvent.class);
-        if (annotation == null || annotation.id().isEmpty()) {
+        if (annotation == null) {
             return Map.of();
         }
-        Object id = read(event, annotation.id(), "id");
-        return id == null ? Map.of() : Map.of(EVENT_ID_HEADER, String.valueOf(raw(id)));
+        Map<String, Object> headers = new LinkedHashMap<>();
+        headers.put(EVENT_TYPE_HEADER, typeOf(event.getClass(), annotation));
+        headers.put(EVENT_VERSION_HEADER, String.valueOf(annotation.version()));
+        if (!annotation.id().isEmpty()) {
+            Object id = read(event, annotation.id(), "id");
+            if (id != null) {
+                headers.put(EVENT_ID_HEADER, String.valueOf(raw(id)));
+            }
+        }
+        return headers;
+    }
+
+    public static String typeOf(Class<?> eventType, IntegrationEvent annotation) {
+        return annotation.type().isBlank() ? eventType.getSimpleName() : annotation.type();
+    }
+
+    /**
+     * 启动期校验一个事件类型的声明：key 与 id 指向的访问方法必须存在，版本号从 1 开始。
+     *
+     * @throws IllegalStateException 声明有误
+     */
+    public void validate(Class<?> eventType, IntegrationEvent annotation) {
+        if (annotation.value().isBlank()) {
+            throw new IllegalStateException("@IntegrationEvent on " + eventType.getName() + " has a blank target");
+        }
+        if (annotation.version() < 1) {
+            throw new IllegalStateException("@IntegrationEvent on " + eventType.getName() + " must have version >= 1");
+        }
+        if (!annotation.key().isEmpty()) {
+            accessor(eventType, annotation.key(), "key");
+        }
+        if (!annotation.id().isEmpty()) {
+            accessor(eventType, annotation.id(), "id");
+        }
     }
 
     public RoutingTarget route(Object event, IntegrationEvent annotation) {
