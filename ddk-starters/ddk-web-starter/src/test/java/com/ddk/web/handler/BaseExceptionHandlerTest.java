@@ -1,6 +1,7 @@
 package com.ddk.web.handler;
 
 import com.ddk.core.exception.BusinessException;
+import com.ddk.core.repository.ConcurrentUpdateException;
 import com.ddk.core.exception.ErrorCode;
 import com.ddk.core.exception.SystemException;
 import jakarta.validation.Valid;
@@ -63,6 +64,11 @@ class BaseExceptionHandlerTest {
             throw new BusinessException(TestError.UPSTREAM_UNAVAILABLE);
         }
 
+        @GetMapping("/conflict")
+        void conflict() {
+            throw new ConcurrentUpdateException("Order");
+        }
+
         @GetMapping("/system")
         void system() {
             throw new SystemException(TestError.UPSTREAM_UNAVAILABLE);
@@ -108,6 +114,15 @@ class BaseExceptionHandlerTest {
         mvc.perform(get("/t/business-no-args"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("上游服务不可用"));
+    }
+
+    @Test
+    @DisplayName("并发修改冲突 -> 409，带上 CONCURRENT_UPDATE")
+    void concurrentUpdateBecomes409() throws Exception {
+        mvc.perform(get("/t/conflict"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("CONCURRENT_UPDATE"))
+                .andExpect(jsonPath("$.message").value("数据已被其他操作修改，请刷新后重试：Order"));
     }
 
     @Test

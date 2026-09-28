@@ -3,6 +3,7 @@ package com.ddk.web.handler;
 import com.ddk.core.exception.BusinessException;
 import com.ddk.core.exception.CommonError;
 import com.ddk.core.exception.SystemException;
+import com.ddk.core.repository.ConcurrentUpdateException;
 import com.ddk.core.response.ApiResponse;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -54,6 +55,15 @@ public class BaseExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleBusinessException(BusinessException e) {
         log.warn("BusinessException [{}]: {}", e.getErrorCode().getCode(), e.getMessage());
         return ResponseEntity.badRequest().body(ApiResponse.ofFail(e.getErrorCode(), e.getArgs()));
+    }
+
+    /**
+     * 并发修改：保存聚合时版本已被推进或记录已被删除，用 409，客户端应重新加载后重试。
+     */
+    @ExceptionHandler(ConcurrentUpdateException.class)
+    public ResponseEntity<ApiResponse<Void>> handleConcurrentUpdate(ConcurrentUpdateException e) {
+        log.warn("ConcurrentUpdateException: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.ofFail(e.getErrorCode(), e.getArgs()));
     }
 
     /**
