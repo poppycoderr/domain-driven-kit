@@ -19,6 +19,7 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 - `@IntegrationEvent(id = ...)` puts the event's own identifier into the `ddk-event-id` message header, so it stays stable across resubmissions
 - `@IntegrationEvent(type, version)` and the `ddk-event-type` / `ddk-event-version` headers give each integration event a stable contract name and version
 - The event starter verifies `@IntegrationEvent` declarations at startup (accessors, version, duplicate contracts) instead of failing at delivery time
+- The event starter delivers `@IntegrationEvent` events to RocketMQ when `rocketmq-client` is on the classpath and a `DefaultMQProducer` exists or `ddk.event.rocketmq.name-server` is set: `topic:tag` targets, per-key queue ordering, contract headers as user properties; the BOM manages the client version
 - `IdempotentConsumer` (`ddk.event.inbox.enabled=true`) runs a handler once per consumer and message ID, registering the message in the handler's transaction behind a savepoint
 - `ConcurrentUpdateException` (`CONCURRENT_UPDATE`), which the web starter maps to 409 Conflict
 - `IdentifierJacksonModule` writes typed identifiers such as `UserId` as their raw value and reads them back through the subclass's `of(...)` factory; the web and event starters register it. Without it Jackson wrote identifiers as `{}`, so a serialized domain event lost its IDs
