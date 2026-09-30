@@ -107,7 +107,7 @@ AI capabilities (on Spring AI 2.0):
 
 - [x] Transactional outbox: reuse Spring Modulith's JDBC event publication registry, recorded in the MyBatis-Plus transaction and delivered after commit, with failed records kept as `FAILED` for resubmission; the domain layer declares events with the plain-JDK `@IntegrationEvent`
 - [x] Delivery adapters: Kafka, RabbitMQ (AMQP), JMS and Spring Messaging through Modulith's externalization modules
-- [ ] RocketMQ delivery adapter (Modulith has no module for it)
+- [x] RocketMQ delivery adapter: Modulith has no module for it, so the event starter registers its own externalization listener on `rocketmq-client`, with per-key queue ordering and a Testcontainers test against a real broker
 - [x] Idempotent consumers: `IdempotentConsumer` registers processed (consumer, message ID) pairs behind a savepoint; the message ID is the event's own identifier, sent as the `ddk-event-id` header
 - [x] Interoperate with the Spring Modulith event publication registry rather than duplicating it; DDK backs off when the application declares its own externalization configuration
 - [x] Event contracts: a stable type name and version in message headers, documented evolution rules, and startup verification of declarations
