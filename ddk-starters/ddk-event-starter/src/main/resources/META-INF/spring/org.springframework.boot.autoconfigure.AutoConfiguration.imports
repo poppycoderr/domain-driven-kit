@@ -1,1 +1,2 @@
 com.ddk.event.starter.config.DdkEventAutoConfiguration
+com.ddk.event.starter.config.DdkRocketMqEventAutoConfiguration

@@ -1,7 +1,10 @@
 package com.ddk.event.starter.config;
 
 import lombok.Data;
+import org.jspecify.annotations.Nullable;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+
+import java.time.Duration;
 
 /**
  * 领域事件配置。
@@ -28,6 +31,11 @@ public class DdkEventProperties {
      */
     private Inbox inbox = new Inbox();
 
+    /**
+     * 经 RocketMQ 投递集成事件。
+     */
+    private RocketMq rocketmq = new RocketMq();
+
     @Data
     public static class Inbox {
 
@@ -45,5 +53,24 @@ public class DdkEventProperties {
          * 启动时是否执行 {@code CREATE TABLE IF NOT EXISTS}。由迁移工具管理表结构时关闭。
          */
         private boolean initializeSchema = true;
+    }
+
+    @Data
+    public static class RocketMq {
+
+        /**
+         * NameServer 地址，多个用分号分隔。设置后 DDK 创建投递用的 {@code DefaultMQProducer}；应用已有 producer 时以应用为准。
+         */
+        private @Nullable String nameServer;
+
+        /**
+         * 投递用 producer 的生产者组。
+         */
+        private String producerGroup = "ddk-event-producer";
+
+        /**
+         * 单次发送超时。
+         */
+        private Duration sendTimeout = Duration.ofSeconds(3);
     }
 }

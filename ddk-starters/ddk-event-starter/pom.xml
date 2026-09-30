@@ -30,6 +30,19 @@
             <artifactId>spring-modulith-events-api</artifactId>
             <optional>true</optional>
         </dependency>
+        <!-- 可选：RocketMQ 投递复用 Modulith 的外发监听器与路由 -->
+        <dependency>
+            <groupId>org.springframework.modulith</groupId>
+            <artifactId>spring-modulith-events-core</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- 可选：应用引入 RocketMQ 客户端时，集成事件经它投递（Spring Modulith 没有 RocketMQ 模块） -->
+        <dependency>
+            <groupId>org.apache.rocketmq</groupId>
+            <artifactId>rocketmq-client</artifactId>
+            <optional>true</optional>
+        </dependency>
 
         <!-- 可选：开启消费端幂等时需要 JdbcTemplate -->
         <dependency>
@@ -88,6 +101,11 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers-postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
