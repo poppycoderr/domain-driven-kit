@@ -107,7 +107,7 @@ AI 能力（基于 Spring AI 2.0）：
 
 - [x] 事务性 Outbox：复用 Spring Modulith 的 JDBC 事件发布记录，与 MyBatis-Plus 同事务登记、提交后投递，失败记录停在 `FAILED` 可重新提交；领域层用纯 JDK 的 `@IntegrationEvent` 声明
 - [x] 投递适配：Kafka、RabbitMQ（AMQP）、JMS、Spring Messaging 由 Modulith 外发模块提供
-- [ ] RocketMQ 投递适配（Modulith 没有对应模块）
+- [x] RocketMQ 投递适配：Modulith 没有对应模块，事件 starter 基于 `rocketmq-client` 自行注册外发监听器，同一 key 落在同一队列保证顺序，并用 Testcontainers 在真实 broker 上测试
 - [x] 消费端幂等：`IdempotentConsumer` 按（消费者，消息 ID）登记已处理消息，保存点隔离重复；消息 ID 来自事件自带标识（`ddk-event-id` 消息头）
 - [x] 与 Spring Modulith 事件发布注册表互通，不重复实现；应用自己声明外发配置时 DDK 让位
 - [x] 事件契约：稳定的类型名与版本号随消息头发出，写明演进规则，启动期校验声明
