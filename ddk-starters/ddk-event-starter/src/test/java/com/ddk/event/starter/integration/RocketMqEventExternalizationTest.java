@@ -34,6 +34,8 @@ import java.net.ServerSocket;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -62,6 +64,10 @@ class RocketMqEventExternalizationTest {
             .withExposedPorts(9876)
             .withEnv("JAVA_OPT_EXT", "-Xms256m -Xmx256m -Xmn128m")
             .withCreateContainerCmdModifier(cmd -> {
+                // Linux 上的 Docker 只为容器声明过的端口做映射，所以 broker 端口要同时声明并绑定
+                List<ExposedPort> exposed = new ArrayList<>(Arrays.asList(cmd.getExposedPorts()));
+                exposed.add(ExposedPort.tcp(BROKER_PORT));
+                cmd.withExposedPorts(exposed);
                 Ports ports = cmd.getHostConfig().getPortBindings();
                 ports.bind(ExposedPort.tcp(BROKER_PORT), Ports.Binding.bindPort(BROKER_PORT));
                 cmd.getHostConfig().withPortBindings(ports);
