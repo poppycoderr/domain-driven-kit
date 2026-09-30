@@ -58,6 +58,49 @@ The Modulith versions are managed by the DDK BOM.
 
 If the application declares its own `EventExternalizationConfiguration`, DDK's selection backs off.
 
+### RocketMQ
+
+Spring Modulith has no RocketMQ module, so this starter provides one. Add the client instead of a Modulith broker module, and point it at a NameServer:
+
+```xml
+<dependency>
+    <groupId>org.apache.rocketmq</groupId>
+    <artifactId>rocketmq-client</artifactId>   <!-- version managed by the DDK BOM -->
+</dependency>
+```
+
+```yaml
+ddk:
+  event:
+    rocketmq:
+      name-server: localhost:9876
+```
+
+```mermaid
+sequenceDiagram
+    participant App as Application service
+    participant DB as event_publication
+    participant L as DDK RocketMQ listener
+    participant MQ as RocketMQ
+    App->>DB: record event (business transaction)
+    Note over App,DB: commit
+    DB-->>L: after commit
+    L->>MQ: send to topic:tag, queue chosen by key hash
+    MQ-->>L: SEND_OK
+    L->>DB: mark publication completed
+```
+
+| Aspect | Behavior |
+|---|---|
+| Target | `value()` is `topic` or `topic:tag`, the same convention as rocketmq-spring |
+| Key | Messages with a key go to a queue chosen by the key's hash, so one aggregate's events keep their order; the key is also set as the message keys for lookup in the console |
+| Headers | `ddk-event-type`, `ddk-event-version` and `ddk-event-id` become user properties; read them with `MessageExt.getUserProperty(...)` |
+| Payload | JSON from the application's `JsonMapper`; `String` and `byte[]` payloads are sent as they are |
+| Failure | Any status other than `SEND_OK` fails the delivery, so the publication stays incomplete and can be resubmitted |
+| Producer | An application `DefaultMQProducer` bean, such as the one rocketmq-spring registers, wins; otherwise DDK creates one from `ddk.event.rocketmq.*` |
+
+The listener runs in Modulith's default listener mode and backs off when `spring.modulith.events.externalization.enabled=false` or `mode=outbox`. A Testcontainers test runs it against a real broker.
+
 ## Event contracts
 
 Every delivered integration event carries contract headers:
@@ -97,6 +140,8 @@ void on(UserRegisteredEvent event, @Header("ddk-event-id") String eventId) {
 }
 ```
 
+With RocketMQ, read the ID from the message's user properties: `message.getUserProperty("ddk-event-id")`.
+
 ```text
 handle(consumer, messageId, handler)            joins the caller's transaction, or starts one
   savepoint: INSERT (consumer, message_id)       primary key conflict → roll back to savepoint, return false
@@ -127,8 +172,7 @@ CREATE TABLE ddk_processed_message (
 | `ddk.event.inbox.enabled` | `false` | Register `IdempotentConsumer` |
 | `ddk.event.inbox.table` | `ddk_processed_message` | Processed message table |
 | `ddk.event.inbox.initialize-schema` | `true` | Create the table on startup |
+| `ddk.event.rocketmq.name-server` | | NameServer addresses, separated by `;`. Setting it makes DDK create the producer |
+| `ddk.event.rocketmq.producer-group` | `ddk-event-producer` | Producer group of that producer |
+| `ddk.event.rocketmq.send-timeout` | `3s` | Timeout of one send |
 | `spring.modulith.events.*` | Spring Modulith | Registry schema, republishing on restart, completion mode, staleness |
-
-## Not covered yet
-
-- RocketMQ: Spring Modulith has no RocketMQ module
