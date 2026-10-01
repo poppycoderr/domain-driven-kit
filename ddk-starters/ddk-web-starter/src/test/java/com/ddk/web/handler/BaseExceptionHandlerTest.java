@@ -1,6 +1,8 @@
 package com.ddk.web.handler;
 
+import com.ddk.core.exception.AggregateBusyException;
 import com.ddk.core.exception.BusinessException;
+import com.ddk.core.exception.DuplicateRequestException;
 import com.ddk.core.repository.ConcurrentUpdateException;
 import com.ddk.core.exception.ErrorCode;
 import com.ddk.core.exception.SystemException;
@@ -69,6 +71,16 @@ class BaseExceptionHandlerTest {
             throw new ConcurrentUpdateException("Order");
         }
 
+        @GetMapping("/busy")
+        void busy() {
+            throw new AggregateBusyException("Order");
+        }
+
+        @GetMapping("/duplicate")
+        void duplicate() {
+            throw new DuplicateRequestException();
+        }
+
         @GetMapping("/system")
         void system() {
             throw new SystemException(TestError.UPSTREAM_UNAVAILABLE);
@@ -123,6 +135,18 @@ class BaseExceptionHandlerTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("CONCURRENT_UPDATE"))
                 .andExpect(jsonPath("$.message").value("数据已被其他操作修改，请刷新后重试：Order"));
+    }
+
+    @Test
+    @DisplayName("聚合被占用与重复提交 -> 409")
+    void busyAndDuplicateBecome409() throws Exception {
+        mvc.perform(get("/t/busy"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("AGGREGATE_BUSY"))
+                .andExpect(jsonPath("$.message").value("Order 正在被其他操作处理，请稍后重试"));
+        mvc.perform(get("/t/duplicate"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("DUPLICATE_REQUEST"));
     }
 
     @Test
