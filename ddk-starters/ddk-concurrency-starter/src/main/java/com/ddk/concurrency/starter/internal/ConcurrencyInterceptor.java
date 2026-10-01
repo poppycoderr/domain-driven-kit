@@ -61,7 +61,7 @@ public class ConcurrencyInterceptor implements MethodInterceptor {
             throw missingClient("@Idempotent", method);
         });
         String scope = idempotent.scope().isEmpty() ? method.getDeclaringClass().getSimpleName() + "." + method.getName() : idempotent.scope();
-        String key = expressions.evaluate(idempotent.key(), method, target, invocation.getArguments());
+        String key = expressions.evaluate(idempotent.key(), method, target, invocation);
         Duration ttl = idempotent.ttl().isEmpty() ? defaultTtl : DurationStyle.detectAndParse(idempotent.ttl());
         if (!registry.register(scope, key, ttl)) {
             throw new DuplicateRequestException();
@@ -82,7 +82,7 @@ public class ConcurrencyInterceptor implements MethodInterceptor {
         AggregateLocks aggregateLocks = locks.getIfAvailable(() -> {
             throw missingClient("@AggregateLock", method);
         });
-        String id = expressions.evaluate(lock.id(), method, target, invocation.getArguments());
+        String id = expressions.evaluate(lock.id(), method, target, invocation);
         Duration waitTime = lock.waitTime().isEmpty() ? defaultWaitTime : DurationStyle.detectAndParse(lock.waitTime());
         Duration leaseTime = lock.leaseTime().isEmpty() ? defaultLeaseTime : DurationStyle.detectAndParse(lock.leaseTime());
         // 被拦截的方法可以返回 null，而 Action 的结果不可为空，所以结果另外带出来
