@@ -93,7 +93,7 @@ Agent guardrails:
 - [x] Claude Code Skills in generated projects: add an aggregate, a use case, a domain event (four layers) or a feature (three layers); `AGENTS.md` covers Codex and other agents
 - [x] ArchGuard emits machine-readable violations (which rule, which class, how to fix) that agents can use to self-correct
 - [x] A docs topic on developing DDK projects with AI coding agents
-- [ ] A real agent session recording for that topic
+- [x] A real agent session record for that topic: a Claude Code subagent adds an aggregate, a use case and an event to a generated project, with its `mvn verify` output and a real ArchGuard report
 
 AI capabilities (on Spring AI 2.0):
 
@@ -118,7 +118,7 @@ AI capabilities (on Spring AI 2.0):
 
 | Area | Integration | Domain semantics | Priority |
 |---|---|---|---|
-| Concurrency control | Redisson | `@AggregateLock`, per-user / per-tenant rate limits, `@Idempotent` duplicate-submit protection | High |
+| Concurrency control | Redisson | `@AggregateLock` and `@Idempotent` duplicate-submit protection (done, `ddk-concurrency-starter`); per-user / per-tenant rate limits | High |
 | Scheduling | XXL-Job, ShedLock | Jobs only call application services and never run twice across instances | High |
 | Schema migration | Flyway | Archetypes ship migrations; examples stop relying on `schema.sql` | High |
 | API docs | springdoc-openapi | Unwrap `ApiResponse<T>` automatically and document error codes | High |

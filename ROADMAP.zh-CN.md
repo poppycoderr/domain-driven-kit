@@ -93,7 +93,7 @@
 - [x] 生成的项目自带 Claude Code Skills：新增聚合、用例、领域事件（四层）或业务功能（三层）；Codex 等代理通过 `AGENTS.md` 获得同样的约定
 - [x] ArchGuard 输出机器可读的违规报告（哪条规则、哪个类、怎么改），代理可以据此自我修正
 - [x] 文档站增加「用 AI 编码代理开发 DDK 项目」专题
-- [ ] 专题附一段真实的代理协作录屏
+- [x] 专题附一段真实的代理协作记录：Claude Code 子代理在生成的项目里新增聚合、用例和事件，附 `mvn verify` 输出与一份真实的 ArchGuard 报告
 
 AI 能力（基于 Spring AI 2.0）：
 
@@ -118,7 +118,7 @@ AI 能力（基于 Spring AI 2.0）：
 
 | 分类 | 集成 | 领域语义 | 优先级 |
 |---|---|---|---|
-| 并发控制 | Redisson | `@AggregateLock`、按用户 / 租户的限流、`@Idempotent` 防重复提交 | 高 |
+| 并发控制 | Redisson | `@AggregateLock` 与 `@Idempotent` 防重复提交（已完成，`ddk-concurrency-starter`）；按用户 / 租户的限流 | 高 |
 | 定时任务 | XXL-Job、ShedLock | 任务只调用应用服务，多实例不重复执行 | 高 |
 | 数据库演进 | Flyway | archetype 默认带迁移脚本，示例不再依赖 `schema.sql` | 高 |
 | 接口文档 | springdoc-openapi | 自动展开 `ApiResponse<T>` 包装，错误码进入文档 | 高 |
