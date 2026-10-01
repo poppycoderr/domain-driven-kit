@@ -71,6 +71,7 @@ ${package}
 | `AGENTS.md` / `CLAUDE.md` | 写给 AI 编码代理的分层职责、编码约定与完成标准，Claude Code、Codex 会自动读取 |
 | `.claude/skills/` | Claude Code Skills：`ddk-add-aggregate`、`ddk-add-use-case`、`ddk-add-domain-event` |
 | `application.yml` | 内存 H2 与 `ddk.mybatis.db-type=h2`，开箱即可启动 |
+| `db/migration/V1__baseline.sql` | Flyway 基线脚本；表结构的每次变化都是这个目录下的一个新版本 |
 
 依赖：`ddk-web-starter`、`ddk-mybatis-starter`、`ddk-event-starter`，测试期 `ddk-archguard-starter`。一个完整的业务用例怎么落在这些包里，见 [`ddk-examples/ddk-example-user`](../../ddk-examples/ddk-example-user)。
 

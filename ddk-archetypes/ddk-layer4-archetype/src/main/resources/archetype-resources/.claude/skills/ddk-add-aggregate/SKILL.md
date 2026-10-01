@@ -40,7 +40,7 @@ $h2 3. 基础设施层
 
 $h2 4. 表结构
 
-在 `src/main/resources/schema.sql`（或项目使用的迁移脚本）中建表：主键 `BIGINT`、`version BIGINT NOT NULL DEFAULT 0`、`create_time` 与 `update_time`。
+在 `src/main/resources/db/migration` 新增一个 Flyway 迁移脚本建表，文件名取下一个版本号，例如 `V2__create_order.sql`：主键 `BIGINT`、`version BIGINT NOT NULL DEFAULT 0`、`create_time` 与 `update_time`。已经存在的迁移脚本不要修改，改表结构时再加一个新版本。
 
 $h2 5. 测试与验证
 
