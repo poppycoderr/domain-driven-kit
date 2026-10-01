@@ -119,7 +119,7 @@ DDK is maintained by one person and is still pre-release: build it locally, try 
 |---|---|---|
 | `ddk-core` | Domain model primitives, `ApiResponse`, exceptions, pagination, mapper registry, repository contract | Usable |
 | `ddk-mybatis` | MyBatis-Plus repository implementation, query parsing, pagination, optimistic locking, domain event publishing | Usable, with H2 integration tests |
-| `ddk-web-starter` | Jackson, CORS, global exception handling, configurable under `ddk.web.*` | Usable |
+| `ddk-web-starter` | Jackson, CORS, global exception handling, and the error contract in OpenAPI docs when springdoc is present, configurable under `ddk.web.*` | Usable |
 | `ddk-mybatis-starter` | Pagination, optimistic locking, full-table update/delete guard, snowflake IDs, configurable under `ddk.mybatis.*` | Usable |
 | `ddk-event-starter` | Spring-backed domain event publisher | Usable |
 | `ddk-mcp-starter` | Application use cases as MCP tools: argument validation, error codes, audit log, streamable HTTP by default | Usable, with MCP client end-to-end tests |
