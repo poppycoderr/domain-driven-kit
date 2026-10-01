@@ -47,7 +47,7 @@ import static org.awaitility.Awaitility.await;
  * <p>
  * broker 会把自己的地址登记到 NameServer，客户端按这个地址直连，所以 broker 端口在宿主机上要与容器内一致。
  */
-@Testcontainers
+@Testcontainers(disabledWithoutDocker = true)
 @SpringBootTest(classes = RocketMqEventExternalizationTest.TestApplication.class, properties = {
         "spring.datasource.url=jdbc:h2:mem:rocketmq-events;DB_CLOSE_DELAY=-1",
         "spring.modulith.events.jdbc.schema-initialization.enabled=true",
