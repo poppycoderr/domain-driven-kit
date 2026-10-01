@@ -1,6 +1,8 @@
 package com.ddk.web.handler;
 
+import com.ddk.core.exception.AggregateBusyException;
 import com.ddk.core.exception.BusinessException;
+import com.ddk.core.exception.DuplicateRequestException;
 import com.ddk.core.exception.CommonError;
 import com.ddk.core.exception.SystemException;
 import com.ddk.core.repository.ConcurrentUpdateException;
@@ -58,11 +60,12 @@ public class BaseExceptionHandler {
     }
 
     /**
-     * 并发修改：保存聚合时版本已被推进或记录已被删除，用 409，客户端应重新加载后重试。
+     * 冲突：保存聚合时版本已被推进或记录已被删除、聚合正被其他操作独占、同一请求重复提交，都用 409。
+     * 前两种客户端可以稍后重试，重复提交则不应再发。
      */
-    @ExceptionHandler(ConcurrentUpdateException.class)
-    public ResponseEntity<ApiResponse<Void>> handleConcurrentUpdate(ConcurrentUpdateException e) {
-        log.warn("ConcurrentUpdateException: {}", e.getMessage());
+    @ExceptionHandler({ConcurrentUpdateException.class, AggregateBusyException.class, DuplicateRequestException.class})
+    public ResponseEntity<ApiResponse<Void>> handleConflict(BusinessException e) {
+        log.warn("{}: {}", e.getClass().getSimpleName(), e.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.ofFail(e.getErrorCode(), e.getArgs()));
     }
 
