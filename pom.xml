@@ -65,6 +65,7 @@
         <spring-ai.version>2.0.1</spring-ai.version>
         <spring-modulith.version>2.1.1</spring-modulith.version>
         <rocketmq.version>5.5.1</rocketmq.version>
+        <redisson.version>4.7.0</redisson.version>
         <maven-archetype.version>3.4.1</maven-archetype.version>
     </properties>
 
@@ -167,6 +168,11 @@
                 <artifactId>ddk-mcp-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.ddk</groupId>
+                <artifactId>ddk-concurrency-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <!-- MyBatis-Plus (Spring Boot 4 starter) -->
             <dependency>
@@ -190,6 +196,13 @@
                 <groupId>org.apache.rocketmq</groupId>
                 <artifactId>rocketmq-client</artifactId>
                 <version>${rocketmq.version}</version>
+            </dependency>
+
+            <!-- Redisson -->
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson</artifactId>
+                <version>${redisson.version}</version>
             </dependency>
 
             <!-- Seata -->
