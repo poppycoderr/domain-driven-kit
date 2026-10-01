@@ -119,7 +119,7 @@ DDK 由个人维护，仍处于发布前阶段：适合本地构建、试用 arc
 |---|---|---|
 | `ddk-core` | 领域模型基类、`ApiResponse`、异常体系、分页对象、Mapper 注册表、仓储契约 | 可用 |
 | `ddk-mybatis` | MyBatis-Plus 通用仓储、查询条件解析、分页适配、乐观锁、领域事件发布 | 可用，含 H2 集成测试 |
-| `ddk-web-starter` | Jackson、CORS、全局异常处理，`ddk.web.*` 可配 | 可用 |
+| `ddk-web-starter` | Jackson、CORS、全局异常处理，引入 springdoc 时把错误约定写进接口文档，`ddk.web.*` 可配 | 可用 |
 | `ddk-mybatis-starter` | 分页、乐观锁、防全表更新删除、雪花 ID，`ddk.mybatis.*` 可配 | 可用 |
 | `ddk-event-starter` | 领域事件的 Spring 发布实现 | 可用 |
 | `ddk-mcp-starter` | 把应用用例暴露为 MCP 工具：参数校验、错误码、审计日志，默认 streamable HTTP | 可用，含 MCP 客户端端到端测试 |
