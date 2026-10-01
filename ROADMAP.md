@@ -121,7 +121,7 @@ AI capabilities (on Spring AI 2.0):
 | Concurrency control | Redisson | `@AggregateLock` and `@Idempotent` duplicate-submit protection (done, `ddk-concurrency-starter`); per-user / per-tenant rate limits | High |
 | Scheduling | XXL-Job, ShedLock | Jobs only call application services and never run twice across instances | High |
 | Schema migration | Flyway | Done: archetypes ship a baseline migration, the example uses migrations instead of `schema.sql`, and agent rules require a new migration per schema change | High |
-| API docs | springdoc-openapi | Unwrap `ApiResponse<T>` automatically and document error codes | High |
+| API docs | springdoc-openapi | Done in the web starter: 400 / 409 / 500 error responses on every operation and a catalogue of error codes; springdoc already expands `ApiResponse<T>` by its generic type | High |
 | Read models | Elasticsearch | Projections driven by domain events, with rebuilds | Medium |
 | Cross-cutting | MyBatis-Plus plugins | Multi-tenancy, data permissions, audit fields, soft delete, driven by one operator context | Medium |
 | Config and discovery | Nacos | Refreshable `ddk.*` properties, kept as an optional dependency | Medium |
@@ -151,7 +151,7 @@ Good-looking:
 
 - [ ] README first screen: a one-line value proposition, badges (CI, coverage, latest release, license), and a 20-second GIF of "generate project → break layering → test fails → fix"
 - [ ] A comparison with COLA, Spring Modulith and jMolecules that explains where each fits, without disparaging anyone
-- [ ] A social preview image and GitHub topics (`ddd`, `spring-boot`, `archunit`, `mybatis-plus`, `ai-agents`)
+- [x] A social preview image and GitHub topics (`ddd`, `spring-boot`, `archunit`, `mybatis-plus`, `ai-agents` and more)
 - [ ] Diagrams in one visual system, with dark mode
 
 Useful:
