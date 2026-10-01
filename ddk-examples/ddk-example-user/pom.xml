@@ -37,6 +37,12 @@
             <artifactId>spring-security-crypto</artifactId>
         </dependency>
 
+        <!-- 接口文档与 Swagger UI（/swagger-ui.html）；DDK 的 Web starter 会补上错误响应与错误码清单 -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+        </dependency>
+
         <!-- 表结构由 Flyway 迁移脚本管理（src/main/resources/db/migration）；接入 MySQL 时再引入 flyway-mysql -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
