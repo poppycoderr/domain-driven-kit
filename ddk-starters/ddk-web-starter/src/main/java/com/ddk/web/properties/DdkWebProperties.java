@@ -43,6 +43,11 @@ public class DdkWebProperties {
      */
     private boolean writeLongAsString = true;
 
+    /**
+     * 引入 springdoc 时，是否为接口文档补上统一的错误响应（400 / 409 / 500）与错误码清单。
+     */
+    private boolean openapi = true;
+
     @NestedConfigurationProperty
     private Cors cors = new Cors();
 
