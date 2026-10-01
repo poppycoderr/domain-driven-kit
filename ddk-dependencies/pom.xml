@@ -44,6 +44,7 @@
     <properties>
         <spring-modulith.version>2.1.1</spring-modulith.version>
         <rocketmq.version>5.5.1</rocketmq.version>
+        <springdoc.version>3.1.1</springdoc.version>
         <ddk.version>0.4.0-SNAPSHOT</ddk.version>
     </properties>
 
@@ -62,6 +63,17 @@
                 <groupId>org.apache.rocketmq</groupId>
                 <artifactId>rocketmq-client</artifactId>
                 <version>${rocketmq.version}</version>
+            </dependency>
+            <!-- 需要接口文档时由应用引入，DDK 的 Web starter 会补上错误响应与错误码 -->
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc.version}</version>
             </dependency>
             <!-- 核心抽象 -->
             <dependency>
