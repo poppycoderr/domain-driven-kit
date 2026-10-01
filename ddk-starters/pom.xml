@@ -24,6 +24,7 @@
         <module>ddk-archguard-starter</module>
         <module>ddk-event-starter</module>
         <module>ddk-mcp-starter</module>
+        <module>ddk-concurrency-starter</module>
     </modules>
 
 </project>

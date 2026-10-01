@@ -1,0 +1,2 @@
+com.ddk.concurrency.starter.config.DdkRedissonClientAutoConfiguration
+com.ddk.concurrency.starter.config.DdkConcurrencyAutoConfiguration
