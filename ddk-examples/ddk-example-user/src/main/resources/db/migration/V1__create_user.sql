@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS t_user
+CREATE TABLE t_user
 (
     id           BIGINT PRIMARY KEY,
     username     VARCHAR(20)  NOT NULL,

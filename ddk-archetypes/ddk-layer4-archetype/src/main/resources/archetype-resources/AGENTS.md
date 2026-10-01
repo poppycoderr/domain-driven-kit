@@ -59,6 +59,7 @@ $h3 基础设施层
 - 单表 CRUD 用 `BaseMapper` 与 lambda wrapper，只有 wrapper 表达不了的 SQL 才写 XML。
 - `update(null, lambdaUpdate())` 不会触发自动填充，需要显式设置更新时间。
 - Entity 与 PO 结构不同，转换器手写，不用反射拷贝。
+- 表结构用 Flyway 管理：每次变化在 `src/main/resources/db/migration` 新增一个 `V<版本号>__<说明>.sql`。已执行过的迁移脚本不能修改，也不要用 `schema.sql`。
 
 $h3 通用
 

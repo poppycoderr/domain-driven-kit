@@ -37,6 +37,12 @@
             <artifactId>spring-security-crypto</artifactId>
         </dependency>
 
+        <!-- 表结构由 Flyway 迁移脚本管理（src/main/resources/db/migration）；接入 MySQL 时再引入 flyway-mysql -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>

@@ -9,7 +9,9 @@ $h2 运行
 mvn spring-boot:run
 ```
 
-默认使用内存 H2 数据库，接入真实数据库时修改 `src/main/resources/application.yml` 并引入对应驱动。
+默认使用内存 H2 数据库，接入真实数据库时修改 `src/main/resources/application.yml` 并引入对应驱动（MySQL 还需要 `flyway-mysql`）。
+
+表结构由 Flyway 管理：每次变化在 `src/main/resources/db/migration` 下新增一个 `V<版本号>__<说明>.sql`，启动时自动执行；已执行过的脚本不要修改。
 
 $h2 分层
 

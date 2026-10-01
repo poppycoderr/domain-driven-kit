@@ -32,7 +32,7 @@ $h2 3. 基础设施（infrastructure）
 | `infrastructure/converter/*Converter.java` | 两个方向各一个：`@Component` + `@EnhancedMapper(source = ..., target = ...)` 实现 `ObjectMapper` |
 | `infrastructure/acl/impl/CouponRepositoryImpl.java` | `@Repository`，`extends GenericRepositoryImpl<Coupon, CouponId, CouponPO, CouponMapper> implements CouponRepository` |
 
-在建表脚本中加表：主键 `BIGINT`、`version BIGINT NOT NULL DEFAULT 0`、`create_time`、`update_time`。
+在 `src/main/resources/db/migration` 新增一个 Flyway 迁移脚本建表，文件名取下一个版本号，例如 `V2__create_order.sql`：主键 `BIGINT`、`version BIGINT NOT NULL DEFAULT 0`、`create_time`、`update_time`。已经存在的迁移脚本不要修改，改表结构时再加一个新版本。
 
 $h2 4. 接口（adapter.controller）
 
