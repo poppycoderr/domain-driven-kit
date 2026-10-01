@@ -120,7 +120,7 @@ AI 能力（基于 Spring AI 2.0）：
 |---|---|---|---|
 | 并发控制 | Redisson | `@AggregateLock` 与 `@Idempotent` 防重复提交（已完成，`ddk-concurrency-starter`）；按用户 / 租户的限流 | 高 |
 | 定时任务 | XXL-Job、ShedLock | 任务只调用应用服务，多实例不重复执行 | 高 |
-| 数据库演进 | Flyway | archetype 默认带迁移脚本，示例不再依赖 `schema.sql` | 高 |
+| 数据库演进 | Flyway | 已完成：archetype 自带基线迁移脚本，示例改用迁移脚本而不是 `schema.sql`，代理约定要求每次表结构变化新增一个迁移 | 高 |
 | 接口文档 | springdoc-openapi | 自动展开 `ApiResponse<T>` 包装，错误码进入文档 | 高 |
 | 读模型 | Elasticsearch | 领域事件驱动的投影与重建 | 中 |
 | 横切能力 | MyBatis-Plus 插件 | 多租户、数据权限、审计字段、逻辑删除，统一由操作人上下文驱动 | 中 |
