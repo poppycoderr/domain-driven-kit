@@ -17,6 +17,10 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 - `ddk-concurrency-starter`: `@AggregateLock` holds a Redisson lock per aggregate instance around the method's transaction, `@Idempotent` rejects a request key that was already submitted, and `AggregateLocks` is the programmatic entry point
 - `AggregateBusyException` (`AGGREGATE_BUSY`) and `DuplicateRequestException` (`DUPLICATE_REQUEST`) in `ddk-core`; the web starter maps both to 409 Conflict
 
+### Changed
+
+- Generated projects and the user example manage their schema with Flyway (`spring-boot-starter-flyway`, scripts in `src/main/resources/db/migration`) instead of `schema.sql`; the generated `AGENTS.md` and skills tell agents to add a new migration per schema change
+
 ## [0.3.0] - 2026-10-01
 
 Reliable domain events: a transactional outbox on Spring Modulith's event publication registry, delivery to Kafka, RocketMQ, AMQP and JMS, event contracts, and idempotent consumers. The repository contract now reports optimistic-lock conflicts.
