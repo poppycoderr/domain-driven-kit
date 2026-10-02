@@ -3,9 +3,11 @@ package com.ddk.concurrency.starter.integration;
 import com.ddk.concurrency.starter.AggregateLock;
 import com.ddk.concurrency.starter.AggregateLocks;
 import com.ddk.concurrency.starter.Idempotent;
+import com.ddk.concurrency.starter.RateLimit;
 import com.ddk.core.domain.Identifier;
 import com.ddk.core.exception.AggregateBusyException;
 import com.ddk.core.exception.DuplicateRequestException;
+import com.ddk.core.exception.RateLimitedException;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -34,6 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.awaitility.Awaitility.await;
 
 /**
  * 对真实 Redis 验证：锁确实互斥、在事务提交之后才释放，重复请求确实被拒绝、失败后可以重试。
@@ -153,6 +156,28 @@ class ConcurrencyRedisIntegrationTest {
     }
 
     @Test
+    @DisplayName("每个 key 各有一份额度，超过时抛 RateLimitedException，窗口过后恢复")
+    void rateLimitIsPerKey() {
+        assertThat(orders.search("alice")).isEqualTo("results for alice");
+        assertThat(orders.search("alice")).isEqualTo("results for alice");
+        assertThatThrownBy(() -> orders.search("alice")).isInstanceOf(RateLimitedException.class);
+        assertThat(orders.search("bob")).isEqualTo("results for bob");
+
+        await().atMost(Duration.ofSeconds(5)).ignoreExceptions().until(() -> orders.search("alice").equals("results for alice"));
+        assertThat(redisson.getKeys().getKeysStream().toList()).anyMatch(key -> key.startsWith("it:rate:OrderService.search:2/1000ms:alice"));
+    }
+
+    @Test
+    @DisplayName("不写 key 时整个用例共用一份额度；被限流的调用不占用请求登记")
+    void rateLimitWithoutKeyIsSharedAndComesFirst() {
+        assertThat(orders.export("req-1")).isEqualTo("exported");
+        assertThatThrownBy(() -> orders.export("req-2")).isInstanceOf(RateLimitedException.class);
+
+        assertThat(redisson.getBucket("it:idempotent:OrderService.export:req-2", StringCodec.INSTANCE).isExists()).isFalse();
+        assertThat(redisson.getBucket("it:idempotent:OrderService.export:req-1", StringCodec.INSTANCE).isExists()).isTrue();
+    }
+
+    @Test
     @DisplayName("表达式结果为空时报错，指出是哪个方法")
     void emptyKeysAreRejected() {
         assertThatThrownBy(() -> orders.submit(" "))
@@ -237,6 +262,17 @@ class ConcurrencyRedisIntegrationTest {
         @AggregateLock(type = "order", id = "#id", waitTime = "5s", leaseTime = "30s")
         String patient(Long id) {
             return "waited";
+        }
+
+        @RateLimit(limit = 2, period = "1s", key = "#user")
+        String search(String user) {
+            return "results for " + user;
+        }
+
+        @RateLimit(limit = 1, period = "1m", scope = "export")
+        @Idempotent(key = "#requestId")
+        String export(String requestId) {
+            return "exported";
         }
 
         @Idempotent(key = "#requestId")

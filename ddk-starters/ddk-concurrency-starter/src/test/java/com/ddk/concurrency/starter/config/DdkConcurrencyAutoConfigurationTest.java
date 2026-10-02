@@ -3,6 +3,7 @@ package com.ddk.concurrency.starter.config;
 import com.ddk.concurrency.starter.AggregateLock;
 import com.ddk.concurrency.starter.AggregateLocks;
 import com.ddk.concurrency.starter.Idempotent;
+import com.ddk.concurrency.starter.RateLimit;
 import com.ddk.concurrency.starter.internal.ConcurrencyAdvisingPostProcessor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -35,6 +36,9 @@ class DdkConcurrencyAutoConfigurationTest {
             assertThatThrownBy(() -> service.submit("r-1"))
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("@Idempotent on OrderService.submit needs a RedissonClient");
+            assertThatThrownBy(() -> service.search("q"))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("@RateLimit on OrderService.search needs a RedissonClient");
             assertThat(service.plain()).isEqualTo("plain");
         });
     }
@@ -93,6 +97,11 @@ class DdkConcurrencyAutoConfigurationTest {
         @Idempotent(key = "#requestId")
         String submit(String requestId) {
             return "submitted";
+        }
+
+        @RateLimit(limit = 1, period = "1s")
+        String search(String keyword) {
+            return "found";
         }
 
         String plain() {
