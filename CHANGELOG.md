@@ -18,6 +18,7 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 - `@RateLimit` in `ddk-concurrency-starter` gives each key, such as a user or tenant, a budget of calls per period shared by all instances; over the limit it throws `RateLimitedException` (`RATE_LIMITED`), which the web starter maps to 429
 - `AggregateBusyException` (`AGGREGATE_BUSY`) and `DuplicateRequestException` (`DUPLICATE_REQUEST`) in `ddk-core`; the web starter maps both to 409 Conflict
 - The web starter documents the error contract when springdoc is on the classpath: every operation gets 400 / 409 / 500 responses with the failed `ApiResponse` body, and `components.schemas.ErrorCode` lists `CommonError` plus every `ErrorCode` enum in the application's packages with its message. `ddk.web.openapi=false` turns it off. The BOM manages springdoc 3.1; the user example serves Swagger UI
+- `ddk-job-starter`: turns on `@Scheduled` and wires ShedLock with a Redis lock, so a job marked `@SchedulerLock` runs on one instance at a time; defaults under `ddk.job.lock.*`. The optional rule `CommonArchRules.SCHEDULED_JOBS_MUST_BE_LOCKED` fails the build when a `@Scheduled` method has no `@SchedulerLock`
 - `CommonArchRules.SCHEDULED_JOBS_MUST_RESIDE_IN_ADAPTER` keeps `@Scheduled` and `@XxlJob` methods in the adapter layer, so scheduled jobs reach the domain only through application services; generated projects and the example check it
 
 ### Changed

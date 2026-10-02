@@ -29,7 +29,7 @@
 - 🗄️ **Safe persistence**: a generic MyBatis-Plus repository with optimistic locking; missing or duplicate mappers fail at startup
 - ⚡ **Two-level cache**: Caffeine + Redis with cross-instance invalidation, Redis failure fallback and a deserialization allow-list
 - 🤖 **AI-agent ready**: generated projects ship `AGENTS.md`, `CLAUDE.md` and Claude Code Skills; architecture failures come with a report agents can act on; use cases can be exposed as MCP tools
-- 🧩 **Eleven Spring Boot starters** under one `ddk.*` namespace: web, MyBatis, Redis, cache, data sources, tracing, Seata, domain events, MCP, concurrency control, ArchGuard
+- 🧩 **Twelve Spring Boot starters** under one `ddk.*` namespace: web, MyBatis, Redis, cache, data sources, tracing, Seata, domain events, MCP, concurrency control, scheduled jobs, ArchGuard
 - 🚀 **Start in minutes**: Maven archetypes and a runnable example, built and tested in CI on Java 21 and 25
 
 ## Why DDK
@@ -124,6 +124,7 @@ DDK is maintained by one person and is still pre-release: build it locally, try 
 | `ddk-event-starter` | Spring-backed domain event publisher | Usable |
 | `ddk-mcp-starter` | Application use cases as MCP tools: argument validation, error codes, audit log, streamable HTTP by default | Usable, with MCP client end-to-end tests |
 | `ddk-concurrency-starter` | `@AggregateLock`, `@Idempotent` and `@RateLimit` on Redisson: one operation per aggregate, one execution per request, a call budget per user or tenant | Usable, with Redis integration tests |
+| `ddk-job-starter` | `@Scheduled` jobs that run on one instance at a time, on ShedLock with the lock in Redis | Usable, with Redis integration tests |
 | `ddk-redis-starter` | JSON `RedisTemplate` with a deserialization type allow-list | Usable |
 | `ddk-cache-starter` | Caffeine (L1) + Redis (L2) two-level cache with cross-instance invalidation and Redis failure fallback | Usable, with Redis integration tests |
 | `ddk-archguard-starter` | ArchUnit rules for layering and domain purity | Usable |
@@ -209,6 +210,7 @@ domain-driven-kit
 │   ├── ddk-event-starter
 │   ├── ddk-mcp-starter
 │   ├── ddk-concurrency-starter
+│   ├── ddk-job-starter
 │   └── ddk-archguard-starter
 ├── ddk-archetypes        3-layer / 4-layer project skeletons
 └── ddk-examples          Example applications
@@ -237,7 +239,7 @@ The foundation (domain model, repositories, nine starters, archetypes and exampl
 1. **v0.1 Modern baseline and first release**: Spring Boot 4.1 / Jackson 3 and the first GitHub Release
 2. **v0.2 AI collaboration**: generated projects ship `AGENTS.md` and Skills, ArchGuard reports violations agents can act on, an MCP starter on Spring AI
 3. **v0.3 Reliable domain events**: transactional outbox, RocketMQ / Kafka delivery, idempotent consumers
-4. **v0.4 Middleware integrations**: Redisson aggregate locks, XXL-Job, Flyway, springdoc, Elasticsearch read models
+4. **v0.4 Middleware integrations**: Redisson aggregate locks, scheduled jobs, Flyway, springdoc, Elasticsearch read models
 5. **v1.0 Production ready**: the `ddk-mall` reference application, native images, a frozen public API
 
 See [ROADMAP.md](./ROADMAP.md) for the full plan.
