@@ -14,6 +14,10 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ### Added
 
+- `Operator` and `OperatorContext` in `ddk-core` (`com.ddk.core.context`): who is acting and for which tenant, with `runAs` / `callAs` that restore the previous value and `wrap` to carry the operator to another thread
+- The web starter sets `OperatorContext` for each request when the application declares an `OperatorResolver` bean
+- The MyBatis starter fills `createBy` and `updateBy` from the operator (`String` or `Long` fields), next to `createTime` and `updateTime`
+- Multi-tenancy in the MyBatis starter (`ddk.mybatis.tenant.enabled=true`): every statement gets the tenant condition from `OperatorContext`, and a statement without a tenant fails instead of reading all tenants; `ignore-tables` and MyBatis-Plus's `@InterceptorIgnore` are the exemptions
 - ArchGuard fix hints are available in English and Chinese. The language follows the JVM's default locale and can be set with the system property `ddk.archguard.language` (`en` or `zh`)
 
 ### Changed
