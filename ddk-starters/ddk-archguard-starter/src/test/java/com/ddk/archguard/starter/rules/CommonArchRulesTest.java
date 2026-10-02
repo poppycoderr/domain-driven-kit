@@ -71,6 +71,17 @@ class CommonArchRulesTest {
     }
 
     @Test
+    void scheduledJobRuleAcceptsJobsInTheAdapterLayer() {
+        passes(CommonArchRules.SCHEDULED_JOBS_MUST_RESIDE_IN_ADAPTER, "job.valid");
+    }
+
+    @Test
+    void scheduledJobRuleRejectsSpringAndXxlJobsOutsideTheAdapterLayer() {
+        fails(CommonArchRules.SCHEDULED_JOBS_MUST_RESIDE_IN_ADAPTER, "job.violation", "job.violation.application.OrderService");
+        fails(CommonArchRules.SCHEDULED_JOBS_MUST_RESIDE_IN_ADAPTER, "job.violation", "job.violation.infrastructure.OrderCleaner");
+    }
+
+    @Test
     void rulesPassOnFreshProjectsWithoutLayerClasses() {
         passes(CommonArchRules.LAYERED_ARCHITECTURE_RULE, "empty");
         passes(CommonArchRules.THREE_LAYER_ARCHITECTURE_RULE, "empty");
@@ -78,5 +89,6 @@ class CommonArchRulesTest {
         passes(CommonArchRules.DOMAIN_MUST_NOT_DEPEND_ON_OUTER_LAYERS, "empty");
         passes(CommonArchRules.DDK_INTERNALS_MUST_NOT_BE_USED, "empty");
         passes(CommonArchRules.MCP_TOOLS_MUST_RESIDE_IN_ADAPTER, "empty");
+        passes(CommonArchRules.SCHEDULED_JOBS_MUST_RESIDE_IN_ADAPTER, "empty");
     }
 }

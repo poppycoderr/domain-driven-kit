@@ -137,4 +137,18 @@ public final class CommonArchRules {
             .should().beDeclaredInClassesThat().resideInAPackage("..adapter..")
             .because("MCP 工具是外部协议入口，只能经由应用服务访问领域")
             .allowEmptyShould(true);
+
+    /**
+     * 定时任务只能声明在适配层。
+     * <p>
+     * 定时任务和 REST 控制器、MCP 工具一样是用例的入口，只是触发它的是时钟或调度中心。放在适配层后，分层规则保证它只能调用应用服务：
+     * 事务、业务校验与领域事件都走同一条路径，不会出现任务里直接改表的旁路。覆盖 Spring 的 {@code @Scheduled} 与 XXL-Job 的
+     * {@code @XxlJob}，按注解全限定名匹配，本模块不依赖它们。
+     */
+    public static final ArchRule SCHEDULED_JOBS_MUST_RESIDE_IN_ADAPTER = methods()
+            .that().areAnnotatedWith("org.springframework.scheduling.annotation.Scheduled")
+            .or().areAnnotatedWith("com.xxl.job.core.handler.annotation.XxlJob")
+            .should().beDeclaredInClassesThat().resideInAPackage("..adapter..")
+            .because("定时任务是用例的入口，只能经由应用服务访问领域")
+            .allowEmptyShould(true);
 }
