@@ -33,6 +33,8 @@ final class RuleHints {
                 "把 @McpTool 方法移到 adapter 包（例如 adapter.mcp）的工具类中，工具方法只调用应用服务，不直接使用仓储或领域服务。"));
         HINTS.put(CommonArchRules.SCHEDULED_JOBS_MUST_RESIDE_IN_ADAPTER, new Hint("SCHEDULED_JOBS_MUST_RESIDE_IN_ADAPTER",
                 "把 @Scheduled / @XxlJob 方法移到 adapter 包（例如 adapter.job）的任务类中，任务方法只调用应用服务，不直接使用仓储、Mapper 或领域服务。"));
+        HINTS.put(CommonArchRules.SCHEDULED_JOBS_MUST_BE_LOCKED, new Hint("SCHEDULED_JOBS_MUST_BE_LOCKED",
+                "给 @Scheduled 方法加上 @SchedulerLock(name = \"唯一的任务名\")，让多实例下同一轮只有一个实例执行。"));
         HINTS.put(CommonArchRules.DDK_INTERNALS_MUST_NOT_BE_USED, new Hint("DDK_INTERNALS_MUST_NOT_BE_USED",
                 "改用 DDK 公开 API：覆盖对应的 Bean，或实现公开的扩展接口（如 CacheMetrics、CacheInvalidationPublisher），"
                         + "不要引用 com.ddk..internal.. 中的类型。"));

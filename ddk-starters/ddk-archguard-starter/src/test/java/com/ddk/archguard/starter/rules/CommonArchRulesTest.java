@@ -82,6 +82,12 @@ class CommonArchRulesTest {
     }
 
     @Test
+    void scheduledJobLockRuleRequiresSchedulerLock() {
+        passes(CommonArchRules.SCHEDULED_JOBS_MUST_BE_LOCKED, "joblock.valid");
+        fails(CommonArchRules.SCHEDULED_JOBS_MUST_BE_LOCKED, "joblock.violation", "joblock.violation.adapter.job.OrderJobs");
+    }
+
+    @Test
     void rulesPassOnFreshProjectsWithoutLayerClasses() {
         passes(CommonArchRules.LAYERED_ARCHITECTURE_RULE, "empty");
         passes(CommonArchRules.THREE_LAYER_ARCHITECTURE_RULE, "empty");
@@ -90,5 +96,6 @@ class CommonArchRulesTest {
         passes(CommonArchRules.DDK_INTERNALS_MUST_NOT_BE_USED, "empty");
         passes(CommonArchRules.MCP_TOOLS_MUST_RESIDE_IN_ADAPTER, "empty");
         passes(CommonArchRules.SCHEDULED_JOBS_MUST_RESIDE_IN_ADAPTER, "empty");
+        passes(CommonArchRules.SCHEDULED_JOBS_MUST_BE_LOCKED, "empty");
     }
 }
