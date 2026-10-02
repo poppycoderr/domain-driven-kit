@@ -10,6 +10,7 @@
 
 <p align="center">
     <a href="https://github.com/poppycoderr/domain-driven-kit/actions/workflows/build.yml"><img src="https://github.com/poppycoderr/domain-driven-kit/actions/workflows/build.yml/badge.svg" alt="Build" /></a>
+    <a href="https://github.com/poppycoderr/domain-driven-kit/releases/latest"><img src="https://img.shields.io/github/v/release/poppycoderr/domain-driven-kit?color=6366F1" alt="Latest release" /></a>
     <a href="./LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="License" /></a>
     <img src="https://img.shields.io/badge/Java-21%20%7C%2025-ED8B00?logo=openjdk&logoColor=white" alt="Java 21 | 25" />
     <img src="https://img.shields.io/badge/Spring%20Boot-4.1-6DB33F?logo=springboot&logoColor=white" alt="Spring Boot 4.1" />
@@ -21,6 +22,14 @@
 </p>
 
 ---
+
+<p align="center">
+    <img src="./assets/demo/guardrail.svg" alt="生成项目、破坏分层、mvn verify 失败并给出修复建议、修复后构建通过" width="900" />
+</p>
+
+<p align="center">
+    <sub>生成项目，让领域模型引用持久化对象，构建随即失败，并指出是哪条规则、哪个类、怎么改。输出取自 v0.4.0 的真实运行。</sub>
+</p>
 
 ## 亮点
 
@@ -46,6 +55,19 @@
 - 团队需要统一 Controller、Application、Domain、Infrastructure 的职责边界
 - 希望把异常、响应、分页、仓储、对象映射这类重复代码标准化
 - 希望用 ArchUnit 把架构规则放进测试和 CI，而不是只写在文档里
+
+### 与 COLA、Spring Modulith、jMolecules 的关系
+
+这几个项目和 DDK 有重叠，但要解决的问题不同。它们并不互斥，DDK 还直接构建在其中一个之上。
+
+| 项目 | 提供什么 | 适合的情况 |
+|---|---|---|
+| [COLA](https://github.com/alibaba/COLA) | 一套分层应用架构与 archetype，加上扩展点、状态机等组件 | 想采用阿里的 COLA 分层和它的组件 |
+| [Spring Modulith](https://spring.io/projects/spring-modulith) | 校验业务模块之间的边界、模块级集成测试、事件发布记录 | 主要关心模块化单体里各模块互不越界 |
+| [jMolecules](https://github.com/xmolecules/jmolecules) | 用注解和接口在代码里标出 DDD 与架构概念，并由集成工具据此生成规则和样板代码 | 只想表达概念，实现方式完全自己决定 |
+| DDK | 构建块的基类、基于 MyBatis-Plus 的仓储、常用中间件的 starter、archetype、带修复建议的架构规则、面向 AI 编码代理的约定 | 想在 Spring Boot 4 和 MyBatis-Plus 上尽快得到一个可运行的 DDD 项目，并且从第一天起就有规则约束 |
+
+DDK 不是 Spring Modulith 的替代品：DDK 的可靠领域事件直接使用 Modulith 的事件发布记录，DDK 项目内部的模块边界也仍然可以用它来校验。DDK 的分层规则和 Modulith 的模块规则检查的是同一份代码的两个不同维度。
 
 ## 快速开始
 
@@ -113,7 +135,7 @@ mvn -B install
 
 ## 模块
 
-DDK 由个人维护，仍处于发布前阶段：适合本地构建、试用 archetype 和作为参考实现。暂时通过 GitHub Release 发布，不发布到 Maven Central。
+DDK 由个人维护，目前处于 0.x 阶段：次版本可能包含破坏性变更，每一项都记录在 [CHANGELOG](./CHANGELOG.md) 里。暂时通过 GitHub Release 发布，不发布到 Maven Central。
 
 | 模块 | 当前能力 | 状态 |
 |---|---|---|
@@ -236,13 +258,17 @@ com.ddk.core
     <img src="./assets/diagrams/ddk-roadmap.svg" alt="DDK roadmap" />
 </p>
 
-基础层（领域模型、仓储、9 个 starter、archetype 与示例）已经完成，v0.1.0 已发布。接下来的里程碑：
+已经发布：
 
-1. **v0.1 现代基线与首次发布**：升级到 Spring Boot 4.1 / Jackson 3，发布首个 GitHub Release
+1. **v0.1 现代基线**：Spring Boot 4.1 / Jackson 3，首个 GitHub Release
 2. **v0.2 AI 协作**：生成项目自带 `AGENTS.md` 与 Skills，ArchGuard 输出代理可读的违规报告，基于 Spring AI 的 MCP starter
-3. **v0.3 可靠领域事件**：事务性 Outbox、RocketMQ / Kafka 投递、幂等消费
-4. **v0.4 中间件集成**：Redisson 聚合锁、定时任务、Flyway、springdoc、Elasticsearch 读模型
-5. **v1.0 生产就绪**：`ddk-mall` 参考应用、原生镜像、公开 API 冻结
+3. **v0.3 可靠领域事件**：事务性 Outbox、Kafka / RocketMQ 投递、事件契约、幂等消费
+4. **v0.4 中间件集成**：聚合锁、防重复提交与限流、定时任务、Flyway、接口文档里的错误约定、`ddk-test`
+
+接下来：
+
+5. **更多集成**：Elasticsearch 读模型、MyBatis-Plus 多租户与数据权限、Nacos、Sentinel、对象存储
+6. **v1.0 生产就绪**：`ddk-mall` 参考应用、原生镜像、公开 API 冻结
 
 完整路线图见 [ROADMAP.zh-CN.md](./ROADMAP.zh-CN.md)。
 

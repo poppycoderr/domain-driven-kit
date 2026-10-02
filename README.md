@@ -10,6 +10,7 @@
 
 <p align="center">
     <a href="https://github.com/poppycoderr/domain-driven-kit/actions/workflows/build.yml"><img src="https://github.com/poppycoderr/domain-driven-kit/actions/workflows/build.yml/badge.svg" alt="Build" /></a>
+    <a href="https://github.com/poppycoderr/domain-driven-kit/releases/latest"><img src="https://img.shields.io/github/v/release/poppycoderr/domain-driven-kit?color=6366F1" alt="Latest release" /></a>
     <a href="./LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="License" /></a>
     <img src="https://img.shields.io/badge/Java-21%20%7C%2025-ED8B00?logo=openjdk&logoColor=white" alt="Java 21 | 25" />
     <img src="https://img.shields.io/badge/Spring%20Boot-4.1-6DB33F?logo=springboot&logoColor=white" alt="Spring Boot 4.1" />
@@ -21,6 +22,14 @@
 </p>
 
 ---
+
+<p align="center">
+    <img src="./assets/demo/guardrail.svg" alt="Generate a project, break the layering, mvn verify fails with a fix hint, fix it and the build passes" width="900" />
+</p>
+
+<p align="center">
+    <sub>Generate a project, let the domain model reach into the persistence layer, and the build fails with the rule, the class and how to fix it. The output is from a real run on v0.4.0.</sub>
+</p>
 
 ## Highlights
 
@@ -46,6 +55,19 @@ It is designed for teams that want to:
 - Keep Controller, Application, Domain and Infrastructure responsibilities explicit
 - Standardize repeated backend concerns such as API responses, exceptions, pagination and repository boundaries
 - Move architecture rules into tests and CI with ArchUnit instead of leaving them only in documentation
+
+### How it relates to COLA, Spring Modulith and jMolecules
+
+These projects overlap with DDK in places and solve different problems. They are not mutually exclusive, and DDK builds on one of them.
+
+| Project | What it gives you | Reach for it when |
+|---|---|---|
+| [COLA](https://github.com/alibaba/COLA) | A layered application architecture with archetypes, plus components such as an extension mechanism and a state machine | You want Alibaba's COLA layering and its components |
+| [Spring Modulith](https://spring.io/projects/spring-modulith) | Verification of boundaries between business modules, module-level integration tests, and an event publication registry | Your main concern is keeping the modules of a modular monolith apart |
+| [jMolecules](https://github.com/xmolecules/jmolecules) | Annotations and interfaces that name DDD and architecture concepts in code, with integrations that derive rules and boilerplate from them | You want to express the concepts and keep full freedom over implementation |
+| DDK | Base classes for the building blocks, a MyBatis-Plus repository, starters for common middleware, archetypes, architecture rules with fix hints, and conventions for AI coding agents | You want a working DDD project on Spring Boot 4 and MyBatis-Plus quickly, with the rules enforced from day one |
+
+DDK does not replace Spring Modulith: reliable domain events in DDK run on Modulith's event publication registry, and module boundaries inside a DDK project can still be verified with it. DDK's layer rules and Modulith's module rules check different axes of the same codebase.
 
 ## Quick Start
 
@@ -113,7 +135,7 @@ See the full guide: [Quick Start](https://poppycoder.netlify.app/ddk/quickstart)
 
 ## Modules
 
-DDK is maintained by one person and is still pre-release: build it locally, try the archetypes and use it as a reference. Releases are published on GitHub rather than Maven Central for now.
+DDK is maintained by one person and is in its 0.x series: a minor release may contain breaking changes, each listed in the [changelog](./CHANGELOG.md). Releases are published on GitHub rather than Maven Central for now.
 
 | Module | Capability | Status |
 |---|---|---|
@@ -236,13 +258,17 @@ com.ddk.core
     <img src="./assets/diagrams/ddk-roadmap.en.svg" alt="DDK roadmap" />
 </p>
 
-The foundation (domain model, repositories, nine starters, archetypes and examples) is complete, and v0.1.0 is released. Next milestones:
+Released so far:
 
-1. **v0.1 Modern baseline and first release**: Spring Boot 4.1 / Jackson 3 and the first GitHub Release
+1. **v0.1 Modern baseline**: Spring Boot 4.1 / Jackson 3 and the first GitHub Release
 2. **v0.2 AI collaboration**: generated projects ship `AGENTS.md` and Skills, ArchGuard reports violations agents can act on, an MCP starter on Spring AI
-3. **v0.3 Reliable domain events**: transactional outbox, RocketMQ / Kafka delivery, idempotent consumers
-4. **v0.4 Middleware integrations**: Redisson aggregate locks, scheduled jobs, Flyway, springdoc, Elasticsearch read models
-5. **v1.0 Production ready**: the `ddk-mall` reference application, native images, a frozen public API
+3. **v0.3 Reliable domain events**: transactional outbox, Kafka / RocketMQ delivery, event contracts, idempotent consumers
+4. **v0.4 Middleware integrations**: aggregate locks, duplicate-submit protection and rate limits, scheduled jobs, Flyway, the error contract in API docs, `ddk-test`
+
+Next:
+
+5. **More integrations**: Elasticsearch read models, MyBatis-Plus multi-tenancy and data permissions, Nacos, Sentinel, object storage
+6. **v1.0 Production ready**: the `ddk-mall` reference application, native images, a frozen public API
 
 See [ROADMAP.md](./ROADMAP.md) for the full plan.
 
