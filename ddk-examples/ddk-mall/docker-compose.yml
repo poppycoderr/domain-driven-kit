@@ -1,0 +1,19 @@
+# ddk-mall 依赖的中间件。启动后用 mysql profile 运行应用：
+#   docker compose up -d
+#   mvn spring-boot:run -Dspring-boot.run.profiles=mysql
+services:
+  mysql:
+    image: mysql:8.4
+    command: [ "--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci" ]
+    environment:
+      MYSQL_DATABASE: mall
+      MYSQL_USER: mall
+      MYSQL_PASSWORD: example_password
+      MYSQL_ROOT_PASSWORD: example_root_password
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pexample_root_password" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
