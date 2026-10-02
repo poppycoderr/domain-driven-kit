@@ -118,6 +118,7 @@ DDK is maintained by one person and is still pre-release: build it locally, try 
 | Module | Capability | Status |
 |---|---|---|
 | `ddk-core` | Domain model primitives, `ApiResponse`, exceptions, pagination, mapper registry, repository contract | Usable |
+| `ddk-test` | Assertions on aggregates and business rules, Testcontainers presets for Redis, MySQL and RocketMQ | Usable, used by DDK's own tests |
 | `ddk-mybatis` | MyBatis-Plus repository implementation, query parsing, pagination, optimistic locking, domain event publishing | Usable, with H2 integration tests |
 | `ddk-web-starter` | Jackson, CORS, global exception handling, and the error contract in OpenAPI docs when springdoc is present, configurable under `ddk.web.*` | Usable |
 | `ddk-mybatis-starter` | Pagination, optimistic locking, full-table update/delete guard, snowflake IDs, configurable under `ddk.mybatis.*` | Usable |
@@ -198,6 +199,7 @@ A violation fails the build. See [`ddk-examples/ddk-example-user`](./ddk-example
 domain-driven-kit
 ├── ddk-dependencies      BOM, so downstream projects stop writing versions
 ├── ddk-core              Core abstractions: domain model, exception, response, pagination, mapper, repository contract
+├── ddk-test              Domain assertions and Testcontainers presets
 ├── ddk-mybatis           MyBatis-Plus repository implementation and query adapters
 ├── ddk-starters          Spring Boot starter modules
 │   ├── ddk-web-starter

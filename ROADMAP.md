@@ -130,7 +130,7 @@ AI capabilities (on Spring AI 2.0):
 
 Testing:
 
-- [ ] `ddk-test`: aggregate assertions (which events were raised, whether invariants hold) and Testcontainers presets (MySQL, Redis, RocketMQ)
+- [x] `ddk-test`: aggregate assertions (which events were raised, whether invariants hold) and Testcontainers presets (MySQL, Redis, RocketMQ)
 
 ## v1.0 · Production ready
 

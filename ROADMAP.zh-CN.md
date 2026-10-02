@@ -130,7 +130,7 @@ AI 能力（基于 Spring AI 2.0）：
 
 测试工具：
 
-- [ ] `ddk-test`：聚合断言（产生了哪些事件、不变量是否成立）、Testcontainers 预置（MySQL、Redis、RocketMQ）
+- [x] `ddk-test`：聚合断言（产生了哪些事件、不变量是否成立）、Testcontainers 预置（MySQL、Redis、RocketMQ）
 
 ## v1.0 · 生产就绪
 
