@@ -15,6 +15,7 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 ### Added
 
 - `ddk-concurrency-starter`: `@AggregateLock` holds a Redisson lock per aggregate instance around the method's transaction, `@Idempotent` rejects a request key that was already submitted, and `AggregateLocks` is the programmatic entry point
+- `@RateLimit` in `ddk-concurrency-starter` gives each key, such as a user or tenant, a budget of calls per period shared by all instances; over the limit it throws `RateLimitedException` (`RATE_LIMITED`), which the web starter maps to 429
 - `AggregateBusyException` (`AGGREGATE_BUSY`) and `DuplicateRequestException` (`DUPLICATE_REQUEST`) in `ddk-core`; the web starter maps both to 409 Conflict
 - The web starter documents the error contract when springdoc is on the classpath: every operation gets 400 / 409 / 500 responses with the failed `ApiResponse` body, and `components.schemas.ErrorCode` lists `CommonError` plus every `ErrorCode` enum in the application's packages with its message. `ddk.web.openapi=false` turns it off. The BOM manages springdoc 3.1; the user example serves Swagger UI
 

@@ -1,12 +1,13 @@
 # DDK Concurrency Starter
 
-Concurrency control keyed by domain concepts, on Redisson: one operation at a time per aggregate instance, and one execution per client request.
+Concurrency control keyed by domain concepts, on Redisson: one operation at a time per aggregate instance, one execution per client request, and a call budget per user or tenant.
 
 ```text
-@Idempotent      register the request (SET NX + TTL)     duplicate → DuplicateRequestException (409)
-  @AggregateLock   acquire ddk:lock:<type>:<id>          not acquired in time → AggregateBusyException (409)
-    @Transactional   load → change → save → commit
-  release the lock                                       after the commit, so the next operation loads committed state
+@RateLimit         take one permit for the key             none left → RateLimitedException (429)
+  @Idempotent        register the request (SET NX + TTL)   duplicate → DuplicateRequestException (409)
+    @AggregateLock     acquire ddk:lock:<type>:<id>        not acquired in time → AggregateBusyException (409)
+      @Transactional     load → change → save → commit
+    release the lock                                       after the commit, so the next operation loads committed state
 on failure: release the lock, remove the request registration
 ```
 
@@ -67,6 +68,21 @@ aggregateLocks.execute("order", orderId, () -> transaction.execute(status -> ...
 
 This protects against double clicks and client retries. For consumers of at-least-once messages, use `IdempotentConsumer` from the event starter, which registers the message in the same database transaction as the handler's writes.
 
+## Rate limits
+
+```java
+@RateLimit(limit = 20, period = "1m", key = "#query.tenantId()")
+public PageResponse<OrderResponse> search(OrderQuery query) { ... }
+```
+
+- Each key has its own budget of `limit` calls per `period`; a typed identifier contributes its raw value. Without `key`, the whole use case shares one budget.
+- The count lives in Redis (Redisson's `RRateLimiter`), so all instances share it.
+- Over the limit, `RateLimitedException` (`RATE_LIMITED`) is thrown and the web starter answers 429.
+- It runs before `@Idempotent` and `@AggregateLock`: a limited call does not register its request key and does not wait for a lock.
+- The limit and period are part of the Redis key, `<key-prefix>rate:<scope>:<limit>/<period>:<key>`. Changing them in code takes effect on deployment, and the old keys expire after two idle periods.
+
+This is a business limit, such as exports per tenant or SMS codes per phone number. It runs inside the application after the request has been parsed, so it does not replace gateway rate limiting against traffic floods.
+
 ## Configuration
 
 | Property | Default | Description |
@@ -79,6 +95,5 @@ This protects against double clicks and client retries. For consumers of at-leas
 
 ## Not covered yet
 
-- Rate limits per user or tenant
 - The reference example does not use this starter yet, because it runs without Redis
 - A lock is only as reliable as a single Redis: after a failover, a lock that was not yet replicated can be granted twice. Keep the version check on the aggregate
