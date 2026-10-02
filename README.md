@@ -265,10 +265,12 @@ Released so far:
 3. **v0.3 Reliable domain events**: transactional outbox, Kafka / RocketMQ delivery, event contracts, idempotent consumers
 4. **v0.4 Middleware integrations**: aggregate locks, duplicate-submit protection and rate limits, scheduled jobs, Flyway, the error contract in API docs, `ddk-test`
 
+5. **v0.5 Operator context**: audit fields and fail-closed multi-tenancy driven by one operator context, ArchGuard fix hints in English
+
 Next:
 
-5. **More integrations**: Elasticsearch read models, MyBatis-Plus multi-tenancy and data permissions, Nacos, Sentinel, object storage
-6. **v1.0 Production ready**: the `ddk-mall` reference application, native images, a frozen public API
+6. **More integrations**: Elasticsearch read models, data permissions, Nacos, Sentinel, object storage
+7. **v1.0 Production ready**: the `ddk-mall` reference application, native images, a frozen public API
 
 See [ROADMAP.md](./ROADMAP.md) for the full plan.
 

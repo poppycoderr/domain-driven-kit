@@ -265,10 +265,12 @@ com.ddk.core
 3. **v0.3 可靠领域事件**：事务性 Outbox、Kafka / RocketMQ 投递、事件契约、幂等消费
 4. **v0.4 中间件集成**：聚合锁、防重复提交与限流、定时任务、Flyway、接口文档里的错误约定、`ddk-test`
 
+5. **v0.5 操作者上下文**：由同一个操作者上下文驱动的审计字段与多租户（取不到租户即拒绝执行），ArchGuard 英文修复建议
+
 接下来：
 
-5. **更多集成**：Elasticsearch 读模型、MyBatis-Plus 多租户与数据权限、Nacos、Sentinel、对象存储
-6. **v1.0 生产就绪**：`ddk-mall` 参考应用、原生镜像、公开 API 冻结
+6. **更多集成**：Elasticsearch 读模型、数据权限、Nacos、Sentinel、对象存储
+7. **v1.0 生产就绪**：`ddk-mall` 参考应用、原生镜像、公开 API 冻结
 
 完整路线图见 [ROADMAP.zh-CN.md](./ROADMAP.zh-CN.md)。
 
