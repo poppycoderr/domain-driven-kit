@@ -98,7 +98,7 @@ public final class CommonArchRules {
     public static final ArchRule DOMAIN_MUST_NOT_DEPEND_ON_FRAMEWORKS = noClasses()
             .that().resideInAPackage("..domain..")
             .should().dependOnClassesThat().resideInAnyPackage(FRAMEWORK_PACKAGES)
-            .because("领域模型必须能在没有容器的情况下被单元测试，持久化细节不得渗入业务模型")
+            .because("the domain model must be unit-testable without a container, and persistence details must not leak into it")
             .allowEmptyShould(true);
 
     /**
@@ -111,7 +111,7 @@ public final class CommonArchRules {
             .that().resideInAPackage("..domain..")
             .should().dependOnClassesThat()
             .resideInAnyPackage("..application..", "..adapter..", "..ui..", "..infrastructure..")
-            .because("依赖方向必须指向内层，领域层是依赖图的终点")
+            .because("dependencies must point inwards, and the domain layer is where they end")
             .allowEmptyShould(true);
 
     /**
@@ -123,7 +123,7 @@ public final class CommonArchRules {
     public static final ArchRule DDK_INTERNALS_MUST_NOT_BE_USED = noClasses()
             .that().resideOutsideOfPackage("com.ddk..")
             .should().dependOnClassesThat().resideInAPackage("com.ddk..internal..")
-            .because("DDK 的 internal 包不属于公开 API，可能在任何版本中变更")
+            .because("DDK's internal packages are not public API and may change in any release")
             .allowEmptyShould(true);
 
     /**
@@ -135,7 +135,7 @@ public final class CommonArchRules {
     public static final ArchRule MCP_TOOLS_MUST_RESIDE_IN_ADAPTER = methods()
             .that().areAnnotatedWith("org.springframework.ai.mcp.annotation.McpTool")
             .should().beDeclaredInClassesThat().resideInAPackage("..adapter..")
-            .because("MCP 工具是外部协议入口，只能经由应用服务访问领域")
+            .because("an MCP tool is an entry point for an external protocol and may reach the domain only through application services")
             .allowEmptyShould(true);
 
     /**
@@ -149,7 +149,7 @@ public final class CommonArchRules {
             .that().areAnnotatedWith("org.springframework.scheduling.annotation.Scheduled")
             .or().areAnnotatedWith("com.xxl.job.core.handler.annotation.XxlJob")
             .should().beDeclaredInClassesThat().resideInAPackage("..adapter..")
-            .because("定时任务是用例的入口，只能经由应用服务访问领域")
+            .because("a scheduled job is an entry point to a use case and may reach the domain only through application services")
             .allowEmptyShould(true);
 
     /**
@@ -162,6 +162,6 @@ public final class CommonArchRules {
     public static final ArchRule SCHEDULED_JOBS_MUST_BE_LOCKED = methods()
             .that().areAnnotatedWith("org.springframework.scheduling.annotation.Scheduled")
             .should().beAnnotatedWith("net.javacrumbs.shedlock.spring.annotation.SchedulerLock")
-            .because("多实例下没有加锁的定时任务会在每个实例上各执行一遍")
+            .because("without a lock, a scheduled job runs once on every instance")
             .allowEmptyShould(true);
 }

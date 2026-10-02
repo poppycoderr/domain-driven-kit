@@ -80,6 +80,28 @@ class ArchGuardTest {
     }
 
     @Test
+    void hintsFollowTheConfiguredLanguage() {
+        String previous = System.getProperty(RuleHints.LANGUAGE_PROPERTY);
+        try {
+            System.setProperty(RuleHints.LANGUAGE_PROPERTY, "en");
+            assertThat(ArchGuard.evaluate(violation, CommonArchRules.DOMAIN_MUST_NOT_DEPEND_ON_OUTER_LAYERS).violations())
+                    .allSatisfy(v -> assertThat(v.hint()).startsWith("The domain layer must not reference types from outer layers"));
+            assertThat(ArchGuard.evaluate(violation, noClasses().should().haveSimpleName("Order")).violations())
+                    .allSatisfy(v -> assertThat(v.hint()).startsWith("Change the dependencies as the rule describes"));
+
+            System.setProperty(RuleHints.LANGUAGE_PROPERTY, "zh-CN");
+            assertThat(ArchGuard.evaluate(violation, CommonArchRules.DOMAIN_MUST_NOT_DEPEND_ON_OUTER_LAYERS).violations())
+                    .allSatisfy(v -> assertThat(v.hint()).startsWith("领域层不得引用外层类型"));
+        } finally {
+            if (previous == null) {
+                System.clearProperty(RuleHints.LANGUAGE_PROPERTY);
+            } else {
+                System.setProperty(RuleHints.LANGUAGE_PROPERTY, previous);
+            }
+        }
+    }
+
+    @Test
     void jsonEscapesQuotesAndLineBreaks() {
         Violation v = new Violation("CUSTOM", "rule \"x\"", null, "line1\nline2\\", "hint");
 
