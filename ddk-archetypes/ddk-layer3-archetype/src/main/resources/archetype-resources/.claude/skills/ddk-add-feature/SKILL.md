@@ -41,5 +41,5 @@ $h2 4. 接口（adapter.controller）
 
 $h2 5. 测试与验证
 
-- 实体规则写纯单元测试；接口用 `@SpringBootTest` + `@AutoConfigureMockMvc` 覆盖参数绑定与错误码。
+- 实体规则写纯单元测试，被规则拒绝的操作用 `ddk-test` 的 `assertThatRejected(...).withCode(...)` 断言错误码；接口用 `@SpringBootTest` + `@AutoConfigureMockMvc` 覆盖参数绑定与错误码。
 - 运行 `mvn verify`，`ArchitectureTest` 必须通过。

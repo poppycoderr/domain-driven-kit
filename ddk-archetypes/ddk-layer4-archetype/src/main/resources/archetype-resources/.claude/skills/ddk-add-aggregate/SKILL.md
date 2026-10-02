@@ -44,5 +44,5 @@ $h2 4. 表结构
 
 $h2 5. 测试与验证
 
-- 为聚合写纯单元测试：工厂方法登记了事件、非法输入抛出对应错误码、状态变更守住不变量。不需要启动 Spring。
+- 为聚合写纯单元测试：工厂方法登记了事件、非法输入抛出对应错误码、状态变更守住不变量。不需要启动 Spring。用 `ddk-test` 的 `DdkAssertions`：`assertThat(order).hasRaisedExactly(OrderPlacedEvent.class)`、`assertThatRejected(order::cancel).withCode(OrderError.ORDER_NOT_CANCELLABLE)`。
 - 运行 `mvn verify`，`ArchitectureTest` 必须通过。

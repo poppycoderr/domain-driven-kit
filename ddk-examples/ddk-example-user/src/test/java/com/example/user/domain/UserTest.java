@@ -1,6 +1,6 @@
 package com.example.user.domain;
 
-import com.ddk.core.exception.BusinessException;
+import com.ddk.test.domain.DdkAssertions;
 import com.example.user.domain.error.UserError;
 import com.example.user.domain.event.UserDisabledEvent;
 import com.example.user.domain.event.UserRegisteredEvent;
@@ -11,8 +11,8 @@ import com.example.user.domain.model.valueobject.Email;
 import com.example.user.domain.model.valueobject.PhoneNumber;
 import org.junit.jupiter.api.Test;
 
+import static com.ddk.test.domain.DdkAssertions.assertThatRejected;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class UserTest {
 
@@ -25,15 +25,16 @@ class UserTest {
         User user = newUser();
 
         assertThat(user.enabled()).isTrue();
-        assertThat(user.drainDomainEvents()).singleElement().isInstanceOfSatisfying(UserRegisteredEvent.class,
-                event -> assertThat(event.userId()).isEqualTo(UserId.of(1L)));
+        DdkAssertions.assertThat(user)
+                .hasRaisedExactly(UserRegisteredEvent.class)
+                .hasRaised(UserRegisteredEvent.class, event -> assertThat(event.userId()).isEqualTo(UserId.of(1L)));
     }
 
     @Test
     void restoreRecordsNoEvents() {
         User user = User.restore(UserId.of(1L), "alice", "hash", Gender.FEMALE, new PhoneNumber("13800138000"), null, true, 3L);
 
-        assertThat(user.hasDomainEvents()).isFalse();
+        DdkAssertions.assertThat(user).hasRaisedNoEvents();
         assertThat(user.version()).isEqualTo(3L);
     }
 
@@ -46,7 +47,7 @@ class UserTest {
         user.disable("spam again");
 
         assertThat(user.enabled()).isFalse();
-        assertThat(user.drainDomainEvents()).singleElement().isInstanceOf(UserDisabledEvent.class);
+        DdkAssertions.assertThat(user).hasRaisedExactly(UserDisabledEvent.class);
     }
 
     @Test
@@ -61,12 +62,9 @@ class UserTest {
 
     @Test
     void invariantsAreBusinessErrors() {
-        assertThatThrownBy(() -> newUser().changeProfile("abc", null)).isInstanceOfSatisfying(BusinessException.class,
-                e -> assertThat(e.getErrorCode()).isEqualTo(UserError.INVALID_USERNAME));
-        assertThatThrownBy(() -> new PhoneNumber("12345")).isInstanceOfSatisfying(BusinessException.class,
-                e -> assertThat(e.getErrorCode()).isEqualTo(UserError.INVALID_PHONE_NUMBER));
-        assertThatThrownBy(() -> Gender.of(9)).isInstanceOfSatisfying(BusinessException.class,
-                e -> assertThat(e.getErrorCode()).isEqualTo(UserError.INVALID_GENDER));
+        assertThatRejected(() -> newUser().changeProfile("abc", null)).withCode(UserError.INVALID_USERNAME);
+        assertThatRejected(() -> new PhoneNumber("12345")).withCode(UserError.INVALID_PHONE_NUMBER);
+        assertThatRejected(() -> Gender.of(9)).withCode(UserError.INVALID_GENDER);
     }
 
     @Test
