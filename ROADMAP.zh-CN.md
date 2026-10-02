@@ -149,8 +149,8 @@ Star 来自两件事：**第一屏就让人看懂价值**，**五分钟内真的
 
 好看：
 
-- [ ] README 首屏：一句话价值主张、徽章（CI、覆盖率、最新 Release、License）、20 秒动图演示「生成项目 → 违反分层 → 测试报错 → 修复」
-- [ ] 与 COLA、Spring Modulith、jMolecules 的对比表，讲清各自适合的场景，而不是贬低别人
+- [x] README 首屏：一句话价值主张、徽章（CI、最新 Release、License）、25 秒动画演示「生成项目 → 违反分层 → 测试报错 → 修复」，内容取自真实运行
+- [x] 与 COLA、Spring Modulith、jMolecules 的对比表，讲清各自适合的场景，而不是贬低别人
 - [x] 仓库社交预览图、GitHub Topics（`ddd`、`spring-boot`、`archunit`、`mybatis-plus`、`ai-agents` 等）
 - [ ] 架构图保持统一视觉，并提供深色模式
 

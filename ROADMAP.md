@@ -149,8 +149,8 @@ Stars come from two things: **the first screen explains the value**, and **it ac
 
 Good-looking:
 
-- [ ] README first screen: a one-line value proposition, badges (CI, coverage, latest release, license), and a 20-second GIF of "generate project → break layering → test fails → fix"
-- [ ] A comparison with COLA, Spring Modulith and jMolecules that explains where each fits, without disparaging anyone
+- [x] README first screen: a one-line value proposition, badges (CI, latest release, license), and a 25-second animation of "generate project → break layering → test fails → fix" built from a real run
+- [x] A comparison with COLA, Spring Modulith and jMolecules that explains where each fits, without disparaging anyone
 - [x] A social preview image and GitHub topics (`ddd`, `spring-boot`, `archunit`, `mybatis-plus`, `ai-agents` and more)
 - [ ] Diagrams in one visual system, with dark mode
 
