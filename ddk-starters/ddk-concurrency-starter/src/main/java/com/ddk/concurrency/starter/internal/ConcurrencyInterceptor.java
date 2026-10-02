@@ -3,7 +3,9 @@ package com.ddk.concurrency.starter.internal;
 import com.ddk.concurrency.starter.AggregateLock;
 import com.ddk.concurrency.starter.AggregateLocks;
 import com.ddk.concurrency.starter.Idempotent;
+import com.ddk.concurrency.starter.RateLimit;
 import com.ddk.core.exception.DuplicateRequestException;
+import com.ddk.core.exception.RateLimitedException;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.aopalliance.intercept.MethodInvocation;
 import org.jspecify.annotations.Nullable;
@@ -17,7 +19,7 @@ import java.time.Duration;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * 处理 {@link Idempotent} 与 {@link AggregateLock}：先登记请求，再加锁，最后才进入事务。
+ * 处理 {@link RateLimit}、{@link Idempotent} 与 {@link AggregateLock}：先限流，再登记请求，再加锁，最后才进入事务。
  * <p>
  * 重复的请求在加锁之前就被拒绝，不占用锁的等待时间。依赖按需获取：拦截器随 Bean 后置处理器很早就被创建，那时不应连带初始化 Redis 客户端。
  * 没有可用的 {@code RedissonClient} 时调用直接失败，而不是悄悄地不加锁。
@@ -28,6 +30,8 @@ public class ConcurrencyInterceptor implements MethodInterceptor {
 
     private final ObjectProvider<RequestRegistry> requests;
 
+    private final ObjectProvider<RateLimiters> rates;
+
     private final Duration defaultTtl;
 
     private final Duration defaultWaitTime;
@@ -36,10 +40,11 @@ public class ConcurrencyInterceptor implements MethodInterceptor {
 
     private final KeyExpressions expressions = new KeyExpressions();
 
-    public ConcurrencyInterceptor(ObjectProvider<AggregateLocks> locks, ObjectProvider<RequestRegistry> requests, Duration defaultTtl,
-            Duration defaultWaitTime, @Nullable Duration defaultLeaseTime) {
+    public ConcurrencyInterceptor(ObjectProvider<AggregateLocks> locks, ObjectProvider<RequestRegistry> requests,
+            ObjectProvider<RateLimiters> rates, Duration defaultTtl, Duration defaultWaitTime, @Nullable Duration defaultLeaseTime) {
         this.locks = locks;
         this.requests = requests;
+        this.rates = rates;
         this.defaultTtl = defaultTtl;
         this.defaultWaitTime = defaultWaitTime;
         this.defaultLeaseTime = defaultLeaseTime;
@@ -52,6 +57,7 @@ public class ConcurrencyInterceptor implements MethodInterceptor {
             return invocation.proceed();
         }
         Method method = AopUtils.getMostSpecificMethod(invocation.getMethod(), target.getClass());
+        checkRate(invocation, method, target);
         Idempotent idempotent = AnnotatedElementUtils.findMergedAnnotation(method, Idempotent.class);
         if (idempotent == null) {
             return locked(invocation, method, target);
@@ -60,7 +66,7 @@ public class ConcurrencyInterceptor implements MethodInterceptor {
         RequestRegistry registry = requests.getIfAvailable(() -> {
             throw missingClient("@Idempotent", method);
         });
-        String scope = idempotent.scope().isEmpty() ? method.getDeclaringClass().getSimpleName() + "." + method.getName() : idempotent.scope();
+        String scope = idempotent.scope().isEmpty() ? defaultScope(method) : idempotent.scope();
         String key = expressions.evaluate(idempotent.key(), method, target, invocation);
         Duration ttl = idempotent.ttl().isEmpty() ? defaultTtl : DurationStyle.detectAndParse(idempotent.ttl());
         if (!registry.register(scope, key, ttl)) {
@@ -72,6 +78,25 @@ public class ConcurrencyInterceptor implements MethodInterceptor {
             registry.release(scope, key);
             throw failure;
         }
+    }
+
+    private void checkRate(MethodInvocation invocation, Method method, Object target) {
+        RateLimit rateLimit = AnnotatedElementUtils.findMergedAnnotation(method, RateLimit.class);
+        if (rateLimit == null) {
+            return;
+        }
+        RateLimiters limiters = rates.getIfAvailable(() -> {
+            throw missingClient("@RateLimit", method);
+        });
+        String scope = rateLimit.scope().isEmpty() ? defaultScope(method) : rateLimit.scope();
+        String key = rateLimit.key().isEmpty() ? "*" : expressions.evaluate(rateLimit.key(), method, target, invocation);
+        if (!limiters.tryAcquire(scope, key, rateLimit.limit(), DurationStyle.detectAndParse(rateLimit.period()))) {
+            throw new RateLimitedException();
+        }
+    }
+
+    private static String defaultScope(Method method) {
+        return method.getDeclaringClass().getSimpleName() + "." + method.getName();
     }
 
     private @Nullable Object locked(MethodInvocation invocation, Method method, Object target) throws Throwable {

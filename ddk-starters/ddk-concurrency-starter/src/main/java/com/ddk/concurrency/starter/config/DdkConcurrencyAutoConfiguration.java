@@ -3,6 +3,7 @@ package com.ddk.concurrency.starter.config;
 import com.ddk.concurrency.starter.AggregateLocks;
 import com.ddk.concurrency.starter.internal.ConcurrencyAdvisingPostProcessor;
 import com.ddk.concurrency.starter.internal.ConcurrencyInterceptor;
+import com.ddk.concurrency.starter.internal.RateLimiters;
 import com.ddk.concurrency.starter.internal.RequestRegistry;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.ObjectProvider;
@@ -42,11 +43,11 @@ public class DdkConcurrencyAutoConfiguration {
     @Bean
     @Role(BeanDefinition.ROLE_INFRASTRUCTURE)
     static ConcurrencyAdvisingPostProcessor ddkConcurrencyAdvisingPostProcessor(ObjectProvider<AggregateLocks> locks,
-            ObjectProvider<RequestRegistry> requests, Environment environment) {
+            ObjectProvider<RequestRegistry> requests, ObjectProvider<RateLimiters> rates, Environment environment) {
         Duration ttl = environment.getProperty(DdkConcurrencyProperties.PREFIX + ".idempotent.ttl", Duration.class, Duration.ofMinutes(10));
         Duration waitTime = environment.getProperty(DdkConcurrencyProperties.PREFIX + ".lock.wait-time", Duration.class, Duration.ofSeconds(3));
         Duration leaseTime = environment.getProperty(DdkConcurrencyProperties.PREFIX + ".lock.lease-time", Duration.class);
-        return new ConcurrencyAdvisingPostProcessor(new ConcurrencyInterceptor(locks, requests, ttl, waitTime, leaseTime));
+        return new ConcurrencyAdvisingPostProcessor(new ConcurrencyInterceptor(locks, requests, rates, ttl, waitTime, leaseTime));
     }
 
     @Configuration(proxyBeanMethods = false)
@@ -63,6 +64,11 @@ public class DdkConcurrencyAutoConfiguration {
         @Bean
         RequestRegistry ddkRequestRegistry(RedissonClient redisson, DdkConcurrencyProperties properties) {
             return new RequestRegistry(redisson, properties.getKeyPrefix());
+        }
+
+        @Bean
+        RateLimiters ddkRateLimiters(RedissonClient redisson, DdkConcurrencyProperties properties) {
+            return new RateLimiters(redisson, properties.getKeyPrefix());
         }
     }
 }
