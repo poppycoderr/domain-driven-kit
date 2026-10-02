@@ -105,7 +105,7 @@ mvn -B install
         <dependency>
             <groupId>com.ddk</groupId>
             <artifactId>ddk-dependencies</artifactId>
-            <version>0.5.0-SNAPSHOT</version>
+            <version>0.6.0-SNAPSHOT</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
