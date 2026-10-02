@@ -136,7 +136,7 @@ Testing:
 
 **Goal: safe to use in production projects.**
 
-- [ ] `ddk-mall` reference application: order, inventory and payment bounded contexts covering outbox, MQ, caching, read models and distributed locks; `docker compose up` starts it with an OpenTelemetry dashboard
+- [ ] `ddk-mall` reference application (in progress, order context done): order, inventory and payment bounded contexts covering outbox, MQ, caching, read models and distributed locks; `docker compose up` starts it with an OpenTelemetry dashboard
 - [ ] GraalVM `RuntimeHints` for every starter, with a native image build of the example
 - [ ] Verified behavior on virtual threads (locks, ThreadLocal context propagation)
 - [ ] Public API freeze, strict semantic versioning from here on
