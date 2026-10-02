@@ -67,6 +67,7 @@
         <rocketmq.version>5.5.1</rocketmq.version>
         <redisson.version>4.7.0</redisson.version>
         <springdoc.version>3.1.1</springdoc.version>
+        <shedlock.version>7.10.1</shedlock.version>
         <maven-archetype.version>3.4.1</maven-archetype.version>
     </properties>
 
@@ -174,6 +175,11 @@
                 <artifactId>ddk-concurrency-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.ddk</groupId>
+                <artifactId>ddk-job-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <!-- MyBatis-Plus (Spring Boot 4 starter) -->
             <dependency>
@@ -209,6 +215,18 @@
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
                 <version>${springdoc.version}</version>
+            </dependency>
+
+            <!-- ShedLock -->
+            <dependency>
+                <groupId>net.javacrumbs.shedlock</groupId>
+                <artifactId>shedlock-spring</artifactId>
+                <version>${shedlock.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.javacrumbs.shedlock</groupId>
+                <artifactId>shedlock-provider-redis-spring</artifactId>
+                <version>${shedlock.version}</version>
             </dependency>
 
             <!-- Redisson -->
