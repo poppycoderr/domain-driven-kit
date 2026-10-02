@@ -123,7 +123,7 @@ DDK 由个人维护，仍处于发布前阶段：适合本地构建、试用 arc
 | `ddk-mybatis-starter` | 分页、乐观锁、防全表更新删除、雪花 ID，`ddk.mybatis.*` 可配 | 可用 |
 | `ddk-event-starter` | 领域事件的 Spring 发布实现 | 可用 |
 | `ddk-mcp-starter` | 把应用用例暴露为 MCP 工具：参数校验、错误码、审计日志，默认 streamable HTTP | 可用，含 MCP 客户端端到端测试 |
-| `ddk-concurrency-starter` | 基于 Redisson 的 `@AggregateLock` 与 `@Idempotent`：同一聚合同时只有一个操作，同一请求只执行一次 | 可用，含 Redis 集成测试 |
+| `ddk-concurrency-starter` | 基于 Redisson 的 `@AggregateLock`、`@Idempotent`、`@RateLimit`：同一聚合同时只有一个操作，同一请求只执行一次，按用户或租户限流 | 可用，含 Redis 集成测试 |
 | `ddk-redis-starter` | 带类型白名单的 JSON `RedisTemplate` | 可用 |
 | `ddk-cache-starter` | Caffeine（L1）+ Redis（L2）两级缓存，跨实例失效广播，Redis 故障降级 | 可用，含 Redis 集成测试 |
 | `ddk-archguard-starter` | DDD 分层与领域层纯度的 ArchUnit 规则 | 可用 |

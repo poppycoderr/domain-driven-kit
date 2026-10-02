@@ -123,7 +123,7 @@ DDK is maintained by one person and is still pre-release: build it locally, try 
 | `ddk-mybatis-starter` | Pagination, optimistic locking, full-table update/delete guard, snowflake IDs, configurable under `ddk.mybatis.*` | Usable |
 | `ddk-event-starter` | Spring-backed domain event publisher | Usable |
 | `ddk-mcp-starter` | Application use cases as MCP tools: argument validation, error codes, audit log, streamable HTTP by default | Usable, with MCP client end-to-end tests |
-| `ddk-concurrency-starter` | `@AggregateLock` and `@Idempotent` on Redisson: one operation per aggregate, one execution per request | Usable, with Redis integration tests |
+| `ddk-concurrency-starter` | `@AggregateLock`, `@Idempotent` and `@RateLimit` on Redisson: one operation per aggregate, one execution per request, a call budget per user or tenant | Usable, with Redis integration tests |
 | `ddk-redis-starter` | JSON `RedisTemplate` with a deserialization type allow-list | Usable |
 | `ddk-cache-starter` | Caffeine (L1) + Redis (L2) two-level cache with cross-instance invalidation and Redis failure fallback | Usable, with Redis integration tests |
 | `ddk-archguard-starter` | ArchUnit rules for layering and domain purity | Usable |
