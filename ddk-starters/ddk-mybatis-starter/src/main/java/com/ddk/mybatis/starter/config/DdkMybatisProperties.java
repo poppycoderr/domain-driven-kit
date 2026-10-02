@@ -1,5 +1,7 @@
 package com.ddk.mybatis.starter.config;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import com.baomidou.mybatisplus.annotation.DbType;
 import lombok.Data;
 import org.jspecify.annotations.Nullable;
@@ -70,4 +72,33 @@ public class DdkMybatisProperties {
      * 雪花 ID 的数据中心号（0-31）。
      */
     private @Nullable Long datacenterId;
+
+    /**
+     * 多租户。
+     */
+    private Tenant tenant = new Tenant();
+
+    @Data
+    public static class Tenant {
+
+        /**
+         * 是否启用多租户。启用后每条 SQL 都会追加租户条件，租户取自 {@code OperatorContext}；取不到时语句直接失败。
+         */
+        private boolean enabled = false;
+
+        /**
+         * 租户列名。
+         */
+        private String column = "tenant_id";
+
+        /**
+         * 租户列是否为数值类型。为 false 时按字符串比较。
+         */
+        private boolean numericId = true;
+
+        /**
+         * 不分租户的表，例如字典表、租户表本身。不区分大小写。
+         */
+        private Set<String> ignoreTables = new LinkedHashSet<>();
+    }
 }

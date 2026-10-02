@@ -8,8 +8,10 @@ import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.BlockAttackInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.TenantLineInnerInterceptor;
 import com.ddk.core.mapper.MapperProvider;
-import org.apache.ibatis.reflection.MetaObject;
+import com.ddk.mybatis.starter.internal.AuditMetaObjectHandler;
+import com.ddk.mybatis.starter.internal.OperatorTenantLineHandler;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -17,7 +19,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 
-import java.time.LocalDateTime;
 
 /**
  * MyBatis-Plus 自动配置
@@ -79,6 +80,12 @@ public class MybatisPlusAutoConfiguration {
     @ConditionalOnMissingBean
     public MybatisPlusInterceptor mybatisPlusInterceptor(DdkMybatisProperties properties) {
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
+        // 租户条件要最先加：后面的乐观锁、分页都应当作用在已经带上租户条件的 SQL 上
+        DdkMybatisProperties.Tenant tenant = properties.getTenant();
+        if (tenant.isEnabled()) {
+            interceptor.addInnerInterceptor(new TenantLineInnerInterceptor(
+                    new OperatorTenantLineHandler(tenant.getColumn(), tenant.isNumericId(), tenant.getIgnoreTables())));
+        }
 
         if (properties.isOptimisticLocker()) {
             interceptor.addInnerInterceptor(new OptimisticLockerInnerInterceptor());
@@ -99,17 +106,6 @@ public class MybatisPlusAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public MetaObjectHandler metaObjectHandler() {
-        return new MetaObjectHandler() {
-            @Override
-            public void insertFill(MetaObject metaObject) {
-                this.strictInsertFill(metaObject, "createTime", LocalDateTime.class, LocalDateTime.now());
-                this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
-            }
-
-            @Override
-            public void updateFill(MetaObject metaObject) {
-                this.strictUpdateFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
-            }
-        };
+        return new AuditMetaObjectHandler();
     }
 }
