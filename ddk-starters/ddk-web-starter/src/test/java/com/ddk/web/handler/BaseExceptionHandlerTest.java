@@ -3,6 +3,7 @@ package com.ddk.web.handler;
 import com.ddk.core.exception.AggregateBusyException;
 import com.ddk.core.exception.BusinessException;
 import com.ddk.core.exception.DuplicateRequestException;
+import com.ddk.core.exception.RateLimitedException;
 import com.ddk.core.repository.ConcurrentUpdateException;
 import com.ddk.core.exception.ErrorCode;
 import com.ddk.core.exception.SystemException;
@@ -81,6 +82,11 @@ class BaseExceptionHandlerTest {
             throw new DuplicateRequestException();
         }
 
+        @GetMapping("/limited")
+        void limited() {
+            throw new RateLimitedException();
+        }
+
         @GetMapping("/system")
         void system() {
             throw new SystemException(TestError.UPSTREAM_UNAVAILABLE);
@@ -147,6 +153,14 @@ class BaseExceptionHandlerTest {
         mvc.perform(get("/t/duplicate"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("DUPLICATE_REQUEST"));
+    }
+
+    @Test
+    @DisplayName("限流 -> 429")
+    void rateLimitedBecomes429() throws Exception {
+        mvc.perform(get("/t/limited"))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(jsonPath("$.code").value("RATE_LIMITED"));
     }
 
     @Test

@@ -3,6 +3,7 @@ package com.ddk.web.handler;
 import com.ddk.core.exception.AggregateBusyException;
 import com.ddk.core.exception.BusinessException;
 import com.ddk.core.exception.DuplicateRequestException;
+import com.ddk.core.exception.RateLimitedException;
 import com.ddk.core.exception.CommonError;
 import com.ddk.core.exception.SystemException;
 import com.ddk.core.repository.ConcurrentUpdateException;
@@ -67,6 +68,15 @@ public class BaseExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleConflict(BusinessException e) {
         log.warn("{}: {}", e.getClass().getSimpleName(), e.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.ofFail(e.getErrorCode(), e.getArgs()));
+    }
+
+    /**
+     * 限流：用 429，客户端应降低频率。
+     */
+    @ExceptionHandler(RateLimitedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleRateLimited(RateLimitedException e) {
+        log.warn("RateLimitedException: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(ApiResponse.ofFail(e.getErrorCode(), e.getArgs()));
     }
 
     /**
