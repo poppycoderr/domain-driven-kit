@@ -28,7 +28,7 @@
 </p>
 
 <p align="center">
-    <sub>Generate a project, let the domain model reach into the persistence layer, and the build fails with the rule, the class and how to fix it. The output is from a real run on v0.4.0.</sub>
+    <sub>Generate a project, let the domain model reach into the persistence layer, and the build fails with the rule, the class and how to fix it. The output is from a real run.</sub>
 </p>
 
 ## Highlights
