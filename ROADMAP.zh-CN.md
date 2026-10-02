@@ -118,7 +118,7 @@ AI 能力（基于 Spring AI 2.0）：
 
 | 分类 | 集成 | 领域语义 | 优先级 |
 |---|---|---|---|
-| 并发控制 | Redisson | `@AggregateLock` 与 `@Idempotent` 防重复提交（已完成，`ddk-concurrency-starter`）；按用户 / 租户的限流 | 高 |
+| 并发控制 | Redisson | 已在 `ddk-concurrency-starter` 完成：`@AggregateLock`、`@Idempotent` 防重复提交、按用户 / 租户的 `@RateLimit` | 高 |
 | 定时任务 | XXL-Job、ShedLock | 任务只调用应用服务，多实例不重复执行 | 高 |
 | 数据库演进 | Flyway | 已完成：archetype 自带基线迁移脚本，示例改用迁移脚本而不是 `schema.sql`，代理约定要求每次表结构变化新增一个迁移 | 高 |
 | 接口文档 | springdoc-openapi | 已在 Web starter 完成：每个接口补上 400 / 409 / 500 错误响应，错误码汇总成清单；`ApiResponse<T>` 由 springdoc 按泛型展开 | 高 |

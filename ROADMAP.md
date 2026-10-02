@@ -118,7 +118,7 @@ AI capabilities (on Spring AI 2.0):
 
 | Area | Integration | Domain semantics | Priority |
 |---|---|---|---|
-| Concurrency control | Redisson | `@AggregateLock` and `@Idempotent` duplicate-submit protection (done, `ddk-concurrency-starter`); per-user / per-tenant rate limits | High |
+| Concurrency control | Redisson | Done in `ddk-concurrency-starter`: `@AggregateLock`, `@Idempotent` duplicate-submit protection, `@RateLimit` per user or tenant | High |
 | Scheduling | XXL-Job, ShedLock | Jobs only call application services and never run twice across instances | High |
 | Schema migration | Flyway | Done: archetypes ship a baseline migration, the example uses migrations instead of `schema.sql`, and agent rules require a new migration per schema change | High |
 | API docs | springdoc-openapi | Done in the web starter: 400 / 409 / 500 error responses on every operation and a catalogue of error codes; springdoc already expands `ApiResponse<T>` by its generic type | High |
