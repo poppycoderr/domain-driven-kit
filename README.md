@@ -78,7 +78,7 @@ curl -fsSL https://raw.githubusercontent.com/poppycoderr/domain-driven-kit/main/
 cd order-service && mvn verify
 ```
 
-Use `--layers 3` for the three-layer skeleton, or `DDK_REF=v0.4.0` to build a released version. Run `ddk.sh help` for all options.
+Use `--layers 3` for the three-layer skeleton, or `DDK_REF=v0.4.1` to build a released version. Run `ddk.sh help` for all options.
 
 To build DDK by hand instead:
 

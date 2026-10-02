@@ -12,6 +12,8 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-10-03
+
 ### Fixed
 
 - The ArchGuard report named the wrong class for a violation inside a constructor or static initializer: it reported the class being depended on instead of the class that contains the violation
@@ -116,7 +118,8 @@ The first release: the DDD foundation on a Spring Boot 4.1 baseline.
 Starter implementation classes live in `com.ddk.<starter>.starter.internal` packages and are not public API: `CacheInvalidationListener`, `CacheInvalidationMessage`, `RedisCacheInvalidationPublisher`, `MicrometerCacheMetrics`, `JitteredTtlFunction`, `SpringDomainEventPublisher` and `TraceIdResponseFilter`. Generated projects check this with `DDK_INTERNALS_MUST_NOT_BE_USED`.
 - The springdoc dependency from `ddk-web-starter`; add it in the application when API docs are needed
 
-[Unreleased]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.1.0...v0.2.0
