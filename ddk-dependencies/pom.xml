@@ -83,6 +83,11 @@
             </dependency>
             <dependency>
                 <groupId>com.ddk</groupId>
+                <artifactId>ddk-test</artifactId>
+                <version>${ddk.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ddk</groupId>
                 <artifactId>ddk-mybatis</artifactId>
                 <version>${ddk.version}</version>
             </dependency>
