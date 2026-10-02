@@ -1,5 +1,7 @@
 package com.ddk.job.starter;
 
+import com.ddk.test.containers.DdkContainers;
+import com.ddk.test.containers.RedisContainer;
 import com.ddk.job.starter.config.DdkJobAutoConfiguration;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,7 +14,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -30,7 +31,7 @@ import static org.awaitility.Awaitility.await;
 class ScheduledJobLockIntegrationTest {
 
     @Container
-    static final GenericContainer<?> REDIS = new GenericContainer<>("redis:7-alpine").withExposedPorts(6379);
+    static final RedisContainer REDIS = DdkContainers.redis();
 
     private static final AtomicInteger LOCKED_RUNS = new AtomicInteger();
 
@@ -42,7 +43,7 @@ class ScheduledJobLockIntegrationTest {
             .withPropertyValues(
                     "spring.application.name=orders",
                     "spring.data.redis.host=" + REDIS.getHost(),
-                    "spring.data.redis.port=" + REDIS.getMappedPort(6379),
+                    "spring.data.redis.port=" + REDIS.getPort(),
                     "ddk.job.lock.at-least-for=30s");
 
     @BeforeEach

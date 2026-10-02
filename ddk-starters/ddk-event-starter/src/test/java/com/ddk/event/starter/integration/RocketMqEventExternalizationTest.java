@@ -5,8 +5,8 @@ import com.ddk.core.domain.DomainEvent;
 import com.ddk.core.domain.DomainEventPublisher;
 import com.ddk.core.domain.Identifier;
 import com.ddk.core.domain.IntegrationEvent;
-import com.github.dockerjava.api.model.ExposedPort;
-import com.github.dockerjava.api.model.Ports;
+import com.ddk.test.containers.DdkContainers;
+import com.ddk.test.containers.RocketMqContainer;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
 import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
@@ -23,19 +23,12 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
-import java.io.IOException;
-import java.net.ServerSocket;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -44,8 +37,6 @@ import static org.awaitility.Awaitility.await;
 
 /**
  * 在真实的 RocketMQ 上验证：事件在事务提交后投递，带契约头，同一个 key 落在同一个队列。
- * <p>
- * broker 会把自己的地址登记到 NameServer，客户端按这个地址直连，所以 broker 端口在宿主机上要与容器内一致。
  */
 @Testcontainers(disabledWithoutDocker = true)
 @SpringBootTest(classes = RocketMqEventExternalizationTest.TestApplication.class, properties = {
@@ -57,27 +48,8 @@ class RocketMqEventExternalizationTest {
 
     private static final String TOPIC = "order-events";
 
-    private static final int BROKER_PORT = freePort();
-
     @Container
-    static final GenericContainer<?> ROCKETMQ = new GenericContainer<>(DockerImageName.parse("apache/rocketmq:5.5.0"))
-            .withExposedPorts(9876)
-            .withEnv("JAVA_OPT_EXT", "-Xms256m -Xmx256m -Xmn128m")
-            .withCreateContainerCmdModifier(cmd -> {
-                // Linux 上的 Docker 只为容器声明过的端口做映射，所以 broker 端口要同时声明并绑定
-                List<ExposedPort> exposed = new ArrayList<>(Arrays.asList(cmd.getExposedPorts()));
-                exposed.add(ExposedPort.tcp(BROKER_PORT));
-                cmd.withExposedPorts(exposed);
-                Ports ports = cmd.getHostConfig().getPortBindings();
-                ports.bind(ExposedPort.tcp(BROKER_PORT), Ports.Binding.bindPort(BROKER_PORT));
-                cmd.getHostConfig().withPortBindings(ports);
-            })
-            .withCommand("sh", "-c", String.join(" && ",
-                    "printf 'brokerClusterName=DefaultCluster\\nbrokerName=broker-a\\nbrokerId=0\\nbrokerIP1=127.0.0.1\\nlistenPort=%s\\n"
-                            + "autoCreateTopicEnable=false\\n' " + BROKER_PORT + " > /tmp/broker.conf",
-                    "(./mqnamesrv &)",
-                    "./mqbroker -n localhost:9876 -c /tmp/broker.conf"))
-            .waitingFor(Wait.forLogMessage(".*The broker.*boot success.*", 1).withStartupTimeout(Duration.ofMinutes(2)));
+    static final RocketMqContainer ROCKETMQ = DdkContainers.rocketmq();
 
     private static final List<MessageExt> RECEIVED = new CopyOnWriteArrayList<>();
 
@@ -94,17 +66,15 @@ class RocketMqEventExternalizationTest {
 
     @DynamicPropertySource
     static void rocketmq(DynamicPropertyRegistry registry) {
-        registry.add("ddk.event.rocketmq.name-server", RocketMqEventExternalizationTest::nameServer);
+        registry.add("ddk.event.rocketmq.name-server", ROCKETMQ::getNameServer);
     }
 
     @BeforeAll
     static void subscribe() throws Exception {
-        // 直接对 broker 建 topic：按集群建要先等 broker 登记到 NameServer，否则 mqadmin 什么也不做却照样返回 0
-        var created = ROCKETMQ.execInContainer("./mqadmin", "updateTopic", "-b", "127.0.0.1:" + BROKER_PORT, "-t", TOPIC, "-r", "4", "-w", "4");
-        assertThat(created.getStdout()).as(created.getStderr()).contains("success");
+        ROCKETMQ.createTopic(TOPIC, 4);
 
         consumer = new DefaultMQPushConsumer("order-events-test");
-        consumer.setNamesrvAddr(nameServer());
+        consumer.setNamesrvAddr(ROCKETMQ.getNameServer());
         consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
         consumer.subscribe(TOPIC, "*");
         consumer.registerMessageListener((MessageListenerConcurrently) (messages, context) -> {
@@ -112,8 +82,6 @@ class RocketMqEventExternalizationTest {
             return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
         });
         consumer.start();
-        // 建 topic 后 broker 异步把路由登记到 NameServer，等路由可见再开始发送
-        await().atMost(Duration.ofSeconds(30)).ignoreExceptions().until(() -> !consumer.fetchSubscribeMessageQueues(TOPIC).isEmpty());
     }
 
     @AfterAll
@@ -141,18 +109,6 @@ class RocketMqEventExternalizationTest {
 
         await().atMost(Duration.ofSeconds(10))
                 .until(() -> jdbc.queryForObject("SELECT COUNT(*) FROM event_publication WHERE completion_date IS NULL", Long.class) == 0);
-    }
-
-    private static String nameServer() {
-        return ROCKETMQ.getHost() + ":" + ROCKETMQ.getMappedPort(9876);
-    }
-
-    private static int freePort() {
-        try (ServerSocket socket = new ServerSocket(0)) {
-            return socket.getLocalPort();
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
-        }
     }
 
     static final class OrderId extends Identifier<Long> {

@@ -62,6 +62,11 @@
             <artifactId>testcontainers-junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.ddk</groupId>
+            <artifactId>ddk-test</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

@@ -1,5 +1,7 @@
 package com.ddk.concurrency.starter.integration;
 
+import com.ddk.test.containers.DdkContainers;
+import com.ddk.test.containers.RedisContainer;
 import com.ddk.concurrency.starter.AggregateLock;
 import com.ddk.concurrency.starter.AggregateLocks;
 import com.ddk.concurrency.starter.Idempotent;
@@ -24,7 +26,6 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -50,7 +51,7 @@ import static org.awaitility.Awaitility.await;
 class ConcurrencyRedisIntegrationTest {
 
     @Container
-    static final GenericContainer<?> REDIS = new GenericContainer<>("redis:7-alpine").withExposedPorts(6379);
+    static final RedisContainer REDIS = DdkContainers.redis();
 
     @Autowired
     private OrderService orders;
@@ -64,7 +65,7 @@ class ConcurrencyRedisIntegrationTest {
     @DynamicPropertySource
     static void redis(DynamicPropertyRegistry registry) {
         registry.add("spring.data.redis.host", REDIS::getHost);
-        registry.add("spring.data.redis.port", () -> REDIS.getMappedPort(6379));
+        registry.add("spring.data.redis.port", REDIS::getPort);
     }
 
     @BeforeEach

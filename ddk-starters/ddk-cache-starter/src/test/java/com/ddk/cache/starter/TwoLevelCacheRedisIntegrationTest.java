@@ -1,5 +1,7 @@
 package com.ddk.cache.starter;
 
+import com.ddk.test.containers.DdkContainers;
+import com.ddk.test.containers.RedisContainer;
 import com.ddk.cache.starter.config.DdkCacheAutoConfiguration;
 import com.ddk.cache.starter.support.DdkCacheManager;
 import com.ddk.cache.starter.support.TwoLevelCache;
@@ -18,7 +20,6 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
-import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -38,7 +39,7 @@ import static org.awaitility.Awaitility.await;
 class TwoLevelCacheRedisIntegrationTest {
 
     @Container
-    static final GenericContainer<?> REDIS = new GenericContainer<>("redis:7-alpine").withExposedPorts(6379);
+    static final RedisContainer REDIS = DdkContainers.redis();
 
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(DataRedisAutoConfiguration.class, DdkRedisAutoConfiguration.class,
@@ -46,7 +47,7 @@ class TwoLevelCacheRedisIntegrationTest {
             .withUserConfiguration(ServiceConfiguration.class)
             .withPropertyValues(
                     "spring.data.redis.host=" + REDIS.getHost(),
-                    "spring.data.redis.port=" + REDIS.getMappedPort(6379),
+                    "spring.data.redis.port=" + REDIS.getPort(),
                     "ddk.redis.trusted-packages=com.ddk.cache.starter",
                     "ddk.cache.key-prefix=it:cache:",
                     "ddk.cache.default-ttl=10m",
