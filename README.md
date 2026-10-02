@@ -143,7 +143,7 @@ DDK is maintained by one person and is in its 0.x series: a minor release may co
 | `ddk-test` | Assertions on aggregates and business rules, Testcontainers presets for Redis, MySQL and RocketMQ | Usable, used by DDK's own tests |
 | `ddk-mybatis` | MyBatis-Plus repository implementation, query parsing, pagination, optimistic locking, domain event publishing | Usable, with H2 integration tests |
 | `ddk-web-starter` | Jackson, CORS, global exception handling, and the error contract in OpenAPI docs when springdoc is present, configurable under `ddk.web.*` | Usable |
-| `ddk-mybatis-starter` | Pagination, optimistic locking, full-table update/delete guard, snowflake IDs, configurable under `ddk.mybatis.*` | Usable |
+| `ddk-mybatis-starter` | Pagination, optimistic locking, full-table update/delete guard, snowflake IDs, audit fields and multi-tenancy from the operator context, configurable under `ddk.mybatis.*` | Usable, with H2 integration tests |
 | `ddk-event-starter` | Spring-backed domain event publisher | Usable |
 | `ddk-mcp-starter` | Application use cases as MCP tools: argument validation, error codes, audit log, streamable HTTP by default | Usable, with MCP client end-to-end tests |
 | `ddk-concurrency-starter` | `@AggregateLock`, `@Idempotent` and `@RateLimit` on Redisson: one operation per aggregate, one execution per request, a call budget per user or tenant | Usable, with Redis integration tests |
