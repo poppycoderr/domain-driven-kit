@@ -26,7 +26,7 @@ Three observations decide what DDK does and does not do:
   Guardrails   ArchGuard rules · AGENTS.md / Skills · generated projects ship architecture tests
   Domain       ddk-core: aggregates · value objects · domain events · specifications · repositories
   Reliability  outbox · idempotency · distributed locks · rate limits   ← keyed by aggregate / command
-  Integration  MyBatis-Plus · Redis · RocketMQ/Kafka · XXL-Job · Elasticsearch · Seata
+  Integration  MyBatis-Plus · Redis · RocketMQ/Kafka · ShedLock · Elasticsearch · Seata
   AI           Spring AI · MCP: application services as tools, under the same validation and permissions
   Platform     Spring Boot 4 · Jackson 3 · JSpecify · virtual threads · OpenTelemetry
 ```
@@ -119,7 +119,7 @@ AI capabilities (on Spring AI 2.0):
 | Area | Integration | Domain semantics | Priority |
 |---|---|---|---|
 | Concurrency control | Redisson | Done in `ddk-concurrency-starter`: `@AggregateLock`, `@Idempotent` duplicate-submit protection, `@RateLimit` per user or tenant | High |
-| Scheduling | XXL-Job, ShedLock | Done: `SCHEDULED_JOBS_MUST_RESIDE_IN_ADAPTER` makes jobs call application services only. Open: executor auto-configuration (XXL-Job is GPL-3.0, to be decided) and single execution across instances | High |
+| Scheduling | ShedLock | Done: `ddk-job-starter` runs a `@Scheduled` job on one instance at a time, and `SCHEDULED_JOBS_MUST_RESIDE_IN_ADAPTER` makes jobs call application services only. No XXL-Job starter: it is GPL-3.0, which DDK (Apache-2.0) does not link against; a scheduling platform with a compatible license may be integrated later | High |
 | Schema migration | Flyway | Done: archetypes ship a baseline migration, the example uses migrations instead of `schema.sql`, and agent rules require a new migration per schema change | High |
 | API docs | springdoc-openapi | Done in the web starter: 400 / 409 / 500 error responses on every operation and a catalogue of error codes; springdoc already expands `ApiResponse<T>` by its generic type | High |
 | Read models | Elasticsearch | Projections driven by domain events, with rebuilds | Medium |
