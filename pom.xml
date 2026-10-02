@@ -74,6 +74,7 @@
     <modules>
         <module>ddk-dependencies</module>
         <module>ddk-core</module>
+        <module>ddk-test</module>
         <module>ddk-mybatis</module>
         <module>ddk-starters</module>
         <module>ddk-archetypes</module>
@@ -113,6 +114,11 @@
             <dependency>
                 <groupId>com.ddk</groupId>
                 <artifactId>ddk-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.ddk</groupId>
+                <artifactId>ddk-test</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
