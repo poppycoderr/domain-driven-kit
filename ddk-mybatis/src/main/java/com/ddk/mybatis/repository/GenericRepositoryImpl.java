@@ -46,6 +46,10 @@ import java.util.Optional;
  *     <li>实体是聚合根时，在写入成功后排空并发布它累积的领域事件</li>
  * </ol>
  *
+ * <h2>聚合有子表时</h2>
+ * 覆盖 {@link #afterInsert(Object)}、{@link #afterUpdate(Object)}、{@link #afterLoad(List)}、{@link #beforeRemove(List)}，
+ * 在根表读写的前后处理子表。聚合仍然作为一个整体保存和加载，应用层看不到子表。
+ *
  * <h2>必须显式注册两个方向的映射器</h2>
  * {@code E -> P} 与 {@code P -> E} 各需要一个 {@code @EnhancedMapper}，
  * 否则首次调用时抛 {@code MissingMapperException}——没有静默兜底。
@@ -105,6 +109,7 @@ public class GenericRepositoryImpl<E, ID extends Serializable, P, M extends Base
     public E create(E entity) {
         P po = toPo().map(entity);
         getBaseMapper().insert(po);
+        afterInsert(po);
         E saved = toEntity().map(po);
         publishEventsOf(entity);
         return saved;
@@ -117,6 +122,7 @@ public class GenericRepositoryImpl<E, ID extends Serializable, P, M extends Base
         }
         List<P> pos = toPo().map(entities);
         super.saveBatch(pos);
+        pos.forEach(this::afterInsert);
         List<E> saved = toEntity().map(pos);
         entities.forEach(this::publishEventsOf);
         return saved;
@@ -132,6 +138,7 @@ public class GenericRepositoryImpl<E, ID extends Serializable, P, M extends Base
         if (getBaseMapper().updateById(po) == 0) {
             throw new ConcurrentUpdateException(eClass.getSimpleName());
         }
+        afterUpdate(po);
         E saved = toEntity().map(po);
         publishEventsOf(entity);
         return saved;
@@ -151,7 +158,11 @@ public class GenericRepositoryImpl<E, ID extends Serializable, P, M extends Base
     @Override
     public Optional<E> find(ID id) {
         P po = getBaseMapper().selectById(keyOf(id));
-        return Optional.ofNullable(po).map(toEntity()::map);
+        if (po == null) {
+            return Optional.empty();
+        }
+        afterLoad(List.of(po));
+        return Optional.of(toEntity().map(po));
     }
 
     @Override
@@ -159,12 +170,16 @@ public class GenericRepositoryImpl<E, ID extends Serializable, P, M extends Base
         if (ids == null || ids.isEmpty()) {
             return List.of();
         }
-        return toEntity().map(getBaseMapper().selectByIds(keysOf(ids)));
+        List<P> pos = getBaseMapper().selectByIds(keysOf(ids));
+        afterLoad(pos);
+        return toEntity().map(pos);
     }
 
     @Override
     public boolean remove(ID id) {
-        return getBaseMapper().deleteById(keyOf(id)) > 0;
+        Serializable key = keyOf(id);
+        beforeRemove(List.of(key));
+        return getBaseMapper().deleteById(key) > 0;
     }
 
     @Override
@@ -172,13 +187,16 @@ public class GenericRepositoryImpl<E, ID extends Serializable, P, M extends Base
         if (ids == null || ids.isEmpty()) {
             return 0L;
         }
-        return getBaseMapper().deleteByIds(keysOf(ids));
+        List<Serializable> keys = keysOf(ids);
+        beforeRemove(keys);
+        return getBaseMapper().deleteByIds(keys);
     }
 
     @Override
     public PageResponse<E> page(PageQuery query) {
         Page<P> page = MybatisPlusPageAdapter.toPage(query);
         super.page(page, QueryParser.parse(query));
+        afterLoad(page.getRecords());
         return MybatisPlusPageAdapter.toPageResponse(page, toEntity()::map);
     }
 
@@ -200,6 +218,34 @@ public class GenericRepositoryImpl<E, ID extends Serializable, P, M extends Base
     @Override
     public long count() {
         return super.count();
+    }
+
+    /**
+     * 根表插入成功之后调用，用来写入聚合的子表（例如订单的订单行）。
+     * <p>
+     * 聚合由一张根表和若干子表组成时，让 PO 用 {@code @TableField(exist = false)} 的字段带上子对象：
+     * {@code E -> P} 的转换器填好它，这里把它写进子表；{@link #afterLoad(List)} 再把它读回来交给 {@code P -> E} 的转换器。
+     * 这几个扩展点与根表的读写在同一个事务里，默认什么都不做。
+     */
+    protected void afterInsert(P po) {
+    }
+
+    /**
+     * 根表更新成功（版本校验通过）之后调用，用来同步子表。更新被乐观锁拒绝时不会调用。
+     */
+    protected void afterUpdate(P po) {
+    }
+
+    /**
+     * 根表查出来之后、转换成实体之前调用，用来把子表的数据装到 PO 上。一次传入本次查询的全部根对象，子表应当批量查询，避免逐条查。
+     */
+    protected void afterLoad(List<P> pos) {
+    }
+
+    /**
+     * 根表删除之前调用，用来删除子表里的数据。参数是根对象的主键值。
+     */
+    protected void beforeRemove(List<Serializable> keys) {
     }
 
     /**
