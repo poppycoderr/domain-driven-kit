@@ -143,7 +143,7 @@ DDK 由个人维护，目前处于 0.x 阶段：次版本可能包含破坏性�
 | `ddk-test` | 聚合与业务规则断言，Redis、MySQL、RocketMQ 的 Testcontainers 预置 | 可用，DDK 自己的测试在用 |
 | `ddk-mybatis` | MyBatis-Plus 通用仓储、查询条件解析、分页适配、乐观锁、领域事件发布 | 可用，含 H2 集成测试 |
 | `ddk-web-starter` | Jackson、CORS、全局异常处理，引入 springdoc 时把错误约定写进接口文档，`ddk.web.*` 可配 | 可用 |
-| `ddk-mybatis-starter` | 分页、乐观锁、防全表更新删除、雪花 ID，`ddk.mybatis.*` 可配 | 可用 |
+| `ddk-mybatis-starter` | 分页、乐观锁、防全表更新删除、雪花 ID，由操作者上下文驱动的审计字段与多租户，`ddk.mybatis.*` 可配 | 可用，含 H2 集成测试 |
 | `ddk-event-starter` | 领域事件的 Spring 发布实现 | 可用 |
 | `ddk-mcp-starter` | 把应用用例暴露为 MCP 工具：参数校验、错误码、审计日志，默认 streamable HTTP | 可用，含 MCP 客户端端到端测试 |
 | `ddk-concurrency-starter` | 基于 Redisson 的 `@AggregateLock`、`@Idempotent`、`@RateLimit`：同一聚合同时只有一个操作，同一请求只执行一次，按用户或租户限流 | 可用，含 Redis 集成测试 |
