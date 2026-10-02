@@ -54,14 +54,16 @@ Report: target/archguard/violations.md
 
 [LAYERED_ARCHITECTURE_RULE] com.acme.order.domain.model.Order
   Field <com.acme.order.domain.model.Order.state> has type <com.acme.order.infrastructure.orm.po.OrderPO> in (Order.java:0)
-  How to fix: 依赖方向应为 adapter → application → domain，infrastructure 只实现 domain.acl 中的接口。……
+  How to fix: Dependencies point adapter → application → domain, and infrastructure only implements the interfaces in domain.acl. ...
 
 [DOMAIN_MUST_NOT_DEPEND_ON_OUTER_LAYERS] com.acme.order.domain.model.Order
   Field <com.acme.order.domain.model.Order.state> has type <com.acme.order.infrastructure.orm.po.OrderPO> in (Order.java:0)
-  How to fix: 领域层不得引用外层类型：需要的能力在 domain.acl 定义端口并由 infrastructure 实现，需要的数据以参数或值对象传入。
+  How to fix: The domain layer must not reference types from outer layers: define a port in domain.acl for the capability and implement it in infrastructure, and pass the data in as parameters or value objects.
 ```
 
 Rules outside `CommonArchRules` are reported with the rule ID `CUSTOM` and a generic hint.
+
+Hints come in English and Chinese. The language follows the JVM's default locale: Chinese on a Chinese locale, English otherwise. To force one, set the system property `ddk.archguard.language` to `en` or `zh`, for example `mvn verify -DargLine="-Dddk.archguard.language=zh"`.
 
 ## Rules
 
