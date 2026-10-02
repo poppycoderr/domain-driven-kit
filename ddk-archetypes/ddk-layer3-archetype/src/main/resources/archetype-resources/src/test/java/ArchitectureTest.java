@@ -21,6 +21,7 @@ class ArchitectureTest {
     void architectureIsRespected() {
         ArchGuard.check(classes,
                 CommonArchRules.THREE_LAYER_ARCHITECTURE_RULE,
-                CommonArchRules.DDK_INTERNALS_MUST_NOT_BE_USED);
+                CommonArchRules.DDK_INTERNALS_MUST_NOT_BE_USED,
+                CommonArchRules.SCHEDULED_JOBS_MUST_RESIDE_IN_ADAPTER);
     }
 }

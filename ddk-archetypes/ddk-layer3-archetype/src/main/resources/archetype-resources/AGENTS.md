@@ -54,6 +54,7 @@ $h3 接口与持久化
 - 路径变量与查询参数显式命名：`@PathVariable("id")`、`@RequestParam(value = "status", required = false)`。
 - 接口统一返回 `ApiResponse<T>`；业务失败抛 `BusinessException`，不要在控制器里 try-catch。
 - 单表 CRUD 用 `BaseMapper` 与 lambda wrapper；`update(null, lambdaUpdate())` 不会触发自动填充，需要显式设置更新时间。
+- 定时任务（`@Scheduled`、`@XxlJob`）写在 `adapter.job` 包里，方法里只调用应用服务。任务和控制器一样是用例的入口，不直接使用仓储、Mapper。
 - 表结构用 Flyway 管理：每次变化在 `src/main/resources/db/migration` 新增一个 `V<版本号>__<说明>.sql`。已执行过的迁移脚本不能修改，也不要用 `schema.sql`。
 
 $h3 通用
