@@ -12,6 +12,10 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ## [Unreleased]
 
+### Added
+
+- `GenericRepositoryImpl` has extension points for aggregates stored in a root table plus child tables: `afterInsert`, `afterUpdate`, `afterLoad` and `beforeRemove` run around the root table's reads and writes in the same transaction
+
 ## [0.5.0] - 2026-10-03
 
 One operator context for cross-cutting persistence concerns: audit fields and fail-closed multi-tenancy in the MyBatis starter, set per request by the web starter. ArchGuard fix hints are now available in English.
