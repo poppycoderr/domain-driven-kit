@@ -151,4 +151,17 @@ public final class CommonArchRules {
             .should().beDeclaredInClassesThat().resideInAPackage("..adapter..")
             .because("定时任务是用例的入口，只能经由应用服务访问领域")
             .allowEmptyShould(true);
+
+    /**
+     * {@code @Scheduled} 任务必须同时声明 ShedLock 的 {@code @SchedulerLock}。
+     * <p>
+     * 多实例部署时，没有加锁的任务会在每个实例上各执行一遍，而漏写注解不会有任何报错。这条规则是可选的：
+     * 只在使用 {@code ddk-job-starter}（或自行接入 ShedLock）的项目里启用；确实需要每个实例各跑一次的任务（例如刷新本地缓存）
+     * 可以用 ArchUnit 的 {@code that()} 条件排除。按注解全限定名匹配，本模块不依赖 ShedLock。
+     */
+    public static final ArchRule SCHEDULED_JOBS_MUST_BE_LOCKED = methods()
+            .that().areAnnotatedWith("org.springframework.scheduling.annotation.Scheduled")
+            .should().beAnnotatedWith("net.javacrumbs.shedlock.spring.annotation.SchedulerLock")
+            .because("多实例下没有加锁的定时任务会在每个实例上各执行一遍")
+            .allowEmptyShould(true);
 }
