@@ -12,6 +12,10 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ## [Unreleased]
 
+### Fixed
+
+- The ArchGuard report named the wrong class for a violation inside a constructor or static initializer: it reported the class being depended on instead of the class that contains the violation
+
 ## [0.4.0] - 2026-10-02
 
 Middleware integrations with domain semantics: aggregate locks, duplicate-submit protection and rate limits on Redisson, scheduled jobs that run on one instance, the error contract in OpenAPI docs, Flyway migrations in generated projects, and `ddk-test` for domain assertions and container presets.
