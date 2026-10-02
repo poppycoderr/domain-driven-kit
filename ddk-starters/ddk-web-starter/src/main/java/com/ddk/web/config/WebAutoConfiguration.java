@@ -1,10 +1,13 @@
 package com.ddk.web.config;
 
 import com.ddk.core.jackson.IdentifierJacksonModule;
+import com.ddk.web.context.OperatorResolver;
 import com.ddk.web.handler.BaseExceptionHandler;
+import com.ddk.web.internal.OperatorContextFilter;
 import com.ddk.web.properties.DdkWebProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -106,5 +109,16 @@ public class WebAutoConfiguration {
                         .maxAge(cors.getMaxAge().toSeconds());
             }
         };
+    }
+
+    /**
+     * 应用声明了 {@link OperatorResolver} 时，在请求期间设置 {@code OperatorContext}。作为普通过滤器注册，排在 Spring Security 的过滤器链之后，
+     * 解析时已经能拿到认证结果。
+     */
+    @Bean
+    @ConditionalOnBean(OperatorResolver.class)
+    @ConditionalOnMissingBean
+    public OperatorContextFilter ddkOperatorContextFilter(OperatorResolver resolver) {
+        return new OperatorContextFilter(resolver);
     }
 }
