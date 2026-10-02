@@ -10,6 +10,9 @@ import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.BlockAttackInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.TenantLineInnerInterceptor;
+import com.ddk.core.context.Operator;
+import com.ddk.core.context.OperatorContext;
 import org.apache.ibatis.builder.MapperBuilderAssistant;
 import org.apache.ibatis.reflection.SystemMetaObject;
 import org.junit.jupiter.api.BeforeAll;
@@ -19,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("MyBatis starter 默认填充与插件组合")
 class MybatisPlusDefaultsTest {
@@ -31,6 +35,7 @@ class MybatisPlusDefaultsTest {
     static void registerTableInfo() {
         MybatisConfiguration mybatis = new MybatisConfiguration();
         TableInfoHelper.initTableInfo(new MapperBuilderAssistant(mybatis, ""), OrderPo.class);
+        TableInfoHelper.initTableInfo(new MapperBuilderAssistant(mybatis, ""), AccountPo.class);
     }
 
     @Test
@@ -100,6 +105,71 @@ class MybatisPlusDefaultsTest {
         assertThat(generator.nextId(null).longValue()).isGreaterThan(first);
         assertThat((first >> 12) & 0x1F).isEqualTo(3L);
         assertThat((first >> 17) & 0x1F).isEqualTo(5L);
+    }
+
+    @Test
+    @DisplayName("开启多租户后，租户插件排在最前")
+    void tenantInterceptorComesFirst() {
+        DdkMybatisProperties properties = new DdkMybatisProperties();
+        properties.getTenant().setEnabled(true);
+
+        assertThat(configuration.mybatisPlusInterceptor(properties).getInterceptors()).extracting(Object::getClass).containsExactly(
+                TenantLineInnerInterceptor.class, OptimisticLockerInnerInterceptor.class, BlockAttackInnerInterceptor.class,
+                PaginationInnerInterceptor.class);
+    }
+
+    @Test
+    @DisplayName("操作者字段可以是 Long；没有操作者时保持为空；调用方显式设置的创建人不覆盖")
+    void operatorFieldsSupportLongAndStayEmptyWithoutOperator() {
+        AccountPo anonymous = new AccountPo();
+        handler.insertFill(SystemMetaObject.forObject(anonymous));
+        assertThat(anonymous.createBy).isNull();
+
+        AccountPo imported = new AccountPo();
+        imported.createBy = 7L;
+        OperatorContext.runAs(Operator.of("42"), () -> {
+            AccountPo created = new AccountPo();
+            handler.insertFill(SystemMetaObject.forObject(created));
+            handler.insertFill(SystemMetaObject.forObject(imported));
+            handler.updateFill(SystemMetaObject.forObject(imported));
+
+            assertThat(created.createBy).isEqualTo(42L);
+            assertThat(created.updateBy).isEqualTo(42L);
+        });
+        assertThat(imported.createBy).isEqualTo(7L);
+        assertThat(imported.updateBy).isEqualTo(42L);
+    }
+
+    @Test
+    @DisplayName("操作者字段既不是 String 也不是 Long 时报错并指出字段")
+    void unsupportedOperatorFieldTypeIsRejected() {
+        TableInfoHelper.initTableInfo(new MapperBuilderAssistant(new MybatisConfiguration(), ""), BrokenPo.class);
+
+        assertThatThrownBy(() -> OperatorContext.runAs(Operator.of("42"),
+                () -> handler.insertFill(SystemMetaObject.forObject(new BrokenPo()))))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Audit field createBy on BrokenPo must be String or Long, but is Integer");
+    }
+
+    static class AccountPo {
+
+        @TableId
+        Long id;
+
+        @TableField(fill = FieldFill.INSERT)
+        Long createBy;
+
+        @TableField(fill = FieldFill.INSERT_UPDATE)
+        Long updateBy;
+    }
+
+    static class BrokenPo {
+
+        @TableId
+        Long id;
+
+        @TableField(fill = FieldFill.INSERT)
+        Integer createBy;
     }
 
     static class OrderPo {
