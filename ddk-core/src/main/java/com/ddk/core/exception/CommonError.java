@@ -32,6 +32,9 @@ public enum CommonError implements ErrorCode {
     /** 同一个请求已经在处理或已经处理过（重复提交） */
     DUPLICATE_REQUEST("请求正在处理或已处理，请勿重复提交"),
 
+    /** 调用超过了限流阈值。调用方应当降低频率后重试 */
+    RATE_LIMITED("请求过于频繁，请稍后再试"),
+
     /** 兜底：未被任何处理器识别的异常。对外不暴露原始异常信息 */
     SYSTEM_ERROR("服务器内部错误"),
     ;
