@@ -70,6 +70,16 @@ class ArchGuardTest {
     }
 
     @Test
+    void violationsInConstructorsAreAttributedToTheDeclaringClass() {
+        String po = "com.ddk.archguard.fixture.four.violation.infrastructure.OrderPO";
+
+        assertThat(ArchGuard.owningClass(violation, "Constructor <" + VIOLATING_ORDER + ".<init>(" + po + ")> calls method <" + po
+                + ".getId()> in (Order.java:10)")).isEqualTo(VIOLATING_ORDER);
+        assertThat(ArchGuard.owningClass(violation, "Static Initializer <" + VIOLATING_ORDER + ".<clinit>()> gets field <" + po
+                + ".DEFAULT> in (Order.java:5)")).isEqualTo(VIOLATING_ORDER);
+    }
+
+    @Test
     void jsonEscapesQuotesAndLineBreaks() {
         Violation v = new Violation("CUSTOM", "rule \"x\"", null, "line1\nline2\\", "hint");
 

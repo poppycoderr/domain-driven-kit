@@ -70,10 +70,11 @@ public final class ArchGuard {
 
     /**
      * ArchUnit 的违规描述形如 {@code Field <com.acme.domain.Order.state> has type <com.acme.infrastructure.OrderPO>}，
-     * 第一个尖括号里是违规的代码单元：可能是类、字段或方法，逐级去掉成员部分直到命中导入的类。
+     * 第一个尖括号里是违规的代码单元：可能是类、字段、方法或构造器，逐级去掉成员部分直到命中导入的类。
      */
     static @Nullable String owningClass(JavaClasses classes, String detail) {
-        Matcher matcher = CODE_UNIT.matcher(detail);
+        // 构造器与静态初始化块在描述里写作 <init>、<clinit>，自带的尖括号会把外层的代码单元截断
+        Matcher matcher = CODE_UNIT.matcher(detail.replace("<init>", "init").replace("<clinit>", "clinit"));
         while (matcher.find()) {
             String candidate = matcher.group(1);
             int parenthesis = candidate.indexOf('(');
