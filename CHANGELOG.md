@@ -12,6 +12,14 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ## [Unreleased]
 
+### Added
+
+- ArchGuard fix hints are available in English and Chinese. The language follows the JVM's default locale and can be set with the system property `ddk.archguard.language` (`en` or `zh`)
+
+### Changed
+
+- The reasons attached to the rules in `CommonArchRules` (the `because` clauses shown in reports) are now in English
+
 ## [0.4.1] - 2026-10-03
 
 ### Fixed
