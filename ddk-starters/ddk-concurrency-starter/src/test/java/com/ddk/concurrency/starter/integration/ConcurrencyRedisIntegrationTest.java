@@ -30,6 +30,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -132,6 +133,47 @@ class ConcurrencyRedisIntegrationTest {
 
         assertThat(result).isEqualTo("inner");
         assertThat(redisson.getLock("it:lock:order:5").isLocked()).isFalse();
+    }
+
+    @Test
+    @DisplayName("一次锁多个聚合：执行期间全部持有，结束后全部释放，重复的标识只锁一次")
+    void locksSeveralAggregatesTogether() {
+        String result = locks.executeAll("sku", List.of("B", "A", "B"), () -> {
+            assertThat(redisson.getLock("it:lock:sku:A").isLocked()).isTrue();
+            assertThat(redisson.getLock("it:lock:sku:B").isLocked()).isTrue();
+            return "done";
+        });
+
+        assertThat(result).isEqualTo("done");
+        assertThat(redisson.getLock("it:lock:sku:A").isLocked()).isFalse();
+        assertThat(redisson.getLock("it:lock:sku:B").isLocked()).isFalse();
+        assertThat(locks.executeAll("sku", List.of(), () -> "empty")).isEqualTo("empty");
+    }
+
+    @Test
+    @DisplayName("其中一把锁被别人占着时整体失败，已经拿到的锁被释放，操作没有执行")
+    void failsAsAWholeWhenOneLockIsTaken() throws Exception {
+        CountDownLatch held = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        CompletableFuture<Void> other = CompletableFuture.runAsync(() -> locks.execute("sku", "B", () -> {
+            held.countDown();
+            try {
+                release.await(10, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            return Boolean.TRUE;
+        }));
+        assertThat(held.await(10, TimeUnit.SECONDS)).isTrue();
+        AtomicInteger ran = new AtomicInteger();
+
+        assertThatThrownBy(() -> locks.executeAll("sku", List.of("A", "B", "C"), ran::incrementAndGet))
+                .isInstanceOf(AggregateBusyException.class);
+
+        assertThat(ran).hasValue(0);
+        assertThat(redisson.getLock("it:lock:sku:A").isLocked()).isFalse();
+        release.countDown();
+        other.get(10, TimeUnit.SECONDS);
     }
 
     @Test
