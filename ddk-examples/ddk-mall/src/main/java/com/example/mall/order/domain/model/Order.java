@@ -46,9 +46,9 @@ public class Order extends AggregateRoot<OrderId> {
         order.assignId(Objects.requireNonNull(id, "id"));
         order.customerId = Objects.requireNonNull(customerId, "customerId");
         order.lines = List.copyOf(lines);
-        order.status = OrderStatus.PENDING_PAYMENT;
+        order.status = OrderStatus.PENDING_STOCK;
         order.totalAmount = lines.stream().map(OrderLine::subtotal).reduce(Money.ZERO, Money::plus);
-        order.registerEvent(new OrderPlacedEvent(id, customerId, order.totalAmount));
+        order.registerEvent(new OrderPlacedEvent(id, customerId, order.totalAmount, order.lines));
         return order;
     }
 
@@ -69,15 +69,36 @@ public class Order extends AggregateRoot<OrderId> {
     }
 
     /**
-     * 取消订单。只有待支付的订单能取消。
+     * 库存已为这个订单预占，可以支付了。
+     * <p>
+     * 只对等待库存确认的订单生效，返回是否发生了变化。订单可能在库存确认回来之前已经被取消，或者同一个确认被送达了两次，
+     * 这两种情况都不是错误，什么都不做即可。
+     */
+    public boolean confirmStock() {
+        if (status != OrderStatus.PENDING_STOCK) {
+            return false;
+        }
+        this.status = OrderStatus.PENDING_PAYMENT;
+        return true;
+    }
+
+    /**
+     * 取消订单。还没有支付的订单才能取消。
      */
     public void cancel(String reason) {
-        if (status != OrderStatus.PENDING_PAYMENT) {
+        if (!isOpen()) {
             throw new BusinessException(OrderError.ORDER_NOT_CANCELLABLE, status);
         }
         this.status = OrderStatus.CANCELLED;
         this.cancelReason = reason;
         registerEvent(new OrderCancelledEvent(id(), reason));
+    }
+
+    /**
+     * 订单还在进行中：等待库存确认或等待支付。
+     */
+    public boolean isOpen() {
+        return status == OrderStatus.PENDING_STOCK || status == OrderStatus.PENDING_PAYMENT;
     }
 
     public boolean belongsTo(Long customerId) {

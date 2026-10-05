@@ -1,26 +1,36 @@
 package com.example.mall.order.application.handler;
 
+import com.example.mall.order.application.integration.OrderCancelledMessage;
+import com.example.mall.order.application.integration.OrderPlacedMessage;
 import com.example.mall.order.domain.event.OrderCancelledEvent;
 import com.example.mall.order.domain.event.OrderPlacedEvent;
-import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
+
+import java.util.UUID;
 
 /**
- * 订单领域事件的进程内订阅方，只在事务提交后执行。
+ * 把订单的领域事件翻译成对外的消息。
+ * <p>
+ * 用同步的 {@code @EventListener}，在下单的事务里执行：消息在这里交给 Spring 的事件总线，DDK 把它登记进事件发布记录，
+ * 和订单在同一个事务里提交，提交之后再投递。订单保存成功而消息丢失的情况因此不会出现。
  */
-@Slf4j
 @Component
+@RequiredArgsConstructor
 public class OrderEventHandler {
 
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    private final ApplicationEventPublisher publisher;
+
+    @EventListener
     public void on(OrderPlacedEvent event) {
-        log.info("Order placed: id={}, customer={}, total={}", event.orderId().value(), event.customerId(), event.totalAmount().amount());
+        publisher.publishEvent(new OrderPlacedMessage(UUID.randomUUID().toString(), event.orderId().value(), event.customerId(),
+                event.lines().stream().map(line -> new OrderPlacedMessage.Line(line.skuId(), line.quantity())).toList()));
     }
 
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @EventListener
     public void on(OrderCancelledEvent event) {
-        log.info("Order cancelled: id={}, reason={}", event.orderId().value(), event.reason());
+        publisher.publishEvent(new OrderCancelledMessage(UUID.randomUUID().toString(), event.orderId().value(), event.reason()));
     }
 }

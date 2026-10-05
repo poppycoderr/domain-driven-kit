@@ -11,6 +11,7 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.junit.jupiter.Container;
@@ -30,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 在真实的 MySQL 和 Redis 上验证不超卖：很多订单同时抢少量库存，成功预占的数量恰好等于库存。
  */
 @Testcontainers(disabledWithoutDocker = true)
+@DirtiesContext
 @SpringBootTest(properties = {"ddk.concurrency.enabled=true", "ddk.concurrency.key-prefix=mall-test:", "ddk.concurrency.lock.wait-time=20s"})
 class StockConcurrencyIntegrationTest {
 
