@@ -9,6 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -64,6 +67,26 @@ public class AggregateLocks {
                 log.warn("Lock [{}] expired before the operation finished; raise the lease time or leave it to the watchdog", name);
             }
         }
+    }
+
+    /**
+     * 同时独占同一类型的多个聚合，用默认的等待与持有时间。
+     * <p>
+     * 锁按名称排序后依次获取。所有调用方都按同一个顺序加锁，两个操作各持有一把、互相等对方那一把的死锁就不会出现；
+     * 自己写嵌套的 {@code execute} 时顺序取决于调用方传入的顺序，做不到这一点。等待时间对每一把锁分别计算。
+     *
+     * @throws AggregateBusyException 其中任何一把锁在等待时间内没有拿到；已经拿到的会被释放
+     */
+    public <T, E extends Throwable> T executeAll(String type, Collection<?> ids, Action<T, E> action) throws E {
+        List<Object> ordered = ids.stream().distinct().sorted(Comparator.comparing(id -> lockName(type, id))).map(id -> (Object) id).toList();
+        return executeNested(type, ordered, 0, action);
+    }
+
+    private <T, E extends Throwable> T executeNested(String type, List<Object> ids, int index, Action<T, E> action) throws E {
+        if (index == ids.size()) {
+            return action.run();
+        }
+        return execute(type, ids.get(index), () -> executeNested(type, ids, index + 1, action));
     }
 
     public String lockName(String type, Object id) {
