@@ -56,6 +56,14 @@ For code that is not a Spring bean method, inject `AggregateLocks`:
 aggregateLocks.execute("order", orderId, () -> transaction.execute(status -> ...));
 ```
 
+An operation that changes several aggregates of one type, such as reserving stock for every line of an order, takes all the locks at once:
+
+```java
+aggregateLocks.executeAll("sku", skuIds, () -> transaction.execute(status -> ...));
+```
+
+The locks are acquired in a fixed order (sorted by lock name), whatever order the IDs are passed in. Two operations that need the same aggregates therefore never hold one lock each while waiting for the other's. Nesting `execute` calls by hand does not give this guarantee. If any lock cannot be acquired in time, the ones already held are released and `AggregateBusyException` is thrown.
+
 ## Duplicate-submit protection
 
 `@Idempotent` registers `<key-prefix>idempotent:<scope>:<key>` with `SET NX` and a TTL before the method runs.
