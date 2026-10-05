@@ -1,6 +1,6 @@
-# ddk-mall 依赖的中间件。启动后用 mysql profile 运行应用：
+# ddk-mall 依赖的中间件。启动后用 compose profile 运行应用：
 #   docker compose up -d
-#   mvn spring-boot:run -Dspring-boot.run.profiles=mysql
+#   mvn spring-boot:run -Dspring-boot.run.profiles=compose
 services:
   mysql:
     image: mysql:8.4
@@ -14,6 +14,16 @@ services:
       - "3306:3306"
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pexample_root_password" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 3s
       retries: 20

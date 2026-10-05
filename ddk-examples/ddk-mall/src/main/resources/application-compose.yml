@@ -1,10 +1,17 @@
-# 连接 docker-compose.yml 里的 MySQL
+# 连接 docker-compose.yml 里的 MySQL 与 Redis
 spring:
   datasource:
     url: jdbc:mysql://localhost:3306/mall?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
     username: mall
     password: example_password
+  data:
+    redis:
+      host: localhost
+      port: 6379
 
 ddk:
   mybatis:
     db-type: mysql
+  concurrency:
+    enabled: true
+    key-prefix: "mall:"
