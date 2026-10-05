@@ -14,7 +14,7 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ### Added
 
-- `ddk-examples/ddk-mall`: a reference application with order, inventory and payment contexts in one modular monolith, built step by step. The order context is in place: an aggregate with a child table, Flyway migrations, audit fields, and a Testcontainers test against MySQL
+- `ddk-examples/ddk-mall`: a reference application with order, inventory and payment contexts in one modular monolith, built step by step. So far: the order context (an aggregate with a child table, Flyway migrations, audit fields), the inventory context (reservations under per-SKU locks), and their integration through the outbox and RocketMQ with idempotent consumers, tested end to end on MySQL, Redis and RocketMQ containers
 - `AggregateLocks.executeAll(type, ids, action)` locks several aggregates of one type in a fixed order, so two operations that need the same aggregates cannot deadlock on each other
 - `GenericRepositoryImpl` has extension points for aggregates stored in a root table plus child tables: `afterInsert`, `afterUpdate`, `afterLoad` and `beforeRemove` run around the root table's reads and writes in the same transaction
 

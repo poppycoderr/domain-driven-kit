@@ -156,7 +156,7 @@ DDK is maintained by one person and is in its 0.x series: a minor release may co
 | `ddk-tracer-starter` | Distributed tracing with the trace ID in a response header | Usable |
 | `ddk-seata-starter` | Distributed transactions with XID propagation on outbound HTTP calls | Usable |
 | `ddk-archetypes` | Three- and four-layer Maven archetypes with architecture tests in every generated project | Usable, with integration tests on generated projects |
-| `ddk-examples` | `ddk-example-user`: a runnable four-layer user registration example. `ddk-mall`: a reference application with order, inventory and payment contexts, built step by step (order and inventory contexts done) | Usable |
+| `ddk-examples` | `ddk-example-user`: a runnable four-layer user registration example. `ddk-mall`: a reference application with order, inventory and payment contexts, built step by step (order and inventory contexts done and connected through RocketMQ) | Usable |
 
 ## Domain Model
 

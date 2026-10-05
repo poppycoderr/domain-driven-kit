@@ -136,7 +136,7 @@ AI 能力（基于 Spring AI 2.0）：
 
 **目标：可以放心用在生产项目里。**
 
-- [ ] `ddk-mall` 参考应用（进行中，订单、库存上下文已完成）：订单、库存、支付三个限界上下文，覆盖 Outbox、MQ、缓存、读模型、分布式锁，`docker compose up` 一键启动并带 OpenTelemetry 看板
+- [ ] `ddk-mall` 参考应用（进行中：订单、库存上下文已完成，并通过 outbox 与 RocketMQ 连通）：订单、库存、支付三个限界上下文，覆盖 Outbox、MQ、缓存、读模型、分布式锁，`docker compose up` 一键启动并带 OpenTelemetry 看板
 - [ ] 所有 starter 提供 GraalVM 原生镜像 `RuntimeHints`，示例能构建原生镜像
 - [ ] 虚拟线程下的行为验证（锁、ThreadLocal 上下文传播）
 - [ ] 公开 API 冻结，此后遵守语义化版本
