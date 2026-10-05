@@ -55,7 +55,8 @@ class OrderMysqlIntegrationTest {
 
     @Test
     void ordersRoundTripThroughMysql() {
-        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM flyway_schema_history WHERE success = 1", Integer.class)).isEqualTo(2);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM flyway_schema_history WHERE success = 0", Integer.class)).isZero();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM t_product", Integer.class)).isEqualTo(3);
 
         OrderResponse placed = OperatorContext.callAs(Operator.of("7"), () -> orderService.place(new PlaceOrderCommand(7L, List.of(
                 new PlaceOrderCommand.Line("SKU-MONITOR", 1), new PlaceOrderCommand.Line("SKU-MOUSE", 3)))));

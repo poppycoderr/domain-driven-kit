@@ -26,6 +26,15 @@
             <groupId>com.ddk</groupId>
             <artifactId>ddk-event-starter</artifactId>
         </dependency>
+        <!-- 库存按 SKU 加锁。锁放在 Redis 里，compose profile 才启用；默认 profile 退回进程内的锁 -->
+        <dependency>
+            <groupId>com.ddk</groupId>
+            <artifactId>ddk-concurrency-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
 
         <!-- 表结构由 Flyway 迁移脚本管理；flyway-mysql 是连接 MySQL 时需要的方言模块 -->
         <dependency>
