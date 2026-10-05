@@ -1,4 +1,4 @@
-# ddk-mall 依赖的中间件。启动后用 compose profile 运行应用：
+# ddk-mall 依赖的中间件：MySQL、Redis、RocketMQ。启动后用 compose profile 运行应用：
 #   docker compose up -d
 #   mvn spring-boot:run -Dspring-boot.run.profiles=compose
 services:
@@ -27,3 +27,19 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
+
+  # NameServer 与 broker 放在一个容器里。broker 登记的地址要让宿主机上的应用连得上，所以写成 127.0.0.1，端口原样映射
+  rocketmq:
+    image: apache/rocketmq:5.5.0
+    environment:
+      JAVA_OPT_EXT: "-Xms256m -Xmx256m -Xmn128m"
+    command:
+      - sh
+      - -c
+      - |
+        printf 'brokerClusterName=DefaultCluster\nbrokerName=broker-a\nbrokerId=0\nbrokerIP1=127.0.0.1\nlistenPort=10911\nautoCreateTopicEnable=true\n' > /tmp/broker.conf
+        (./mqnamesrv &)
+        ./mqbroker -n localhost:9876 -c /tmp/broker.conf
+    ports:
+      - "9876:9876"
+      - "10911:10911"

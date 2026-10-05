@@ -27,7 +27,7 @@ class OrderTest {
     void placingAnOrderTotalsItsLinesAndRecordsTheEvent() {
         Order order = Order.place(OrderId.of(1L), 7L, List.of(KEYBOARD, MOUSE));
 
-        assertThat(order.status()).isEqualTo(OrderStatus.PENDING_PAYMENT);
+        assertThat(order.status()).isEqualTo(OrderStatus.PENDING_STOCK);
         assertThat(order.totalAmount()).isEqualTo(Money.of("657.00"));
         DdkAssertions.assertThat(order)
                 .hasRaisedExactly(OrderPlacedEvent.class)
@@ -63,6 +63,22 @@ class OrderTest {
         assertThatRejected(() -> order.cancel("再取消一次"))
                 .withCode(OrderError.ORDER_NOT_CANCELLABLE)
                 .withoutRaisingEventsOn(order);
+    }
+
+    @Test
+    void stockConfirmationMovesAWaitingOrderToPaymentAndIsIgnoredOtherwise() {
+        Order order = Order.place(OrderId.of(1L), 7L, List.of(KEYBOARD));
+        order.clearEvents();
+
+        assertThat(order.confirmStock()).isTrue();
+        assertThat(order.status()).isEqualTo(OrderStatus.PENDING_PAYMENT);
+        assertThat(order.confirmStock()).isFalse();
+        DdkAssertions.assertThat(order).hasRaisedNoEvents();
+
+        order.cancel("不想要了");
+        assertThat(order.confirmStock()).isFalse();
+        assertThat(order.status()).isEqualTo(OrderStatus.CANCELLED);
+        assertThat(order.isOpen()).isFalse();
     }
 
     @Test

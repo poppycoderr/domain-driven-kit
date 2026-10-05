@@ -1,4 +1,4 @@
-# 连接 docker-compose.yml 里的 MySQL 与 Redis
+# 连接 docker-compose.yml 里的 MySQL、Redis 与 RocketMQ
 spring:
   datasource:
     url: jdbc:mysql://localhost:3306/mall?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
@@ -9,9 +9,17 @@ spring:
       host: localhost
       port: 6379
 
+mall:
+  messaging:
+    transport: rocketmq
+
 ddk:
   mybatis:
     db-type: mysql
+  event:
+    rocketmq:
+      name-server: localhost:9876
+      producer-group: mall-producer
   concurrency:
     enabled: true
     key-prefix: "mall:"

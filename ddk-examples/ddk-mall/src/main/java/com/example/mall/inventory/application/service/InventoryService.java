@@ -1,7 +1,10 @@
 package com.example.mall.inventory.application.service;
 
 import com.ddk.core.exception.BusinessException;
+import com.ddk.event.starter.inbox.IdempotentConsumer;
 import com.example.mall.inventory.application.command.ReserveStockCommand;
+import com.example.mall.inventory.application.integration.StockReservationRejectedMessage;
+import com.example.mall.inventory.application.integration.StockReservedMessage;
 import com.example.mall.inventory.application.response.ReservationResponse;
 import com.example.mall.inventory.application.response.StockResponse;
 import com.example.mall.inventory.domain.acl.ReservationIdGenerator;
@@ -13,10 +16,12 @@ import com.example.mall.inventory.domain.model.SkuId;
 import com.example.mall.inventory.domain.model.Stock;
 import com.example.mall.inventory.domain.model.StockReservation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 /**
@@ -25,11 +30,13 @@ import java.util.function.Supplier;
  * 写操作的结构都是「先拿到涉及的 SKU 的锁，再在锁里开启并提交事务」，所以这里用 {@link TransactionTemplate} 而不是
  * {@code @Transactional}：事务必须整个落在锁的范围之内，锁释放时数据已经提交。
  * <p>
- * 预占、释放、扣减都可以重复执行：第 3 步接入消息之后，同一条消息可能被投递多次。
+ * 预占、释放、扣减都可以重复执行：它们由消息驱动，而同一条消息可能被投递多次。
  */
 @Service
 @RequiredArgsConstructor
 public class InventoryService {
+
+    private static final String ORDER_PLACED_CONSUMER = "inventory.order-placed";
 
     private final StockRepository stockRepository;
 
@@ -40,6 +47,10 @@ public class InventoryService {
     private final StockLock stockLock;
 
     private final TransactionTemplate transaction;
+
+    private final IdempotentConsumer idempotentConsumer;
+
+    private final ApplicationEventPublisher publisher;
 
     public StockResponse get(String skuId) {
         return StockResponse.from(requireStock(SkuId.of(skuId)));
@@ -64,19 +75,48 @@ public class InventoryService {
     public List<ReservationResponse> reserve(ReserveStockCommand command) {
         List<SkuId> skuIds = command.lines().stream().map(line -> SkuId.of(line.skuId())).toList();
         return locked(skuIds, () -> {
-            List<SkuId> alreadyReserved = reservationRepository.findByOrder(command.orderId()).stream().map(StockReservation::skuId).toList();
-            for (ReserveStockCommand.Line line : command.lines()) {
-                SkuId skuId = SkuId.of(line.skuId());
-                if (alreadyReserved.contains(skuId)) {
-                    continue;
-                }
-                Stock stock = requireStock(skuId);
-                stock.reserve(line.quantity());
-                stockRepository.update(stock);
-                reservationRepository.create(StockReservation.reserve(reservationIdGenerator.nextId(), command.orderId(), skuId, line.quantity()));
-            }
+            reserveLines(command);
             return reservationsOf(command.orderId());
         });
+    }
+
+    private void reserveLines(ReserveStockCommand command) {
+        List<SkuId> alreadyReserved = reservationRepository.findByOrder(command.orderId()).stream().map(StockReservation::skuId).toList();
+        for (ReserveStockCommand.Line line : command.lines()) {
+            SkuId skuId = SkuId.of(line.skuId());
+            if (alreadyReserved.contains(skuId)) {
+                continue;
+            }
+            Stock stock = requireStock(skuId);
+            stock.reserve(line.quantity());
+            stockRepository.update(stock);
+            reservationRepository.create(StockReservation.reserve(reservationIdGenerator.nextId(), command.orderId(), skuId, line.quantity()));
+        }
+    }
+
+    /**
+     * 响应「订单已下单」：预占库存，并把结果告诉订单上下文。
+     * <p>
+     * 结果消息和预占在同一个事务里登记，所以不会出现「库存占了、订单却不知道」。同一条消息被投递两次时，
+     * {@link IdempotentConsumer} 让第二次什么都不做，订单上下文也就不会收到两份结果。去重登记写在锁和事务的里面：
+     * 它必须和业务修改一起提交、一起回滚，而事务又必须整个落在锁的范围内。
+     * <p>
+     * 库存不足是业务上的正常结果，不是消费失败：这里发出「预占失败」并正常返回，消息不会被重投。
+     */
+    public void reserveForOrder(String messageId, ReserveStockCommand command) {
+        List<SkuId> skuIds = command.lines().stream().map(line -> SkuId.of(line.skuId())).toList();
+        try {
+            stockLock.withSkus(skuIds, () -> transaction.execute(status -> idempotentConsumer.handle(ORDER_PLACED_CONSUMER, messageId, () -> {
+                reserveLines(command);
+                publisher.publishEvent(new StockReservedMessage(UUID.randomUUID().toString(), command.orderId()));
+            })));
+        } catch (BusinessException rejection) {
+            if (rejection.getErrorCode() != InventoryError.INSUFFICIENT_STOCK && rejection.getErrorCode() != InventoryError.STOCK_NOT_FOUND) {
+                throw rejection;
+            }
+            transaction.executeWithoutResult(status -> idempotentConsumer.handle(ORDER_PLACED_CONSUMER, messageId, () ->
+                    publisher.publishEvent(new StockReservationRejectedMessage(UUID.randomUUID().toString(), command.orderId(), rejection.getMessage()))));
+        }
     }
 
     /**

@@ -55,6 +55,25 @@ public class OrderService {
         return OrderResponse.from(orderRepository.update(order));
     }
 
+    /**
+     * 库存已预占。订单不存在、已经取消或者已经确认过，都直接返回：消息可能重复，也可能晚于顾客的取消。
+     */
+    @Transactional
+    public void confirmStock(Long orderId) {
+        orderRepository.find(OrderId.of(orderId)).filter(Order::confirmStock).ifPresent(orderRepository::update);
+    }
+
+    /**
+     * 库存预占失败，订单随之取消。
+     */
+    @Transactional
+    public void cancelForStock(Long orderId, String reason) {
+        orderRepository.find(OrderId.of(orderId)).filter(Order::isOpen).ifPresent(order -> {
+            order.cancel(reason);
+            orderRepository.update(order);
+        });
+    }
+
     private OrderLine toOrderLine(PlaceOrderCommand.Line line) {
         ProductCatalog.Product product = productCatalog.find(line.skuId())
                 .orElseThrow(() -> new BusinessException(OrderError.PRODUCT_NOT_FOUND, line.skuId()));
