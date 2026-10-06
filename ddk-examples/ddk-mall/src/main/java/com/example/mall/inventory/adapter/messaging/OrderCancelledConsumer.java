@@ -1,8 +1,9 @@
 package com.example.mall.inventory.adapter.messaging;
 
+import com.ddk.event.starter.consumer.IntegrationEventConsumer;
+import com.ddk.event.starter.consumer.ReceivedEvent;
 import com.example.mall.inventory.adapter.messaging.payload.OrderCancelledPayload;
 import com.example.mall.inventory.application.service.InventoryService;
-import com.example.mall.platform.messaging.MessageHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -11,23 +12,18 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class OrderCancelledHandler implements MessageHandler<OrderCancelledPayload> {
+public class OrderCancelledConsumer implements IntegrationEventConsumer<OrderCancelledPayload> {
 
     private final InventoryService inventoryService;
 
     @Override
-    public String consumerGroup() {
+    public String group() {
         return "mall-inventory";
     }
 
     @Override
-    public String topic() {
-        return "mall-order-events";
-    }
-
-    @Override
-    public String tag() {
-        return "cancelled";
+    public String source() {
+        return "mall-order-events:cancelled";
     }
 
     @Override
@@ -36,7 +32,7 @@ public class OrderCancelledHandler implements MessageHandler<OrderCancelledPaylo
     }
 
     @Override
-    public void handle(String messageId, OrderCancelledPayload payload) {
-        inventoryService.release(payload.orderId());
+    public void handle(ReceivedEvent<OrderCancelledPayload> event) {
+        inventoryService.release(event.payload().orderId());
     }
 }

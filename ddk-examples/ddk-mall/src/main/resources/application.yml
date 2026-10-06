@@ -13,16 +13,14 @@ spring:
         schema-initialization:
           enabled: true
 
-# 上下文之间的消息怎么传：local 在进程内转发，不需要消息中间件；compose profile 改成 rocketmq
-mall:
-  messaging:
-    transport: local
-
 ddk:
   mybatis:
     db-type: h2
   event:
     inbox:
+      enabled: true
+    # 默认 profile 没有消息中间件：上下文之间的消息由 DDK 在进程内转发。compose profile 里关掉，改走 RocketMQ
+    local-delivery:
       enabled: true
   # 默认 profile 不连 Redis：库存锁退回进程内实现，只适合单实例。compose profile 里打开
   concurrency:

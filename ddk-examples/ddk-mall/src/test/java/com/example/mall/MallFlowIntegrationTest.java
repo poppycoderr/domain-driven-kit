@@ -10,7 +10,7 @@ import com.example.mall.inventory.application.service.InventoryService;
 import com.example.mall.order.application.command.PlaceOrderCommand;
 import com.example.mall.order.application.response.OrderResponse;
 import com.example.mall.order.application.service.OrderService;
-import com.example.mall.platform.messaging.MessageDispatcher;
+import com.ddk.event.starter.consumer.IntegrationEventDispatcher;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +25,7 @@ import org.testcontainers.mysql.MySQLContainer;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -39,7 +40,7 @@ import static org.awaitility.Awaitility.await;
 @Testcontainers(disabledWithoutDocker = true)
 @DirtiesContext
 @SpringBootTest(properties = {
-        "mall.messaging.transport=rocketmq",
+        "ddk.event.local-delivery.enabled=false",
         "ddk.event.rocketmq.producer-group=mall-flow-test",
         "ddk.concurrency.enabled=true",
         "ddk.concurrency.key-prefix=mall-flow:"
@@ -62,7 +63,7 @@ class MallFlowIntegrationTest {
     private InventoryService inventory;
 
     @Autowired
-    private MessageDispatcher dispatcher;
+    private IntegrationEventDispatcher dispatcher;
 
     @Autowired
     private JdbcTemplate jdbc;
@@ -119,14 +120,36 @@ class MallFlowIntegrationTest {
         String json = "{\"orderId\":424242,\"lines\":[{\"skuId\":\"SKU-MOUSE\",\"quantity\":5}]}";
         int before = inventory.get("SKU-MOUSE").reserved();
 
-        dispatcher.dispatch("mall-inventory", "mall-order-events", "placed", "redelivered-1", json);
-        dispatcher.dispatch("mall-inventory", "mall-order-events", "placed", "redelivered-1", json);
+        Map<String, String> headers = Map.of(IntegrationEventDispatcher.EVENT_ID_HEADER, "redelivered-1");
+        dispatcher.dispatch("mall-inventory", "mall-order-events", "placed", headers, json);
+        dispatcher.dispatch("mall-inventory", "mall-order-events", "placed", headers, json);
 
         assertThat(inventory.get("SKU-MOUSE").reserved()).isEqualTo(before + payload.lines().getFirst().quantity());
         // Linux 上的 MySQL 区分表名大小写，Spring Modulith 建的表是大写的
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM EVENT_PUBLICATION WHERE SERIALIZED_EVENT LIKE '%424242%'", Integer.class)).isEqualTo(1);
         inventory.release(424242L);
         assertThat(inventory.get("SKU-MOUSE").reserved()).isEqualTo(before);
+    }
+
+    @Test
+    void aReservationThatArrivesAfterTheCancellationIsReleased() {
+        OrderResponse placed = place(new PlaceOrderCommand.Line("SKU-KEYBOARD", 1));
+        await().atMost(Duration.ofSeconds(90)).until(() -> orders.get(7L, placed.id()).status().equals("PENDING_PAYMENT"));
+        int reservedWhileOpen = inventory.get("SKU-KEYBOARD").reserved();
+        orders.cancel(7L, placed.id(), "不想要了");
+        await().atMost(Duration.ofSeconds(60)).until(() -> inventory.get("SKU-KEYBOARD").reserved() == reservedWhileOpen - 1);
+
+        // 模拟消息乱序：订单已经取消之后，「库存已预占」才到。订单上下文应当再发一次「已取消」，而不是悄悄忽略
+        long before = cancelledMessages(placed.id());
+        orders.confirmStock(placed.id());
+
+        assertThat(orders.get(7L, placed.id()).status()).isEqualTo("CANCELLED");
+        assertThat(cancelledMessages(placed.id())).isEqualTo(before + 1);
+    }
+
+    private long cancelledMessages(Long orderId) {
+        return jdbc.queryForObject("SELECT COUNT(*) FROM EVENT_PUBLICATION WHERE EVENT_TYPE LIKE '%OrderCancelledMessage' "
+                + "AND SERIALIZED_EVENT LIKE ?", Long.class, "%" + orderId + "%");
     }
 
     private OrderResponse place(PlaceOrderCommand.Line... lines) {

@@ -1,7 +1,6 @@
 package com.example.mall.order.application.integration;
 
 import com.ddk.core.domain.IntegrationEvent;
-import com.example.mall.platform.messaging.IntegrationMessage;
 
 /**
  * 对外契约：订单已取消。
@@ -13,5 +12,5 @@ public record OrderCancelledMessage(
         Long orderId,
 
         String reason
-) implements IntegrationMessage {
+) {
 }

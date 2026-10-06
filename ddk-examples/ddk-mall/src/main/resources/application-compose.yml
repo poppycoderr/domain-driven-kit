@@ -9,14 +9,12 @@ spring:
       host: localhost
       port: 6379
 
-mall:
-  messaging:
-    transport: rocketmq
-
 ddk:
   mybatis:
     db-type: mysql
   event:
+    local-delivery:
+      enabled: false
     rocketmq:
       name-server: localhost:9876
       producer-group: mall-producer
