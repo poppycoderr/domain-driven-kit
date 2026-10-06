@@ -112,7 +112,7 @@ Delivery runs after commit on Spring's task executor, which is a thread pool by 
 | Events of one aggregate in commit order | Set `spring.task.execution.pool.core-size=1`, so deliveries leave one at a time in the order they were submitted. This limits delivery throughput, and it does not hold with virtual threads enabled, where each delivery gets its own thread |
 | Throughput | Keep the pool, and make consumers independent of order: carry the aggregate version or enough state in the event, and ignore or compensate for events that arrive late |
 
-Resubmitting failed publications changes the order as well, so a consumer that breaks on reordering is fragile either way.
+Resubmitting failed publications changes the order as well, so a consumer that breaks on reordering is fragile either way. The `ddk-mall` example takes the second approach: when a reservation arrives for an order that is already cancelled, the order context publishes the cancellation again.
 
 ## Consuming events
 
