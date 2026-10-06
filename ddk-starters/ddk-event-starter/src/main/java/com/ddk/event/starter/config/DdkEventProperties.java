@@ -36,6 +36,20 @@ public class DdkEventProperties {
      */
     private RocketMq rocketmq = new RocketMq();
 
+    /**
+     * 进程内转发集成事件。
+     */
+    private LocalDelivery localDelivery = new LocalDelivery();
+
+    @Data
+    public static class LocalDelivery {
+
+        /**
+         * 是否在进程内把集成事件送给本应用里的消费方。只用于本地开发和测试：事件不持久，失败不重投。不要与真实的消息中间件同时开启。
+         */
+        private boolean enabled = false;
+    }
+
     @Data
     public static class Inbox {
 
@@ -72,5 +86,21 @@ public class DdkEventProperties {
          * 单次发送超时。
          */
         private Duration sendTimeout = Duration.ofSeconds(3);
+
+        private Consumer consumer = new Consumer();
+
+        @Data
+        public static class Consumer {
+
+            /**
+             * 应用声明了消费方时，是否从 RocketMQ 消费。
+             */
+            private boolean enabled = true;
+
+            /**
+             * 是否顺序消费。顺序消费按队列保持事件的先后，一条消息处理失败会暂停它所在的队列；关闭后并发消费，失败的消息单独重投。
+             */
+            private boolean orderly = true;
+        }
     }
 }
