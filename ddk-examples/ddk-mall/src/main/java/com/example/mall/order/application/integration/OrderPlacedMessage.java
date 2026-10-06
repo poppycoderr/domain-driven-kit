@@ -1,7 +1,6 @@
 package com.example.mall.order.application.integration;
 
 import com.ddk.core.domain.IntegrationEvent;
-import com.example.mall.platform.messaging.IntegrationMessage;
 
 import java.util.List;
 
@@ -17,7 +16,7 @@ public record OrderPlacedMessage(
         Long customerId,
 
         List<Line> lines
-) implements IntegrationMessage {
+) {
 
     public record Line(
             String skuId,

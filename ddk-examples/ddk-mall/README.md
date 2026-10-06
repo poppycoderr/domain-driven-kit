@@ -36,7 +36,7 @@ mvn -pl ddk-examples/ddk-mall spring-boot:run -Dspring-boot.run.profiles=compose
 | | 默认 profile | `compose` profile |
 |---|---|---|
 | 库存锁 | 进程内的锁，只适合单实例，启动时打一条警告 | Redis，多个实例之间互斥 |
-| 上下文之间的消息 | 进程内转发，进程退出就丢，失败不重投 | 先写进事件发布记录，提交后经 RocketMQ 投递，失败可重投 |
+| 上下文之间的消息 | DDK 的进程内转发（`ddk.event.local-delivery`），进程退出就丢，失败不重投 | 先写进事件发布记录，提交后经 RocketMQ 投递，失败可重投 |
 
 ## 冒烟命令
 
@@ -110,7 +110,7 @@ sequenceDiagram
 - **两个上下文互不调用。** 订单不知道库存的存在，只是发出「订单已下单」；库存不认识订单的类型，自己定义一份只含所需字段的消息体。
 - **消息不会丢。** 消息和业务数据在同一个事务里提交（DDK 的事件 starter 加 Spring Modulith 的事件发布记录），提交之后才投递，投递失败的记录可以重投。
 - **重复投递不会重复处理。** 预占用 `IdempotentConsumer` 按消息 ID 去重，并且去重登记和预占在同一个事务里；订单的状态流转和库存的释放本身可以重复执行，不需要额外去重。
-- **顺序。** 消息以订单号为 key，同一个订单的消息在同一个队列里按顺序消费，「已下单」一定先于「已取消」被处理。
+- **不依赖消息的先后。** 消息以订单号为 key，同一个订单的消息在同一个队列里，但提交后的投递是并发的，「已取消」有可能比「已下单」先到库存上下文：那时还没有预占，什么都没释放，随后「已下单」又把库存占上了。所以订单上下文收到「库存已预占」时如果订单已经取消，会再发一次「已取消」，把这次晚到的预占释放掉。
 - **库存不足不是消费失败。** 库存上下文发出「预占失败」并正常返回，订单随之取消；消息不会被反复重投。
 
 ## 结构
@@ -118,9 +118,7 @@ sequenceDiagram
 ```text
 com.example.mall
 ├── MallApplication
-├── platform                 各上下文共用的技术代码
-│   ├── CustomerIdentity     从请求头解析顾客身份
-│   └── messaging            消息分发；RocketMQ 消费者与进程内转发两种来源
+├── platform                 各上下文共用的技术代码：从请求头解析顾客身份
 ├── order                    订单上下文，内部是四层
 │   ├── adapter/{controller,messaging}
 │   ├── application/{command,query,response,service,handler,integration}
@@ -133,7 +131,7 @@ com.example.mall
     └── infrastructure/{acl/impl,converter,id,lock,orm}
 ```
 
-`ArchitectureTest` 除了 DDK 的分层规则，还检查上下文之间互不引用：`order`、`inventory`、`payment` 三个包不能依赖彼此。`application/integration` 里是各上下文对外发出的消息（契约），`adapter/messaging` 里是消费方。
+`ArchitectureTest` 除了 DDK 的分层规则，还检查上下文之间互不引用：`order`、`inventory`、`payment` 三个包不能依赖彼此。`application/integration` 里是各上下文对外发出的消息（契约），`adapter/messaging` 里是消费方。订阅、分发、解析消息体都由 DDK 的事件 starter 完成，应用里没有一行和消息中间件打交道的代码。
 
 ## 用到了什么
 
@@ -152,6 +150,7 @@ com.example.mall
 | 锁包住事务：先拿锁，再在锁里开启并提交事务 | `InventoryService` 用 `TransactionTemplate` |
 | 不超卖：20 个订单同时抢 3 件库存，恰好 3 个成功 | `StockConcurrencyIntegrationTest`，真实的 MySQL 和 Redis |
 | 领域事件翻译成对外契约，并和业务数据一起提交 | `OrderEventHandler`、`OrderPlacedMessage`（`@IntegrationEvent`） |
-| 经 RocketMQ 投递，按订单号保持顺序 | DDK 事件 starter；`RocketMqMessageConsumers` 顺序消费 |
+| 消费方只声明消费组、来源和消息体类型 | `adapter/messaging` 下的四个 `IntegrationEventConsumer` |
+| 消息乱序时自我纠正 | `OrderService.confirmStock` |
 | 幂等消费，去重登记与业务修改同一个事务 | `InventoryService.reserveForOrder` 里的 `IdempotentConsumer` |
 | 整条链路跑在真实中间件上 | `MallFlowIntegrationTest`，用 `DdkContainers` 的 MySQL、Redis、RocketMQ |

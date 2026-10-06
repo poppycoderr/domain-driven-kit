@@ -1,7 +1,6 @@
 package com.example.mall.inventory.application.integration;
 
 import com.ddk.core.domain.IntegrationEvent;
-import com.example.mall.platform.messaging.IntegrationMessage;
 
 /**
  * 对外契约：订单的库存预占失败，一件都没有占。
@@ -13,5 +12,5 @@ public record StockReservationRejectedMessage(
         Long orderId,
 
         String reason
-) implements IntegrationMessage {
+) {
 }
