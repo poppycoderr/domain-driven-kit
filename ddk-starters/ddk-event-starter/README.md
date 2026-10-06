@@ -51,7 +51,7 @@ The Modulith versions are managed by the DDK BOM.
 |---|---|
 | Publish | The event is written to `event_publication` in the business transaction. It shares the `DataSource` and transaction with MyBatis-Plus, so a rollback leaves no record |
 | Deliver | After commit, Modulith sends the event to `value()`: a Kafka topic, an AMQP exchange, a JMS destination or a `MessageChannel` bean |
-| Key | `key()` names a no-argument accessor; a typed identifier contributes its raw value. Messages with the same key keep their order in Kafka |
+| Key | `key()` names a no-argument accessor; a typed identifier contributes its raw value. Messages with the same key go to the same partition; see [Ordering](#ordering) for what that does and does not guarantee |
 | Event ID | `id()` names an accessor whose value goes into the `ddk-event-id` header. It must be part of the event, not generated at delivery time, so that a resubmitted event keeps the same ID |
 | Failure | A failed delivery stays in `event_publication` and can be resubmitted through Modulith's `IncompleteEventPublications` / `FailedEventPublications` |
 | Payload | Typed identifiers are written as raw JSON values, e.g. `"userId":42`, by the `IdentifierJacksonModule` this starter registers |
@@ -93,13 +93,72 @@ sequenceDiagram
 | Aspect | Behavior |
 |---|---|
 | Target | `value()` is `topic` or `topic:tag`, the same convention as rocketmq-spring |
-| Key | Messages with a key go to a queue chosen by the key's hash, so one aggregate's events keep their order; the key is also set as the message keys for lookup in the console |
+| Key | Messages with a key go to a queue chosen by the key's hash, so one aggregate's events share a queue (see [Ordering](#ordering)); the key is also set as the message keys for lookup in the console |
 | Headers | `ddk-event-type`, `ddk-event-version` and `ddk-event-id` become user properties; read them with `MessageExt.getUserProperty(...)` |
 | Payload | JSON from the application's `JsonMapper`; `String` and `byte[]` payloads are sent as they are |
 | Failure | Any status other than `SEND_OK` fails the delivery, so the publication stays incomplete and can be resubmitted |
 | Producer | An application `DefaultMQProducer` bean, such as the one rocketmq-spring registers, wins; otherwise DDK creates one from `ddk.event.rocketmq.*` |
 
 The listener runs in Modulith's default listener mode and backs off when `spring.modulith.events.externalization.enabled=false` or `mode=outbox`. A Testcontainers test runs it against a real broker.
+
+### Ordering
+
+A key puts one aggregate's events into the same partition or queue, and the broker keeps the order in which they arrive there. It does not make them arrive in the order they were committed.
+
+Delivery runs after commit on Spring's task executor, which is a thread pool by default. Two events committed shortly after each other are sent by two threads, and the second can reach the broker first. A test in this module saw three events of one aggregate arrive in reverse order.
+
+| If you need | Do |
+|---|---|
+| Events of one aggregate in commit order | Set `spring.task.execution.pool.core-size=1`, so deliveries leave one at a time in the order they were submitted. This limits delivery throughput, and it does not hold with virtual threads enabled, where each delivery gets its own thread |
+| Throughput | Keep the pool, and make consumers independent of order: carry the aggregate version or enough state in the event, and ignore or compensate for events that arrive late |
+
+Resubmitting failed publications changes the order as well, so a consumer that breaks on reordering is fragile either way.
+
+## Consuming events
+
+Declare a consumer as a bean. DDK subscribes, decodes the payload, reads the contract headers and, on request, deduplicates.
+
+```java
+@Component
+public class OrderPlacedConsumer implements IntegrationEventConsumer<OrderPlacedPayload> {
+
+    @Override
+    public String group() {
+        return "inventory";
+    }
+
+    @Override
+    public String source() {
+        return "order-events:placed";   // same form as @IntegrationEvent(value): topic or topic:tag
+    }
+
+    @Override
+    public Class<OrderPlacedPayload> payloadType() {
+        return OrderPlacedPayload.class;
+    }
+
+    @Override
+    public void handle(ReceivedEvent<OrderPlacedPayload> event) {
+        inventoryService.reserve(event.eventId(), event.payload());
+    }
+}
+```
+
+- A consumer is an entry point like a controller: put it in the adapter layer and call an application service.
+- The payload type belongs to the consumer. It is the consumer's own copy of the publisher's contract with only the fields it uses, so the consumer does not depend on the publisher's classes.
+- `ReceivedEvent` carries `eventId`, `type` and `version` from the `ddk-event-*` headers.
+- Delivery is at least once. When `handle` throws, the message is delivered again.
+- `idempotent()` returning `true` wraps `handle` in `IdempotentConsumer`, keyed by the event ID. It needs `ddk.event.inbox.enabled=true` and an event ID declared by the publisher; otherwise startup or the first message fails with a message that says so.
+
+Where the messages come from:
+
+| Source | Enabled by | Behavior |
+|---|---|---|
+| RocketMQ | `rocketmq-client` on the classpath and `ddk.event.rocketmq.name-server` | One consumer per group, subscribed to the group's topics and tags. Orderly consumption by default: a failed message suspends its queue and is retried, and later messages do not overtake it |
+| In-process | `ddk.event.local-delivery.enabled=true` | For local development and tests without a broker. After commit the event is serialized and handed to the consumers of the same application on a single thread, through the same decoding. Nothing is persisted and failures are only logged |
+| Anything else | Your own listener | Call `IntegrationEventDispatcher.dispatch(group, topic, tag, headers, json)` from a Kafka, AMQP or JMS listener to reuse decoding, headers and deduplication |
+
+Do not put `idempotent()` on a consumer whose work must take a lock before its transaction starts. The inbox opens the transaction before `handle` runs, which would put the lock inside it. In that case call `IdempotentConsumer` yourself in the application service, inside the lock and inside the transaction.
 
 ## Event contracts
 
@@ -175,4 +234,7 @@ CREATE TABLE ddk_processed_message (
 | `ddk.event.rocketmq.name-server` | | NameServer addresses, separated by `;`. Setting it makes DDK create the producer |
 | `ddk.event.rocketmq.producer-group` | `ddk-event-producer` | Producer group of that producer |
 | `ddk.event.rocketmq.send-timeout` | `3s` | Timeout of one send |
+| `ddk.event.rocketmq.consumer.enabled` | `true` | Consume from RocketMQ when the application declares consumers |
+| `ddk.event.rocketmq.consumer.orderly` | `true` | Orderly consumption; `false` consumes concurrently and redelivers failed messages individually |
+| `ddk.event.local-delivery.enabled` | `false` | Deliver integration events in-process to the consumers of the same application; development and tests only |
 | `spring.modulith.events.*` | Spring Modulith | Registry schema, republishing on restart, completion mode, staleness |
