@@ -1,8 +1,12 @@
 package com.example.mall.order.application.handler;
 
+import com.example.mall.order.application.integration.OrderAwaitingPaymentMessage;
 import com.example.mall.order.application.integration.OrderCancelledMessage;
+import com.example.mall.order.application.integration.OrderPaidMessage;
 import com.example.mall.order.application.integration.OrderPlacedMessage;
+import com.example.mall.order.domain.event.OrderAwaitingPaymentEvent;
 import com.example.mall.order.domain.event.OrderCancelledEvent;
+import com.example.mall.order.domain.event.OrderPaidEvent;
 import com.example.mall.order.domain.event.OrderPlacedEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
@@ -27,6 +31,17 @@ public class OrderEventHandler {
     public void on(OrderPlacedEvent event) {
         publisher.publishEvent(new OrderPlacedMessage(UUID.randomUUID().toString(), event.orderId().value(), event.customerId(),
                 event.lines().stream().map(line -> new OrderPlacedMessage.Line(line.skuId(), line.quantity())).toList()));
+    }
+
+    @EventListener
+    public void on(OrderAwaitingPaymentEvent event) {
+        publisher.publishEvent(new OrderAwaitingPaymentMessage(UUID.randomUUID().toString(), event.orderId().value(), event.customerId(),
+                event.amount().amount(), event.expiresAt()));
+    }
+
+    @EventListener
+    public void on(OrderPaidEvent event) {
+        publisher.publishEvent(new OrderPaidMessage(UUID.randomUUID().toString(), event.orderId().value()));
     }
 
     @EventListener

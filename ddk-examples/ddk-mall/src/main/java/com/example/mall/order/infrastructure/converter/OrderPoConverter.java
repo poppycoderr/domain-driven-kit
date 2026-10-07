@@ -26,6 +26,7 @@ public class OrderPoConverter implements ObjectMapper<Order, OrderPO> {
         po.setStatus(source.status().name());
         po.setTotalAmount(source.totalAmount().amount());
         po.setCancelReason(source.cancelReason());
+        po.setExpiresAt(source.expiresAt());
         po.setVersion(source.version());
         List<OrderLinePO> lines = new ArrayList<>();
         for (OrderLine line : source.lines()) {

@@ -25,7 +25,7 @@ public class OrderEntityConverter implements ObjectMapper<OrderPO, Order> {
                 .map(line -> new OrderLine(line.getSkuId(), line.getProductName(), new Money(line.getUnitPrice()), line.getQuantity()))
                 .toList();
         return Order.restore(OrderId.of(source.getId()), source.getCustomerId(), lines, OrderStatus.valueOf(source.getStatus()),
-                new Money(source.getTotalAmount()), source.getCancelReason(), source.getVersion());
+                new Money(source.getTotalAmount()), source.getCancelReason(), source.getExpiresAt(), source.getVersion());
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.example.mall.order.application.service;
 import com.ddk.core.exception.BusinessException;
 import com.ddk.core.page.PageResponse;
 import com.example.mall.order.application.command.PlaceOrderCommand;
+import com.example.mall.order.application.config.OrderProperties;
 import com.example.mall.order.application.integration.OrderCancelledMessage;
 import com.example.mall.order.application.query.OrderPageQuery;
 import com.example.mall.order.application.response.OrderResponse;
@@ -14,10 +15,13 @@ import com.example.mall.order.domain.model.Order;
 import com.example.mall.order.domain.model.OrderId;
 import com.example.mall.order.domain.model.OrderLine;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,6 +29,7 @@ import java.util.UUID;
 /**
  * 订单应用服务：取出聚合、调用领域方法、保存、转换响应。下单规则和状态流转在 {@link Order} 里，这里只做编排与事务。
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderService {
@@ -37,10 +42,14 @@ public class OrderService {
 
     private final ApplicationEventPublisher publisher;
 
+    private final TransactionTemplate transaction;
+
+    private final OrderProperties properties;
+
     @Transactional
     public OrderResponse place(PlaceOrderCommand command) {
         List<OrderLine> lines = command.lines().stream().map(this::toOrderLine).toList();
-        Order order = Order.place(orderIdGenerator.nextId(), command.customerId(), lines);
+        Order order = Order.place(orderIdGenerator.nextId(), command.customerId(), lines, Instant.now().plus(properties.paymentTimeout()));
         return OrderResponse.from(orderRepository.create(order));
     }
 
@@ -72,7 +81,7 @@ public class OrderService {
         orderRepository.find(OrderId.of(orderId)).ifPresent(order -> {
             if (order.confirmStock()) {
                 orderRepository.update(order);
-            } else if (!order.isOpen()) {
+            } else if (order.isCancelled()) {
                 publisher.publishEvent(new OrderCancelledMessage(UUID.randomUUID().toString(), orderId, "订单已取消，释放晚到的库存预占"));
             }
         });
@@ -87,6 +96,52 @@ public class OrderService {
             order.cancel(reason);
             orderRepository.update(order);
         });
+    }
+
+    /**
+     * 支付已完成。
+     * <p>
+     * 支付和取消可能同时发生：顾客付了款，而订单刚好被取消或超时关闭。以订单的状态为准，订单已经取消时再发一次「已取消」，
+     * 支付上下文收到后会把这笔已经收到的钱退回去。这和 {@link #confirmStock} 处理晚到的预占是同一个办法。
+     */
+    @Transactional
+    public void markPaid(Long orderId) {
+        orderRepository.find(OrderId.of(orderId)).ifPresent(order -> {
+            if (order.pay()) {
+                orderRepository.update(order);
+            } else if (order.isCancelled()) {
+                publisher.publishEvent(new OrderCancelledMessage(UUID.randomUUID().toString(), orderId, "订单已取消，退回晚到的支付"));
+            }
+        });
+    }
+
+    /**
+     * 关闭已经过了支付期限的订单，返回关闭的数量。
+     * <p>
+     * 每个订单在自己的事务里关闭：一个订单失败（例如顾客恰好在这一刻付了款，乐观锁冲突）不影响其他订单，它留到下一轮再看。
+     */
+    public int closeExpired(Instant now) {
+        int closed = 0;
+        for (OrderId id : orderRepository.findExpired(now, properties.closeBatchSize())) {
+            try {
+                if (Boolean.TRUE.equals(transaction.execute(status -> closeIfExpired(id, now)))) {
+                    closed++;
+                }
+            } catch (RuntimeException e) {
+                log.warn("Could not close expired order {}, leaving it for the next round", id.value(), e);
+            }
+        }
+        return closed;
+    }
+
+    private boolean closeIfExpired(OrderId id, Instant now) {
+        Order order = orderRepository.find(id).orElse(null);
+        if (order == null || !order.isExpired(now)) {
+            return false;
+        }
+        order.cancel("超过支付期限，订单已关闭");
+        orderRepository.update(order);
+        return true;
     }
 
     private OrderLine toOrderLine(PlaceOrderCommand.Line line) {
