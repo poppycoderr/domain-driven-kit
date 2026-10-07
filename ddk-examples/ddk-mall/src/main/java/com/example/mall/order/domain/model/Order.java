@@ -3,9 +3,12 @@ package com.example.mall.order.domain.model;
 import com.ddk.core.domain.AggregateRoot;
 import com.ddk.core.exception.BusinessException;
 import com.example.mall.order.domain.error.OrderError;
+import com.example.mall.order.domain.event.OrderAwaitingPaymentEvent;
 import com.example.mall.order.domain.event.OrderCancelledEvent;
+import com.example.mall.order.domain.event.OrderPaidEvent;
 import com.example.mall.order.domain.event.OrderPlacedEvent;
 
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -26,13 +29,17 @@ public class Order extends AggregateRoot<OrderId> {
 
     private String cancelReason;
 
+    private Instant expiresAt;
+
     private Order() {
     }
 
     /**
      * 下单并登记 {@link OrderPlacedEvent}。订单至少有一行，同一个 SKU 只能出现一次。
+     *
+     * @param expiresAt 支付期限，到这个时刻还没有支付的订单会被关闭
      */
-    public static Order place(OrderId id, Long customerId, List<OrderLine> lines) {
+    public static Order place(OrderId id, Long customerId, List<OrderLine> lines, Instant expiresAt) {
         if (lines == null || lines.isEmpty()) {
             throw new BusinessException(OrderError.ORDER_EMPTY);
         }
@@ -47,6 +54,7 @@ public class Order extends AggregateRoot<OrderId> {
         order.customerId = Objects.requireNonNull(customerId, "customerId");
         order.lines = List.copyOf(lines);
         order.status = OrderStatus.PENDING_STOCK;
+        order.expiresAt = Objects.requireNonNull(expiresAt, "expiresAt");
         order.totalAmount = lines.stream().map(OrderLine::subtotal).reduce(Money.ZERO, Money::plus);
         order.registerEvent(new OrderPlacedEvent(id, customerId, order.totalAmount, order.lines));
         return order;
@@ -56,7 +64,7 @@ public class Order extends AggregateRoot<OrderId> {
      * 从持久化数据重建，不产生领域事件，也不重新校验下单规则。
      */
     public static Order restore(OrderId id, Long customerId, List<OrderLine> lines, OrderStatus status, Money totalAmount,
-                                String cancelReason, Long version) {
+                                String cancelReason, Instant expiresAt, Long version) {
         Order order = new Order();
         order.assignId(Objects.requireNonNull(id, "id"));
         order.customerId = customerId;
@@ -64,12 +72,13 @@ public class Order extends AggregateRoot<OrderId> {
         order.status = status;
         order.totalAmount = totalAmount;
         order.cancelReason = cancelReason;
+        order.expiresAt = expiresAt;
         order.assignVersion(version);
         return order;
     }
 
     /**
-     * 库存已为这个订单预占，可以支付了。
+     * 库存已为这个订单预占，可以支付了，登记 {@link OrderAwaitingPaymentEvent}。
      * <p>
      * 只对等待库存确认的订单生效，返回是否发生了变化。订单可能在库存确认回来之前已经被取消，或者同一个确认被送达了两次，
      * 这两种情况都不是错误，什么都不做即可。
@@ -79,6 +88,19 @@ public class Order extends AggregateRoot<OrderId> {
             return false;
         }
         this.status = OrderStatus.PENDING_PAYMENT;
+        registerEvent(new OrderAwaitingPaymentEvent(id(), customerId, totalAmount, expiresAt));
+        return true;
+    }
+
+    /**
+     * 支付已完成。只对等待支付的订单生效，返回是否发生了变化：重复的支付通知，或者订单已经取消之后才到的支付通知，都返回 false。
+     */
+    public boolean pay() {
+        if (status != OrderStatus.PENDING_PAYMENT) {
+            return false;
+        }
+        this.status = OrderStatus.PAID;
+        registerEvent(new OrderPaidEvent(id()));
         return true;
     }
 
@@ -99,6 +121,17 @@ public class Order extends AggregateRoot<OrderId> {
      */
     public boolean isOpen() {
         return status == OrderStatus.PENDING_STOCK || status == OrderStatus.PENDING_PAYMENT;
+    }
+
+    public boolean isCancelled() {
+        return status == OrderStatus.CANCELLED;
+    }
+
+    /**
+     * 订单还在进行中，但已经过了支付期限。
+     */
+    public boolean isExpired(Instant now) {
+        return isOpen() && expiresAt != null && !now.isBefore(expiresAt);
     }
 
     public boolean belongsTo(Long customerId) {
@@ -123,5 +156,9 @@ public class Order extends AggregateRoot<OrderId> {
 
     public String cancelReason() {
         return cancelReason;
+    }
+
+    public Instant expiresAt() {
+        return expiresAt;
     }
 }

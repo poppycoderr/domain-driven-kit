@@ -10,6 +10,7 @@ import com.example.mall.inventory.application.service.InventoryService;
 import com.example.mall.order.application.command.PlaceOrderCommand;
 import com.example.mall.order.application.response.OrderResponse;
 import com.example.mall.order.application.service.OrderService;
+import com.example.mall.payment.application.service.PaymentService;
 import com.ddk.event.starter.consumer.IntegrationEventDispatcher;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -63,6 +64,9 @@ class MallFlowIntegrationTest {
     private InventoryService inventory;
 
     @Autowired
+    private PaymentService payments;
+
+    @Autowired
     private IntegrationEventDispatcher dispatcher;
 
     @Autowired
@@ -83,6 +87,7 @@ class MallFlowIntegrationTest {
     static void topics() {
         ROCKETMQ.createTopic("mall-order-events", 4);
         ROCKETMQ.createTopic("mall-inventory-events", 4);
+        ROCKETMQ.createTopic("mall-payment-events", 4);
     }
 
     @Test
@@ -103,6 +108,34 @@ class MallFlowIntegrationTest {
         assertThat(inventory.get("SKU-KEYBOARD").reserved()).isEqualTo(keyboards);
         assertThat(inventory.get("SKU-MOUSE").reserved()).isEqualTo(mice);
         assertThat(inventory.get("SKU-KEYBOARD").onHand()).isEqualTo(10);
+    }
+
+    @Test
+    void payingAnOrderCompletesItAndDeductsTheReservedStock() {
+        int onHand = inventory.get("SKU-MOUSE").onHand();
+        int reserved = inventory.get("SKU-MOUSE").reserved();
+        OrderResponse placed = place(new PlaceOrderCommand.Line("SKU-MOUSE", 4));
+        await().atMost(Duration.ofSeconds(90)).until(() -> paymentStatus(placed.id()).equals("PENDING"));
+        assertThat(payments.get(7L, placed.id()).amount()).isEqualByComparingTo("516.00");
+
+        assertThat(payments.pay(7L, placed.id()).status()).isEqualTo("PAID");
+
+        await().atMost(Duration.ofSeconds(60)).until(() -> orders.get(7L, placed.id()).status().equals("PAID"));
+        await().atMost(Duration.ofSeconds(60)).until(() -> inventory.reservationsOf(placed.id()).stream().allMatch(r -> r.status().equals("CONFIRMED")));
+        assertThat(inventory.get("SKU-MOUSE").onHand()).isEqualTo(onHand - 4);
+        assertThat(inventory.get("SKU-MOUSE").reserved()).isEqualTo(reserved);
+    }
+
+    @Test
+    void anOrderPastItsDeadlineIsClosedAndItsPaymentAndStockFollow() {
+        OrderResponse placed = place(new PlaceOrderCommand.Line("SKU-MONITOR", 1));
+        await().atMost(Duration.ofSeconds(90)).until(() -> paymentStatus(placed.id()).equals("PENDING"));
+
+        assertThat(orders.closeExpired(placed.expiresAt().plusSeconds(1))).isGreaterThanOrEqualTo(1);
+
+        assertThat(orders.get(7L, placed.id()).status()).isEqualTo("CANCELLED");
+        await().atMost(Duration.ofSeconds(60)).until(() -> paymentStatus(placed.id()).equals("CLOSED"));
+        await().atMost(Duration.ofSeconds(60)).until(() -> inventory.reservationsOf(placed.id()).stream().allMatch(r -> r.status().equals("RELEASED")));
     }
 
     @Test
@@ -145,6 +178,10 @@ class MallFlowIntegrationTest {
 
         assertThat(orders.get(7L, placed.id()).status()).isEqualTo("CANCELLED");
         assertThat(cancelledMessages(placed.id())).isEqualTo(before + 1);
+    }
+
+    private String paymentStatus(Long orderId) {
+        return jdbc.query("SELECT status FROM t_payment WHERE order_id = ?", rs -> rs.next() ? rs.getString(1) : "", orderId);
     }
 
     private long cancelledMessages(Long orderId) {

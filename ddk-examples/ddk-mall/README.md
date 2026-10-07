@@ -2,14 +2,14 @@
 
 用一个完整的业务场景把 DDK 的各个 starter 串起来：下单 → 预占库存 → 支付 → 完成，超时未支付则取消并释放库存。订单、库存、支付三个限界上下文部署成一个应用（模块化单体），上下文之间只通过集成事件协作。
 
-这个应用分步建设，目前完成了前 3 步：订单和库存已经通过消息连成一条链路。
+这个应用分步建设，目前完成了前 4 步：下单、预占、支付、扣减，以及超时关单，整条业务链路已经连通。
 
 | 步骤 | 内容 | 状态 |
 |---|---|---|
 | 1 | 骨架、订单上下文（下单、查询、取消）、Flyway、MySQL | 已完成 |
 | 2 | 库存上下文：预占、释放、扣减，按 SKU 加锁 | 已完成 |
 | 3 | 订单与库存之间的消息：outbox、RocketMQ、幂等消费 | 已完成 |
-| 4 | 支付上下文（模拟渠道）、超时关单 | 未开始 |
+| 4 | 支付上下文（模拟渠道）、超时关单 | 已完成 |
 | 5 | 缓存、接口文档、MCP 工具 | 未开始 |
 | 6 | 可观测性、整体文档 | 未开始 |
 
@@ -31,11 +31,12 @@ mvn -pl ddk-examples/ddk-mall spring-boot:run -Dspring-boot.run.profiles=compose
 
 表结构由 Flyway 在启动时创建，并带三件商品和它们的库存：`SKU-KEYBOARD`（10 件）、`SKU-MOUSE`（50 件）、`SKU-MONITOR`（3 件）。
 
-两种运行方式有两处差别，业务代码完全相同：
+两种运行方式有三处差别，业务代码完全相同：
 
 | | 默认 profile | `compose` profile |
 |---|---|---|
 | 库存锁 | 进程内的锁，只适合单实例，启动时打一条警告 | Redis，多个实例之间互斥 |
+| 定时任务的锁 | 总是放行的替身（`LocalJobLock`），只适合单实例 | Redis，多个实例里同一轮只有一个执行 |
 | 上下文之间的消息 | DDK 的进程内转发（`ddk.event.local-delivery`），进程退出就丢，失败不重投 | 先写进事件发布记录，提交后经 RocketMQ 投递，失败可重投 |
 
 ## 冒烟命令
@@ -57,15 +58,27 @@ curl -s localhost:8080/inventory/SKU-KEYBOARD
 curl -s -X POST localhost:8080/orders -H 'X-Customer-Id: 7' -H 'Content-Type: application/json' \
   -d '{"lines":[{"skuId":"SKU-MONITOR","quantity":99}]}'
 
+# 库存预占完成后支付上下文建好了支付单：查看应付金额和支付期限
+curl -s localhost:8080/payments/orders/<id> -H 'X-Customer-Id: 7'
+
+# 支付（模拟渠道，单笔不超过 50000 都成功）。稍后查询订单，状态是 PAID，库存的在库数量随之减少
+curl -s -X POST localhost:8080/payments/orders/<id>/pay -H 'X-Customer-Id: 7'
+
 # 换一个顾客查同一个订单：ORDER_NOT_FOUND，不透露订单是否存在
 curl -s localhost:8080/orders/<id> -H 'X-Customer-Id: 8'
 
 # 我的订单
 curl -s -X POST localhost:8080/orders/page -H 'X-Customer-Id: 7' -H 'Content-Type: application/json' -d '{}'
 
-# 取消，预占的库存随之释放；再取消一次返回 ORDER_NOT_CANCELLABLE
+# 取消还没支付的订单，预占的库存随之释放，支付单关闭；再取消一次或取消已支付的订单返回 ORDER_NOT_CANCELLABLE
 curl -s -X POST localhost:8080/orders/<id>/cancel -H 'X-Customer-Id: 7' -H 'Content-Type: application/json' \
   -d '{"reason":"不想要了"}'
+```
+
+下单后 30 分钟没有支付，订单会被关单任务取消（每 30 秒扫描一次）。想马上看到效果，启动时把期限调短：
+
+```bash
+mvn -pl ddk-examples/ddk-mall spring-boot:run -Dspring-boot.run.arguments="--mall.order.payment-timeout=1m --mall.order.close-interval=5s"
 ```
 
 库存的预占和释放由订单的消息驱动，下面的接口用于运营操作和手工验证：
@@ -92,25 +105,37 @@ curl -s -X POST localhost:8080/inventory/SKU-MONITOR/restock -H 'Content-Type: a
 sequenceDiagram
     participant C as 顾客
     participant O as 订单上下文
-    participant MQ as RocketMQ
     participant I as 库存上下文
+    participant P as 支付上下文
     C->>O: 下单
-    O->>O: 保存订单（PENDING_STOCK）和「订单已下单」消息，同一个事务
-    O-->>MQ: 提交后投递
-    MQ-->>I: order.placed
+    O->>O: 保存订单（PENDING_STOCK）和「已下单」消息，同一个事务
+    O-->>I: order.placed
     I->>I: 锁住涉及的 SKU，预占库存，登记结果消息，同一个事务
-    I-->>MQ: 库存已预占 / 预占失败
-    MQ-->>O: inventory.stock-reserved / rejected
+    I-->>O: inventory.stock-reserved / rejected
     O->>O: PENDING_PAYMENT / CANCELLED
-    C->>O: 取消订单
-    O-->>MQ: order.cancelled
-    MQ-->>I: 释放预占
+    O-->>P: order.awaiting-payment（金额、支付期限）
+    P->>P: 建立支付单（PENDING）
+    C->>P: 支付
+    P->>P: 请求渠道扣款，支付单 PAID
+    P-->>O: payment.completed
+    O->>O: PAID
+    O-->>I: order.paid
+    I->>I: 扣减预占的库存
+    Note over O: 顾客取消，或关单任务发现超过支付期限
+    O-->>I: order.cancelled：释放预占
+    O-->>P: order.cancelled：关闭支付单，已收的钱退回
 ```
 
-- **两个上下文互不调用。** 订单不知道库存的存在，只是发出「订单已下单」；库存不认识订单的类型，自己定义一份只含所需字段的消息体。
+虚线都是消息：先和业务数据在同一个事务里登记，提交后经 RocketMQ 投递（默认 profile 下在进程内转发）。
+
+
+- **上下文互不调用。** 订单不知道库存和支付的存在，只是发出「已下单」「等待支付」「已支付」「已取消」；库存和支付不认识订单的类型，各自定义一份只含所需字段的消息体。支付单需要的金额和期限随消息带过去，支付上下文不回头查订单。
 - **消息不会丢。** 消息和业务数据在同一个事务里提交（DDK 的事件 starter 加 Spring Modulith 的事件发布记录），提交之后才投递，投递失败的记录可以重投。
 - **重复投递不会重复处理。** 预占用 `IdempotentConsumer` 按消息 ID 去重，并且去重登记和预占在同一个事务里；订单的状态流转和库存的释放本身可以重复执行，不需要额外去重。
 - **不依赖消息的先后。** 消息以订单号为 key，同一个订单的消息在同一个队列里，但提交后的投递是并发的，「已取消」有可能比「已下单」先到库存上下文：那时还没有预占，什么都没释放，随后「已下单」又把库存占上了。所以订单上下文收到「库存已预占」时如果订单已经取消，会再发一次「已取消」，把这次晚到的预占释放掉。
+- **订单说了算。** 付款和取消可能同时发生：顾客付了款，订单却刚好被取消或超时关闭。订单的状态由乐观锁保证只走一条路，另外两个上下文跟随它：订单最终是已支付，库存扣减；订单最终是已取消，库存释放，支付单关闭，已经收到的钱退回。订单上下文收到「支付已完成」时如果订单已经取消，会再发一次「已取消」来触发退款。
+- **请求渠道不靠分布式事务。** 渠道扣款成功之后保存支付单可能失败。渠道按支付单标识去重，重复请求不会多扣；支付单的状态和乐观锁保证只有一个请求把它记成已支付。
+- **关单任务的锁不是正确性的前提。** 每个订单在自己的事务里关闭，靠订单状态和乐观锁保证只关一次；`@SchedulerLock` 只是避免多个实例重复扫描。
 - **库存不足不是消费失败。** 库存上下文发出「预占失败」并正常返回，订单随之取消；消息不会被反复重投。
 
 ## 结构
@@ -120,15 +145,20 @@ com.example.mall
 ├── MallApplication
 ├── platform                 各上下文共用的技术代码：从请求头解析顾客身份
 ├── order                    订单上下文，内部是四层
-│   ├── adapter/{controller,messaging}
-│   ├── application/{command,query,response,service,handler,integration}
+│   ├── adapter/{controller,messaging,job}
+│   ├── application/{command,query,response,service,handler,integration,config}
 │   ├── domain/{model,event,acl,error}
 │   └── infrastructure/{acl/impl,converter,id,orm}
-└── inventory                库存上下文，同样是四层；订单在这里只是一个编号
+├── inventory                库存上下文，同样是四层；订单在这里只是一个编号
+│   ├── adapter/{controller,messaging}
+│   ├── application/{command,response,service,integration}
+│   ├── domain/{model,event,acl,error}
+│   └── infrastructure/{acl/impl,converter,id,lock,orm}
+└── payment                  支付上下文；渠道是一个端口，目前的实现是模拟的
     ├── adapter/{controller,messaging}
-    ├── application/{command,response,service,integration}
+    ├── application/{response,service,handler,integration}
     ├── domain/{model,event,acl,error}
-    └── infrastructure/{acl/impl,converter,id,lock,orm}
+    └── infrastructure/{acl/impl,channel,converter,id,orm}
 ```
 
 `ArchitectureTest` 除了 DDK 的分层规则，还检查上下文之间互不引用：`order`、`inventory`、`payment` 三个包不能依赖彼此。`application/integration` 里是各上下文对外发出的消息（契约），`adapter/messaging` 里是消费方。订阅、分发、解析消息体都由 DDK 的事件 starter 完成，应用里没有一行和消息中间件打交道的代码。
@@ -150,7 +180,11 @@ com.example.mall
 | 锁包住事务：先拿锁，再在锁里开启并提交事务 | `InventoryService` 用 `TransactionTemplate` |
 | 不超卖：20 个订单同时抢 3 件库存，恰好 3 个成功 | `StockConcurrencyIntegrationTest`，真实的 MySQL 和 Redis |
 | 领域事件翻译成对外契约，并和业务数据一起提交 | `OrderEventHandler`、`OrderPlacedMessage`（`@IntegrationEvent`） |
-| 消费方只声明消费组、来源和消息体类型 | `adapter/messaging` 下的四个 `IntegrationEventConsumer` |
-| 消息乱序时自我纠正 | `OrderService.confirmStock` |
+| 消费方只声明消费组、来源和消息体类型 | 三个上下文 `adapter/messaging` 下的八个 `IntegrationEventConsumer` |
+| 消息乱序时自我纠正 | `OrderService.confirmStock`、`OrderService.markPaid` |
 | 幂等消费，去重登记与业务修改同一个事务 | `InventoryService.reserveForOrder` 里的 `IdempotentConsumer` |
 | 整条链路跑在真实中间件上 | `MallFlowIntegrationTest`，用 `DdkContainers` 的 MySQL、Redis、RocketMQ |
+| 外部系统作为端口：领域只关心扣款是否成功，渠道按支付单标识去重 | `PaymentChannel` 与 `SimulatedPaymentChannel` |
+| 付款与取消交叉时退款 | `PaymentService.cancelForOrder`，`PaymentApiTest` |
+| 定时任务放在适配层并加锁，由架构测试检查 | `CloseExpiredOrdersJob`，`SCHEDULED_JOBS_MUST_BE_LOCKED` |
+| 批量任务逐个处理，各自一个事务，一个失败不影响其他 | `OrderService.closeExpired` |

@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.annotation.Version;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +31,8 @@ public class OrderPO {
     private BigDecimal totalAmount;
 
     private String cancelReason;
+
+    private Instant expiresAt;
 
     @Version
     private Long version;

@@ -25,3 +25,13 @@ ddk:
   # 默认 profile 不连 Redis：库存锁退回进程内实现，只适合单实例。compose profile 里打开
   concurrency:
     enabled: false
+
+mall:
+  order:
+    # 下单后多久没有支付就关闭订单；关单任务多久扫描一次
+    payment-timeout: 30m
+    close-interval: 30s
+  payment:
+    simulated:
+      # 模拟渠道的单笔上限，超过的支付会被拒绝
+      decline-above: 50000

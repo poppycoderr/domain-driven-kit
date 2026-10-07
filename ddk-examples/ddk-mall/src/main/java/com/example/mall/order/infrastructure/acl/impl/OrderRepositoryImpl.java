@@ -5,6 +5,7 @@ import com.ddk.mybatis.repository.GenericRepositoryImpl;
 import com.example.mall.order.domain.acl.OrderRepository;
 import com.example.mall.order.domain.model.Order;
 import com.example.mall.order.domain.model.OrderId;
+import com.example.mall.order.domain.model.OrderStatus;
 import com.example.mall.order.infrastructure.orm.mapper.OrderLineMapper;
 import com.example.mall.order.infrastructure.orm.mapper.OrderMapper;
 import com.example.mall.order.infrastructure.orm.po.OrderLinePO;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -26,6 +28,17 @@ import java.util.stream.Collectors;
 public class OrderRepositoryImpl extends GenericRepositoryImpl<Order, OrderId, OrderPO, OrderMapper> implements OrderRepository {
 
     private final OrderLineMapper orderLineMapper;
+
+    @Override
+    public List<OrderId> findExpired(Instant now, int limit) {
+        return getBaseMapper().selectList(Wrappers.lambdaQuery(OrderPO.class)
+                        .select(OrderPO::getId)
+                        .in(OrderPO::getStatus, OrderStatus.PENDING_STOCK.name(), OrderStatus.PENDING_PAYMENT.name())
+                        .le(OrderPO::getExpiresAt, now)
+                        .orderByAsc(OrderPO::getExpiresAt)
+                        .last("LIMIT " + limit))
+                .stream().map(po -> OrderId.of(po.getId())).toList();
+    }
 
     @Override
     protected void afterInsert(OrderPO po) {

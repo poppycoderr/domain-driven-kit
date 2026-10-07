@@ -11,6 +11,9 @@ public enum OrderStatus {
     /** 库存已预占，等待支付 */
     PENDING_PAYMENT,
 
-    /** 已取消：顾客取消，或库存不足 */
+    /** 已支付，库存随后扣减 */
+    PAID,
+
+    /** 已取消：顾客取消、库存不足，或超过支付期限 */
     CANCELLED
 }

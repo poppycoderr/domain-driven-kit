@@ -44,6 +44,11 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
+        <!-- 超时关单的定时任务。任务锁同样放在 Redis 里，默认 profile 用一个进程内的替身 -->
+        <dependency>
+            <groupId>com.ddk</groupId>
+            <artifactId>ddk-job-starter</artifactId>
+        </dependency>
 
         <!-- 表结构由 Flyway 迁移脚本管理；flyway-mysql 是连接 MySQL 时需要的方言模块 -->
         <dependency>
