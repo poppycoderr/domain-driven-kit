@@ -21,6 +21,7 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ### Fixed
 
+- Trace export failed at runtime (`NoSuchMethodError: okio.Okio.socket`) in applications that use RocketMQ and the tracer starter together: `rocketmq-client` brings an old okio that Maven preferred over the one the OpenTelemetry exporter's OkHttp needs. The BOM now manages okio to the version OkHttp 5 requires
 - The Redis starter failed the application at startup when no `RedisConnectionFactory` existed, for example with Spring Boot's Redis auto-configuration excluded for a local profile. This also defeated the cache starter's local-only fallback. The `redisTemplate` bean is now created lazily, so the application starts and only using the template without a connection fails
 - The event starter's documentation claimed that events with the same key keep their order. A key only puts them in the same partition or queue; delivery after commit is concurrent by default and can send them out of order. The README now explains this and how to get ordered delivery
 

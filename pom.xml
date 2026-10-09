@@ -65,6 +65,7 @@
         <spring-ai.version>2.0.1</spring-ai.version>
         <spring-modulith.version>2.1.1</spring-modulith.version>
         <rocketmq.version>5.5.1</rocketmq.version>
+        <okio.version>3.16.4</okio.version>
         <redisson.version>4.7.0</redisson.version>
         <springdoc.version>3.1.1</springdoc.version>
         <shedlock.version>7.10.1</shedlock.version>
@@ -209,6 +210,17 @@
                 <groupId>org.apache.rocketmq</groupId>
                 <artifactId>rocketmq-client</artifactId>
                 <version>${rocketmq.version}</version>
+            </dependency>
+            <!-- 与 ddk-dependencies 保持一致：rocketmq-client 带进来的旧版 okio 会让 OpenTelemetry 导出器在运行时失败 -->
+            <dependency>
+                <groupId>com.squareup.okio</groupId>
+                <artifactId>okio</artifactId>
+                <version>${okio.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.okio</groupId>
+                <artifactId>okio-jvm</artifactId>
+                <version>${okio.version}</version>
             </dependency>
 
             <!-- springdoc：Web starter 的可选集成 -->

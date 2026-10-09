@@ -45,6 +45,7 @@
         <spring-modulith.version>2.1.1</spring-modulith.version>
         <rocketmq.version>5.5.1</rocketmq.version>
         <springdoc.version>3.1.1</springdoc.version>
+        <okio.version>3.16.4</okio.version>
         <ddk.version>0.6.0-SNAPSHOT</ddk.version>
     </properties>
 
@@ -63,6 +64,20 @@
                 <groupId>org.apache.rocketmq</groupId>
                 <artifactId>rocketmq-client</artifactId>
                 <version>${rocketmq.version}</version>
+            </dependency>
+            <!--
+                rocketmq-client 带进来的 okio 3.4.0 在依赖树里比 OpenTelemetry 导出器需要的版本离得近，会被 Maven 选中；
+                导出器用的 OkHttp 5 调用了新版 okio 才有的方法，结果是链路导出在运行时失败。这里统一到 OkHttp 5 要求的版本
+            -->
+            <dependency>
+                <groupId>com.squareup.okio</groupId>
+                <artifactId>okio</artifactId>
+                <version>${okio.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.squareup.okio</groupId>
+                <artifactId>okio-jvm</artifactId>
+                <version>${okio.version}</version>
             </dependency>
             <!-- 需要接口文档时由应用引入，DDK 的 Web starter 会补上错误响应与错误码 -->
             <dependency>

@@ -20,16 +20,18 @@ A caller reporting a problem can hand over the header value, and the whole call 
 </dependency>
 ```
 
-The starter brings in Spring Boot's `spring-boot-starter-opentelemetry` (the Micrometer Tracing OTel bridge and the OTLP exporter). Sampling and export stay under Spring Boot's own properties:
+The starter brings in Spring Boot's `spring-boot-starter-opentelemetry` (the Micrometer Tracing OTel bridge and the OTLP exporter). Sampling and export stay under Spring Boot's own properties. Spring Boot 4.1 moved the OTLP trace settings to `management.opentelemetry.tracing.export.otlp.*`; the older `management.otlp.tracing.*` names are deprecated:
 
 ```yaml
 management:
   tracing:
     sampling:
       probability: 1.0
-  otlp:
+  opentelemetry:
     tracing:
-      endpoint: http://otel-collector:4318/v1/traces
+      export:
+        otlp:
+          endpoint: http://otel-collector:4318/v1/traces
 ```
 
 ## Configuration
