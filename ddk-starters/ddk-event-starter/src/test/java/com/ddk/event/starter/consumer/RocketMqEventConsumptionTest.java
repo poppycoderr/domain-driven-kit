@@ -3,6 +3,10 @@ package com.ddk.event.starter.consumer;
 import com.ddk.core.domain.IntegrationEvent;
 import com.ddk.test.containers.DdkContainers;
 import com.ddk.test.containers.RocketMqContainer;
+import io.micrometer.observation.Observation;
+import io.micrometer.observation.ObservationRegistry;
+import io.micrometer.tracing.Span;
+import io.micrometer.tracing.Tracer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,6 +16,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.task.support.ContextPropagatingTaskDecorator;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -21,6 +26,9 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -50,6 +58,8 @@ class RocketMqEventConsumptionTest {
 
     private static final String TOPIC = "shipment-events";
 
+    private static final String SCAN_TOPIC = "parcel-scans";
+
     @Container
     static final RocketMqContainer ROCKETMQ = DdkContainers.rocketmq();
 
@@ -65,6 +75,15 @@ class RocketMqEventConsumptionTest {
     @Autowired
     private AuditConsumer audit;
 
+    @Autowired
+    private Tracer tracer;
+
+    @Autowired
+    private ObservationRegistry observationRegistry;
+
+    @Autowired
+    private ScanConsumer scans;
+
     @DynamicPropertySource
     static void rocketmq(DynamicPropertyRegistry registry) {
         registry.add("ddk.event.rocketmq.name-server", ROCKETMQ::getNameServer);
@@ -73,6 +92,7 @@ class RocketMqEventConsumptionTest {
     @BeforeAll
     static void topic() {
         ROCKETMQ.createTopic(TOPIC, 4);
+        ROCKETMQ.createTopic(SCAN_TOPIC, 1);
     }
 
     @Test
@@ -92,6 +112,20 @@ class RocketMqEventConsumptionTest {
         assertThat(audit.received).extracting(ReceivedEvent::eventId).containsExactlyInAnyOrder("evt-1", "evt-2", "evt-3");
     }
 
+    @Test
+    @DisplayName("链路跟着消息走：消费方的处理过程接在发布方的那条链路上")
+    void theTraceFollowsTheMessage() {
+        // 和真实的请求一样，链路由一次观测开启（Web 请求的观测由 Spring 创建）
+        String requestTrace = Observation.createNotStarted("http.server.requests", observationRegistry).observe(() -> {
+            transaction.executeWithoutResult(status -> publisher.publishEvent(new ParcelScanned("evt-traced", 78L)));
+            return Objects.requireNonNull(tracer.currentSpan()).context().traceId();
+        });
+
+        await().atMost(Duration.ofSeconds(120)).until(() -> scans.traces.containsKey("evt-traced"));
+
+        assertThat(scans.traces.get("evt-traced")).isEqualTo(requestTrace);
+    }
+
     @IntegrationEvent(value = TOPIC + ":dispatched", key = "shipmentId", id = "eventId", type = "shipment.dispatched")
     record ShipmentDispatched(
             String eventId,
@@ -99,6 +133,14 @@ class RocketMqEventConsumptionTest {
             Long shipmentId,
 
             String status
+    ) {
+    }
+
+    @IntegrationEvent(value = SCAN_TOPIC, key = "parcelId", id = "eventId")
+    record ParcelScanned(
+            String eventId,
+
+            Long parcelId
     ) {
     }
 
@@ -139,6 +181,41 @@ class RocketMqEventConsumptionTest {
                 throw new IllegalStateException("tracking store down");
             }
             received.add(event);
+        }
+    }
+
+    /**
+     * 记下处理每个事件时所在的链路。
+     */
+    static class ScanConsumer implements IntegrationEventConsumer<ParcelScanned> {
+
+        final Map<String, String> traces = new ConcurrentHashMap<>();
+
+        private final Tracer tracer;
+
+        ScanConsumer(Tracer tracer) {
+            this.tracer = tracer;
+        }
+
+        @Override
+        public String group() {
+            return "scans";
+        }
+
+        @Override
+        public String source() {
+            return SCAN_TOPIC;
+        }
+
+        @Override
+        public Class<ParcelScanned> payloadType() {
+            return ParcelScanned.class;
+        }
+
+        @Override
+        public void handle(ReceivedEvent<ParcelScanned> event) {
+            Span current = tracer.currentSpan();
+            traces.put(event.payload().eventId(), current == null ? "" : current.context().traceId());
         }
     }
 
@@ -184,6 +261,19 @@ class RocketMqEventConsumptionTest {
         @Bean
         AuditConsumer auditConsumer() {
             return new AuditConsumer();
+        }
+
+        @Bean
+        ScanConsumer scanConsumer(Tracer tracer) {
+            return new ScanConsumer(tracer);
+        }
+
+        /**
+         * 事务提交后的投递在线程池里进行。应用里这个 Bean 由链路 starter 提供，这里没有引入它，所以自己声明。
+         */
+        @Bean
+        ContextPropagatingTaskDecorator contextPropagatingTaskDecorator() {
+            return new ContextPropagatingTaskDecorator();
         }
     }
 }

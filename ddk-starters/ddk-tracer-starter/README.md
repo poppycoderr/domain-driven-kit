@@ -1,6 +1,6 @@
 # DDK Tracer Starter
 
-Distributed tracing with Micrometer Tracing and OpenTelemetry, plus one DDK addition: every HTTP response carries its trace ID.
+Distributed tracing with Micrometer Tracing and OpenTelemetry, plus two DDK additions: every HTTP response carries its trace ID, and the trace follows work into Spring's task executors.
 
 ```text
 HTTP request
@@ -40,8 +40,24 @@ management:
 |---|---|---|
 | `ddk.tracer.response-header.enabled` | `true` | Write the trace ID into the response |
 | `ddk.tracer.response-header.name` | `X-Trace-Id` | Header name |
+| `ddk.tracer.async-propagation.enabled` | `true` | Carry the trace context into Spring's task executors |
 
 Browsers can only read the header if CORS exposes it, e.g. `ddk.web.cors.exposed-headers=X-Trace-Id`.
+
+## Traces across threads and messages
+
+Without help, work that moves to another thread starts a new trace. The starter registers a `ContextPropagatingTaskDecorator`, which Spring Boot applies to the task executors it creates, so `@Async` methods stay on the caller's trace.
+
+This is also what keeps integration events on the trace. `ddk-event-starter` delivers events on the task executor after the transaction commits, writes the trace context into the message headers, and picks it up again on the consuming side:
+
+```text
+POST /orders                         trace 4bf9...
+  └─ order-events publish            same trace, on the task executor
+       └─ order-events process       same trace, in the consuming service
+            └─ stock-events publish  ...and onwards
+```
+
+An application that declares its own `TaskDecorator` keeps it; DDK then registers nothing.
 
 ## Behaviour
 

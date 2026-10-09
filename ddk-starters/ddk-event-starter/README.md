@@ -160,6 +160,24 @@ Where the messages come from:
 
 Do not put `idempotent()` on a consumer whose work must take a lock before its transaction starts. The inbox opens the transaction before `handle` runs, which would put the lock inside it. In that case call `IdempotentConsumer` yourself in the application service, inside the lock and inside the transaction.
 
+## Tracing and metrics
+
+Publishing and consuming are Micrometer observations, so they work with whatever the application already has and do nothing when it has no `ObservationRegistry`.
+
+| Observation | When | Tags |
+|---|---|---|
+| `ddk.event.publish` | An event is sent to RocketMQ, or handed to local delivery | `messaging.destination.name` |
+| `ddk.event.consume` | A message is processed by the consumers of one group | `messaging.destination.name`, `messaging.consumer.group.name` |
+
+With tracing on the classpath, the publishing side writes the trace context into the message headers and the consuming side continues from it. One request that travels through several services, or several contexts of one application, is a single trace.
+
+Two things to know:
+
+- Events are sent on the task executor after the commit. The trace only reaches that thread if the context is propagated to it. `ddk-tracer-starter` sets this up; without it, declare a `ContextPropagatingTaskDecorator` bean yourself.
+- An event that is resubmitted later, after a failed delivery or a restart, starts a new trace. The original context is not stored with the publication record.
+
+A listener for another broker gets the consuming side for free by calling `IntegrationEventDispatcher.dispatch` with the message headers.
+
 ## Event contracts
 
 Every delivered integration event carries contract headers:

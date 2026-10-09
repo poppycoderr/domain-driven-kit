@@ -17,6 +17,20 @@ public class DdkTracerProperties {
 
     private final ResponseHeader responseHeader = new ResponseHeader();
 
+    private final AsyncPropagation asyncPropagation = new AsyncPropagation();
+
+    @Data
+    public static class AsyncPropagation {
+
+        /**
+         * 是否让链路上下文跟随任务进入 Spring 的任务线程池。
+         * <p>
+         * 开启后 {@code @Async} 方法、以及事务提交后在线程池里投递的集成事件，都接在发起它们的那条链路上。
+         * 应用自己声明了 {@code TaskDecorator} 时以应用为准。
+         */
+        private boolean enabled = true;
+    }
+
     @Data
     public static class ResponseHeader {
 
