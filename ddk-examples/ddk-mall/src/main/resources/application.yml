@@ -54,3 +54,14 @@ mall:
     simulated:
       # 模拟渠道的单笔上限，超过的支付会被拒绝
       decline-above: 50000
+
+# 默认不向外上报：链路照常生成（响应头里有 X-Trace-Id，日志里有 traceId），只是不导出。observability profile 里打开导出
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics
+  otlp:
+    metrics:
+      export:
+        enabled: false

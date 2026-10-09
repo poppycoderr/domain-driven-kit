@@ -28,6 +28,7 @@ services:
       timeout: 3s
       retries: 20
 
+  # 主题在启动时建好：靠自动创建的话，消费者要等下一次路由刷新才发现新主题，第一笔订单会卡上几十秒
   # NameServer 与 broker 放在一个容器里。broker 登记的地址要让宿主机上的应用连得上，所以写成 127.0.0.1，端口原样映射
   rocketmq:
     image: apache/rocketmq:5.5.0
@@ -39,7 +40,23 @@ services:
       - |
         printf 'brokerClusterName=DefaultCluster\nbrokerName=broker-a\nbrokerId=0\nbrokerIP1=127.0.0.1\nlistenPort=10911\nautoCreateTopicEnable=true\n' > /tmp/broker.conf
         (./mqnamesrv &)
-        ./mqbroker -n localhost:9876 -c /tmp/broker.conf
+        (./mqbroker -n localhost:9876 -c /tmp/broker.conf &)
+        until ./mqadmin clusterList -n localhost:9876 2>/dev/null | grep -q broker-a; do sleep 1; done
+        for topic in mall-order-events mall-inventory-events mall-payment-events; do
+          ./mqadmin updateTopic -n localhost:9876 -b 127.0.0.1:10911 -t $$topic -r 4 -w 4
+        done
+        tail -f /dev/null
     ports:
       - "9876:9876"
       - "10911:10911"
+
+  # 可观测性后端，只在 observability profile 下启动：一个容器里有 OpenTelemetry Collector、Tempo、Prometheus、Loki 和 Grafana
+  #   docker compose --profile observability up -d
+  #   mvn spring-boot:run -Dspring-boot.run.profiles=compose,observability
+  # Grafana 在 http://localhost:3000，应用经 OTLP（4318 端口）上报链路和指标
+  lgtm:
+    image: grafana/otel-lgtm:0.35.0
+    profiles: [ "observability" ]
+    ports:
+      - "3000:3000"
+      - "4318:4318"

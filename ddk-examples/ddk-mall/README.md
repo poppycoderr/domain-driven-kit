@@ -2,16 +2,21 @@
 
 用一个完整的业务场景把 DDK 的各个 starter 串起来：下单 → 预占库存 → 支付 → 完成，超时未支付则取消并释放库存。订单、库存、支付三个限界上下文部署成一个应用（模块化单体），上下文之间只通过集成事件协作。
 
-这个应用分步建设，目前完成了前 5 步：业务链路已经连通，读侧有缓存，接口有文档，用例可以被 AI agent 通过 MCP 调用。
+它同时是 DDK 的验收场：每个 starter 都在这里和别的 starter 一起用，组合起来才暴露的问题在这里被发现并修掉。
 
-| 步骤 | 内容 | 状态 |
-|---|---|---|
-| 1 | 骨架、订单上下文（下单、查询、取消）、Flyway、MySQL | 已完成 |
-| 2 | 库存上下文：预占、释放、扣减，按 SKU 加锁 | 已完成 |
-| 3 | 订单与库存之间的消息：outbox、RocketMQ、幂等消费 | 已完成 |
-| 4 | 支付上下文（模拟渠道）、超时关单 | 已完成 |
-| 5 | 缓存、接口文档、MCP 工具 | 已完成 |
-| 6 | 可观测性、整体文档 | 未开始 |
+| DDK 模块 | 在这里做什么 |
+|---|---|
+| `ddk-core`、`ddk-mybatis` | 聚合、值对象、领域事件；带子表的聚合仓储；乐观锁 |
+| `ddk-web-starter` | 统一响应与错误码、从请求头解析顾客身份、接口文档里的错误约定 |
+| `ddk-mybatis-starter` | 审计字段自动填充 |
+| `ddk-event-starter` | 集成事件：和业务数据一起提交，经 RocketMQ 投递，声明式消费，幂等消费，链路随消息传递 |
+| `ddk-concurrency-starter` | 库存按 SKU 加锁，一次锁多个聚合 |
+| `ddk-job-starter` | 超时关单的定时任务，多实例下同一轮只执行一次 |
+| `ddk-cache-starter` | 商品与库存的缓存 |
+| `ddk-mcp-starter` | 把用例开放成 MCP 工具 |
+| `ddk-tracer-starter` | 响应带 `X-Trace-Id`，链路跟随线程池里的任务 |
+| `ddk-archguard-starter` | 分层、定时任务、MCP 工具的位置由测试检查 |
+| `ddk-test` | 领域断言，MySQL、Redis、RocketMQ 的测试容器 |
 
 ## 运行
 
@@ -31,13 +36,14 @@ mvn -pl ddk-examples/ddk-mall spring-boot:run -Dspring-boot.run.profiles=compose
 
 表结构由 Flyway 在启动时创建，并带三件商品和它们的库存：`SKU-KEYBOARD`（10 件）、`SKU-MOUSE`（50 件）、`SKU-MONITOR`（3 件）。
 
-默认 profile 排除了 Spring Boot 的 Redis 自动配置，应用里没有任何 Redis 连接。两种运行方式有四处差别，业务代码完全相同：
+默认 profile 排除了 Spring Boot 的 Redis 自动配置，应用里没有任何 Redis 连接。两种运行方式有五处差别，业务代码完全相同：
 
 | | 默认 profile | `compose` profile |
 |---|---|---|
 | 库存锁 | 进程内的锁，只适合单实例，启动时打一条警告 | Redis，多个实例之间互斥 |
 | 定时任务的锁 | 总是放行的替身（`LocalJobLock`），只适合单实例 | Redis，多个实例里同一轮只有一个执行 |
 | 缓存 | 只有进程内的一级（Caffeine） | 商品两级（Caffeine + Redis），库存只用 Redis |
+| 链路与指标 | 产生但不上报 | 加上 `observability` profile 后经 OTLP 上报 |
 | 上下文之间的消息 | DDK 的进程内转发（`ddk.event.local-delivery`），进程退出就丢，失败不重投 | 先写进事件发布记录，提交后经 RocketMQ 投递，失败可重投 |
 
 ## 冒烟命令
@@ -99,6 +105,47 @@ curl -s -X POST localhost:8080/inventory/reservations/1001/release
 # 补货
 curl -s -X POST localhost:8080/inventory/SKU-MONITOR/restock -H 'Content-Type: application/json' -d '{"quantity":5}'
 ```
+
+## 可观测性
+
+链路和指标一直在产生：每个响应带着 `X-Trace-Id`，日志里有 `traceId`，`/actuator/metrics` 可以查指标。要把它们收集起来看，启动可观测性后端并加上 `observability` profile：
+
+```bash
+docker compose -f ddk-examples/ddk-mall/docker-compose.yml --profile observability up -d
+mvn -pl ddk-examples/ddk-mall spring-boot:run -Dspring-boot.run.profiles=compose,observability
+```
+
+后端是一个容器（`grafana/otel-lgtm`），里面有 OpenTelemetry Collector、Tempo、Prometheus 和 Grafana。应用经 OTLP 上报，Grafana 在 `http://localhost:3000`。
+
+**看一条链路。** 下一单，把响应头里的 `X-Trace-Id` 粘到 Grafana 的 Explore → Tempo 里查询。一次下单是一条完整的链路，跨了三个上下文和四条消息：
+
+```text
+http post /orders
+└─ mall-order-events publish            「已下单」
+   └─ mall-order-events process         库存上下文：预占
+      └─ mall-inventory-events publish  「库存已预占」
+         └─ mall-inventory-events process   订单上下文：等待支付
+            └─ mall-order-events publish    「等待支付」
+               └─ mall-order-events process 支付上下文：建立支付单
+```
+
+支付是另一次请求，所以是另一条链路：支付 →「支付已完成」→ 订单已支付 →「已支付」→ 库存扣减。
+
+**看指标。** 在 Explore → Prometheus 里：
+
+```promql
+# 每个消费组处理了多少条消息
+sum by (messaging_destination_name, messaging_consumer_group_name) (ddk_event_consume_milliseconds_count)
+
+# 处理一条消息的平均耗时（毫秒）
+sum by (messaging_destination_name) (rate(ddk_event_consume_milliseconds_sum[5m]))
+  / sum by (messaging_destination_name) (rate(ddk_event_consume_milliseconds_count[5m]))
+
+# 缓存命中情况：l1_hit、l2_hit、miss
+sum by (cache, result) (ddk_cache_access_total)
+```
+
+示例里链路是全量采样的，也没有预置 Grafana 面板。
 
 ## 接口文档
 
@@ -218,3 +265,5 @@ com.example.mall
 | 按缓存设定策略：很少变的开一级缓存，变化频繁的只用共享的二级缓存 | `application.yml` 里的 `ddk.cache.caches` |
 | 接口文档按限界上下文分组 | `platform/ApiDocs` |
 | 用例开放成 MCP 工具，放在适配层，由架构测试检查 | 三个上下文的 `adapter/mcp`，`MCP_TOOLS_MUST_RESIDE_IN_ADAPTER` |
+| 一次请求引发的消息处理都在同一条链路上 | 事件 starter 的观测加链路 starter 的上下文传播，应用里没有相关代码 |
+| 可观测性的上报用单独的 profile 打开 | `application-observability.yml`，`docker-compose.yml` 里的 `lgtm` |
