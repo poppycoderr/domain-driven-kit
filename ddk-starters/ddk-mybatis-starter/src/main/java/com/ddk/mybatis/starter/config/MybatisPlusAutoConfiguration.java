@@ -6,12 +6,16 @@ import com.baomidou.mybatisplus.core.handlers.MetaObjectHandler;
 import com.baomidou.mybatisplus.core.incrementer.IdentifierGenerator;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.BlockAttackInnerInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.DataPermissionInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.TenantLineInnerInterceptor;
 import com.ddk.core.mapper.MapperProvider;
+import com.ddk.mybatis.starter.datascope.DataScopeResolver;
 import com.ddk.mybatis.starter.internal.AuditMetaObjectHandler;
+import com.ddk.mybatis.starter.internal.OperatorDataScopeHandler;
 import com.ddk.mybatis.starter.internal.OperatorTenantLineHandler;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -75,16 +79,30 @@ public class MybatisPlusAutoConfiguration {
      * 乐观锁插件让 {@code AggregateRoot.version()} 真正生效——把版本号映射到 PO 上
      * 标了 {@code @Version} 的字段即可，更新时自动带上 {@code WHERE version = ?}。
      * 防全表更新删除插件拦的是漏写 WHERE 条件的 update / delete。
+     *
+     * @throws IllegalStateException 开启了行级数据权限，但应用没有提供 {@link DataScopeResolver}
      */
     @Bean
     @ConditionalOnMissingBean
-    public MybatisPlusInterceptor mybatisPlusInterceptor(DdkMybatisProperties properties) {
+    public MybatisPlusInterceptor mybatisPlusInterceptor(DdkMybatisProperties properties,
+                                                         ObjectProvider<DataScopeResolver> dataScopeResolver) {
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
         // 租户条件要最先加：后面的乐观锁、分页都应当作用在已经带上租户条件的 SQL 上
         DdkMybatisProperties.Tenant tenant = properties.getTenant();
         if (tenant.isEnabled()) {
             interceptor.addInnerInterceptor(new TenantLineInnerInterceptor(
                     new OperatorTenantLineHandler(tenant.getColumn(), tenant.isNumericId(), tenant.getIgnoreTables())));
+        }
+
+        // 数据权限排在租户之后：先圈定租户，再在租户之内按数据范围收窄
+        DdkMybatisProperties.DataScope dataScope = properties.getDataScope();
+        if (dataScope.isEnabled()) {
+            DataScopeResolver resolver = dataScopeResolver.getIfAvailable();
+            if (resolver == null) {
+                throw new IllegalStateException("ddk.mybatis.data-scope.enabled is true but there is no DataScopeResolver bean: "
+                        + "declare one that returns the data scope of an operator");
+            }
+            interceptor.addInnerInterceptor(new DataPermissionInterceptor(new OperatorDataScopeHandler(resolver, dataScope)));
         }
 
         if (properties.isOptimisticLocker()) {

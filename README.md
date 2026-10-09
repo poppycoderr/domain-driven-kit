@@ -271,7 +271,7 @@ Released so far:
 
 Next:
 
-8. **More integrations**: Elasticsearch read models, data permissions, Nacos, Sentinel, object storage
+8. **More integrations**: Elasticsearch read models, Nacos, Sentinel, object storage
 9. **v1.0 Production ready**: native images, a frozen public API
 
 See [ROADMAP.md](./ROADMAP.md) for the full plan.

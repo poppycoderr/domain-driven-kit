@@ -1,6 +1,8 @@
 package com.ddk.mybatis.starter.config;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import com.baomidou.mybatisplus.annotation.DbType;
 import lombok.Data;
@@ -77,6 +79,63 @@ public class DdkMybatisProperties {
      * 多租户。
      */
     private Tenant tenant = new Tenant();
+
+    /**
+     * 行级数据权限。
+     */
+    private DataScope dataScope = new DataScope();
+
+    @Data
+    public static class DataScope {
+
+        /**
+         * 是否启用行级数据权限。启用后，受控表的查询、更新、删除都会按操作者的数据范围追加条件；需要应用提供一个
+         * {@code DataScopeResolver}。
+         */
+        private boolean enabled = false;
+
+        /**
+         * 受数据权限控制的表。只有列在这里的表才追加条件。不区分大小写。
+         */
+        private Set<String> tables = new LinkedHashSet<>();
+
+        /**
+         * 记录数据属于哪个组的列。
+         */
+        private String groupColumn = "dept_id";
+
+        /**
+         * 记录数据由谁创建的列。
+         */
+        private String ownerColumn = "create_by";
+
+        /**
+         * 组的标识是否为数值类型。为 false 时按字符串比较。
+         */
+        private boolean numericGroupId = true;
+
+        /**
+         * 创建人的标识是否为数值类型。为 false 时按字符串比较。
+         */
+        private boolean numericOwnerId = true;
+
+        /**
+         * 个别表的列名或列类型与默认值不同时在这里覆盖，key 是表名。列名设成空字符串表示这张表没有这个维度。
+         */
+        private Map<String, Columns> columns = new LinkedHashMap<>();
+
+        @Data
+        public static class Columns {
+
+            private @Nullable String groupColumn;
+
+            private @Nullable String ownerColumn;
+
+            private @Nullable Boolean numericGroupId;
+
+            private @Nullable Boolean numericOwnerId;
+        }
+    }
 
     @Data
     public static class Tenant {

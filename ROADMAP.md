@@ -123,7 +123,7 @@ AI capabilities (on Spring AI 2.0):
 | Schema migration | Flyway | Done: archetypes ship a baseline migration, the example uses migrations instead of `schema.sql`, and agent rules require a new migration per schema change | High |
 | API docs | springdoc-openapi | Done in the web starter: 400 / 409 / 500 error responses on every operation and a catalogue of error codes; springdoc already expands `ApiResponse<T>` by its generic type | High |
 | Read models | Elasticsearch | Projections driven by domain events, with rebuilds | Medium |
-| Cross-cutting | MyBatis-Plus plugins | Done: `OperatorContext`, audit fields (`createBy` / `updateBy`) and multi-tenancy that fails closed without a tenant. Soft delete is MyBatis-Plus's own `@TableLogic` and needs no DDK code. Open: data permissions | Medium |
+| Cross-cutting | MyBatis-Plus plugins | Done: `OperatorContext`, audit fields (`createBy` / `updateBy`) and multi-tenancy that fails closed without a tenant, and row-level data scope by group and by creator. Soft delete is MyBatis-Plus's own `@TableLogic` and needs no DDK code | Medium |
 | Config and discovery | Nacos | Refreshable `ddk.*` properties, kept as an optional dependency | Medium |
 | Traffic control | Sentinel | Circuit breaking at the application-service level, with fallbacks mapped to error codes | Low |
 | Object storage | S3-compatible (MinIO / OSS) | File references as value objects; the domain never touches the SDK | Low |

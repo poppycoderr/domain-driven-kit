@@ -12,6 +12,10 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ## [Unreleased]
 
+### Added
+
+- Row-level data scope in `ddk-mybatis-starter` (`ddk.mybatis.data-scope.*`): queries, updates and deletes on the listed tables are narrowed to what the current operator may see, by group column (`dept_id`), by creator column (`create_by`), or both. The application answers one question through a `DataScopeResolver` bean: what is this operator's `DataScope`. Like multi-tenancy it fails closed: a statement on a scoped table without an operator throws. Off by default
+
 ## [0.7.0] - 2026-10-09
 
 Two mistakes that used to pass silently now fail where they are made: publishing an integration event outside a transaction, and taking an aggregate lock inside one. Both can be switched back to a warning. Scheduled jobs no longer need Redis in a single-instance environment.

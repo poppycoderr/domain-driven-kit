@@ -271,7 +271,7 @@ com.ddk.core
 
 接下来：
 
-8. **更多集成**：Elasticsearch 读模型、数据权限、Nacos、Sentinel、对象存储
+8. **更多集成**：Elasticsearch 读模型、Nacos、Sentinel、对象存储
 9. **v1.0 生产就绪**：原生镜像、公开 API 冻结
 
 完整路线图见 [ROADMAP.zh-CN.md](./ROADMAP.zh-CN.md)。
