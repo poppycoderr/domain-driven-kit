@@ -39,6 +39,15 @@ class DdkRedisAutoConfigurationTest {
     }
 
     @Test
+    void startsWithoutAConnectionFactoryWhenBootRedisAutoConfigurationIsExcluded() {
+        new ApplicationContextRunner().withConfiguration(AutoConfigurations.of(DdkRedisAutoConfiguration.class)).run(context -> {
+            assertThat(context).hasNotFailed();
+            assertThat(context).hasBean(DdkRedisAutoConfiguration.VALUE_SERIALIZER_BEAN_NAME);
+            assertThatThrownBy(() -> context.getBean("redisTemplate")).hasMessageContaining("RedisConnectionFactory");
+        });
+    }
+
+    @Test
     void trustsApplicationPackageByDefault() {
         runner.withUserConfiguration(ApplicationPackage.class).run(context -> {
             RedisSerializer<Object> serializer = valueSerializer(context.getBean("redisTemplate", RedisTemplate.class));
