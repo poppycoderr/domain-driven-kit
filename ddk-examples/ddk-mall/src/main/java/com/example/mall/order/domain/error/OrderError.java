@@ -18,6 +18,7 @@ public enum OrderError implements ErrorCode {
     INVALID_AMOUNT("金额不合法：{0}"),
     PRODUCT_NOT_FOUND("商品不存在：{0}"),
     ORDER_NOT_CANCELLABLE("当前状态的订单不能取消：{0}"),
+    UNKNOWN_STATUS("没有这个订单状态：{0}"),
     ;
 
     private final String message;

@@ -55,6 +55,11 @@
             <groupId>com.ddk</groupId>
             <artifactId>ddk-cache-starter</artifactId>
         </dependency>
+        <!-- 订单搜索用的读模型：订单变了就标记，提交后刷新，可以整体重建 -->
+        <dependency>
+            <groupId>com.ddk</groupId>
+            <artifactId>ddk-projection-starter</artifactId>
+        </dependency>
         <!-- 把用例开放成 MCP 工具，供 AI agent 调用 -->
         <dependency>
             <groupId>com.ddk</groupId>

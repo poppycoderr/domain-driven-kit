@@ -51,7 +51,7 @@ class McpToolsTest {
     @Test
     void theThreeContextsExposeTheirUseCasesAsTools() {
         assertThat(client.listTools().tools()).extracting(McpSchema.Tool::name)
-                .containsExactlyInAnyOrder("get_order", "cancel_order", "get_stock", "get_order_reservations", "get_payment");
+                .containsExactlyInAnyOrder("get_order", "search_orders", "cancel_order", "get_stock", "get_order_reservations", "get_payment");
     }
 
     @Test
@@ -60,6 +60,8 @@ class McpToolsTest {
         await().atMost(Duration.ofSeconds(10)).until(() -> text(call("get_order", Map.of("customerId", 41, "orderId", orderId))).contains("PENDING_PAYMENT"));
         await().atMost(Duration.ofSeconds(10)).until(() -> text(call("get_payment", Map.of("customerId", 41, "orderId", orderId))).contains("PENDING"));
         assertThat(text(call("get_order_reservations", Map.of("orderId", orderId)))).contains("SKU-MOUSE").contains("RESERVED");
+        await().atMost(Duration.ofSeconds(10)).until(() -> text(call("search_orders", Map.of("customerId", 41, "keyword", "鼠标")))
+                .contains(String.valueOf(orderId)));
         assertThat(text(call("get_stock", Map.of("skuId", "SKU-MOUSE")))).contains("\"available\"");
 
         McpSchema.CallToolResult cancelled = call("cancel_order", Map.of("customerId", 41, "orderId", orderId, "reason", "顾客来电取消"));
