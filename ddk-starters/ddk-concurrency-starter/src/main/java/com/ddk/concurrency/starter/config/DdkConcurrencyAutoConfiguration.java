@@ -58,7 +58,7 @@ public class DdkConcurrencyAutoConfiguration {
         @ConditionalOnMissingBean
         AggregateLocks aggregateLocks(RedissonClient redisson, DdkConcurrencyProperties properties) {
             DdkConcurrencyProperties.Lock lock = properties.getLock();
-            return new AggregateLocks(redisson, properties.getKeyPrefix(), lock.getWaitTime(), lock.getLeaseTime());
+            return new AggregateLocks(redisson, properties.getKeyPrefix(), lock.getWaitTime(), lock.getLeaseTime(), lock.getInsideTransaction());
         }
 
         @Bean

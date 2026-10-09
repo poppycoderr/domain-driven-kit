@@ -48,7 +48,14 @@ If no `RedissonClient` is available, calling an annotated method fails with an `
 
 Optimistic locking stays in place. It guarantees that two writers never overwrite each other; the aggregate lock makes them queue, so the second one does not do its work only to have it rejected at commit.
 
-The lock only wraps the transaction when the annotated method starts it. If the caller is already inside a transaction, the lock is released before that outer transaction commits. Put the annotation on the outermost application service method.
+The lock only wraps the transaction when the annotated method starts it. If the caller is already inside a transaction, the lock would be released before that outer transaction commits, and the next holder would read data from before the commit. DDK refuses to take a lock in that position:
+
+```text
+IllegalStateException: Lock [ddk:lock:order:42] is being acquired inside a transaction and would be released before the commit:
+acquire the lock first and start the transaction inside it
+```
+
+Put the annotation on the outermost application service method. Re-entering a lock the thread already holds is fine, because that lock was taken outside the transaction. `ddk.concurrency.lock.inside-transaction=warn` logs instead of throwing, and `ignore` turns the check off.
 
 For code that is not a Spring bean method, inject `AggregateLocks`:
 
@@ -60,6 +67,12 @@ An operation that changes several aggregates of one type, such as reserving stoc
 
 ```java
 aggregateLocks.executeAll("sku", skuIds, () -> transaction.execute(status -> ...));
+```
+
+A consumer of at-least-once messages that also needs a lock puts the event starter's `IdempotentConsumer` inside it. `handle` opens the transaction when there is none, so the lock, the transaction and the inbox registration nest correctly without a `TransactionTemplate`:
+
+```java
+aggregateLocks.executeAll("sku", skuIds, () -> idempotentConsumer.handle("inventory.order-placed", eventId, () -> ...));
 ```
 
 The locks are acquired in a fixed order (sorted by lock name), whatever order the IDs are passed in. Two operations that need the same aggregates therefore never hold one lock each while waiting for the other's. Nesting `execute` calls by hand does not give this guarantee. If any lock cannot be acquired in time, the ones already held are released and `AggregateBusyException` is thrown.
@@ -99,6 +112,7 @@ This is a business limit, such as exports per tenant or SMS codes per phone numb
 | `ddk.concurrency.key-prefix` | `ddk:` | Prefix of every Redis key; set it per application on a shared Redis |
 | `ddk.concurrency.lock.wait-time` | `3s` | Default time to wait for a lock |
 | `ddk.concurrency.lock.lease-time` | | Default time to hold a lock; unset means the watchdog renews it |
+| `ddk.concurrency.lock.inside-transaction` | `fail` | What to do when a lock is acquired inside a transaction: `fail` throws, `warn` logs, `ignore` does not check |
 | `ddk.concurrency.idempotent.ttl` | `10m` | Default lifetime of a request registration |
 
 ## Not covered yet
