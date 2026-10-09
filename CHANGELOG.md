@@ -10,6 +10,8 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 - **1.0 onwards**: breaking changes only in major releases.
 - Releases are tagged `vX.Y.Z` and published as [GitHub Releases](https://github.com/poppycoderr/domain-driven-kit/releases). DDK is not on Maven Central yet; install it locally with [`scripts/ddk.sh`](./scripts/ddk.sh).
 
+## [Unreleased]
+
 ## [0.6.0] - 2026-10-09
 
 Both sides of integration events: declared consumers join the publishing side, and the trace follows an event from the request that caused it to the handler that processes it. `ddk-mall`, a reference application with three bounded contexts, uses every starter side by side; building it surfaced the fixes below.
@@ -151,6 +153,7 @@ The first release: the DDD foundation on a Spring Boot 4.1 baseline.
 Starter implementation classes live in `com.ddk.<starter>.starter.internal` packages and are not public API: `CacheInvalidationListener`, `CacheInvalidationMessage`, `RedisCacheInvalidationPublisher`, `MicrometerCacheMetrics`, `JitteredTtlFunction`, `SpringDomainEventPublisher` and `TraceIdResponseFilter`. Generated projects check this with `DDK_INTERNALS_MUST_NOT_BE_USED`.
 - The springdoc dependency from `ddk-web-starter`; add it in the application when API docs are needed
 
+[Unreleased]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.6.0...HEAD
 [0.6.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.4.0...v0.4.1
