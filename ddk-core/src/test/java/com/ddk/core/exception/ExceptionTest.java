@@ -35,6 +35,15 @@ class ExceptionTest {
     }
 
     @Test
+    @DisplayName("数字按原样写出，不加千分位；占位符里明确写了格式的照格式来")
+    void numbersAreNotGrouped() {
+        assertEquals("用户不存在：2108448507731107840", TestError.USER_NOT_FOUND.getMessage(2108448507731107840L));
+        assertEquals("下载 超出配额上限 10000", TestError.QUOTA_EXCEEDED.getMessage("下载", 10000));
+        ErrorCode explicit = () -> "余额 {0,number,#,##0.00}";
+        assertEquals("余额 12,345.60", explicit.getMessage(12345.6));
+    }
+
+    @Test
     @DisplayName("没有占位符时原样返回，多传参数也不报错")
     void toleratesExtraArguments() {
         assertEquals("没有占位符", TestError.PLAIN.getMessage());
