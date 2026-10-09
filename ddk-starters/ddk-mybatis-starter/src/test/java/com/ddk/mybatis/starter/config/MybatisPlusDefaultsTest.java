@@ -1,5 +1,10 @@
 package com.ddk.mybatis.starter.config;
 
+import com.baomidou.mybatisplus.extension.plugins.inner.DataPermissionInterceptor;
+import com.ddk.core.context.DataScope;
+import com.ddk.mybatis.starter.datascope.DataScopeResolver;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.support.StaticListableBeanFactory;
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -26,6 +31,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("MyBatis starter 默认填充与插件组合")
 class MybatisPlusDefaultsTest {
+
+    private static final ObjectProvider<DataScopeResolver> NO_DATA_SCOPE_RESOLVER =
+            new StaticListableBeanFactory().getBeanProvider(DataScopeResolver.class);
 
     private final MybatisPlusAutoConfiguration configuration = new MybatisPlusAutoConfiguration();
 
@@ -75,7 +83,7 @@ class MybatisPlusDefaultsTest {
     @Test
     @DisplayName("默认插件：乐观锁、防全表更新删除、分页，分页排在最后")
     void defaultInterceptorsKeepPaginationLast() {
-        MybatisPlusInterceptor interceptor = configuration.mybatisPlusInterceptor(new DdkMybatisProperties());
+        MybatisPlusInterceptor interceptor = configuration.mybatisPlusInterceptor(new DdkMybatisProperties(), NO_DATA_SCOPE_RESOLVER);
 
         assertThat(interceptor.getInterceptors()).extracting(Object::getClass).containsExactly(
                 OptimisticLockerInnerInterceptor.class, BlockAttackInnerInterceptor.class, PaginationInnerInterceptor.class);
@@ -88,7 +96,7 @@ class MybatisPlusDefaultsTest {
         properties.setOptimisticLocker(false);
         properties.setBlockAttack(false);
 
-        assertThat(configuration.mybatisPlusInterceptor(properties).getInterceptors())
+        assertThat(configuration.mybatisPlusInterceptor(properties, NO_DATA_SCOPE_RESOLVER).getInterceptors())
                 .singleElement().isInstanceOf(PaginationInnerInterceptor.class);
     }
 
@@ -113,7 +121,7 @@ class MybatisPlusDefaultsTest {
         DdkMybatisProperties properties = new DdkMybatisProperties();
         properties.getTenant().setEnabled(true);
 
-        assertThat(configuration.mybatisPlusInterceptor(properties).getInterceptors()).extracting(Object::getClass).containsExactly(
+        assertThat(configuration.mybatisPlusInterceptor(properties, NO_DATA_SCOPE_RESOLVER).getInterceptors()).extracting(Object::getClass).containsExactly(
                 TenantLineInnerInterceptor.class, OptimisticLockerInnerInterceptor.class, BlockAttackInnerInterceptor.class,
                 PaginationInnerInterceptor.class);
     }
@@ -182,5 +190,23 @@ class MybatisPlusDefaultsTest {
 
         @TableField(fill = FieldFill.INSERT_UPDATE)
         LocalDateTime updateTime;
+    }
+
+    @Test
+    @DisplayName("数据权限排在租户之后、其余插件之前；开启了却没有提供 DataScopeResolver 时启动失败")
+    void dataScopeComesRightAfterTheTenantAndNeedsAResolver() {
+        DdkMybatisProperties properties = new DdkMybatisProperties();
+        properties.getTenant().setEnabled(true);
+        properties.getDataScope().setEnabled(true);
+        StaticListableBeanFactory beans = new StaticListableBeanFactory();
+        beans.addBean("dataScopeResolver", (DataScopeResolver) operator -> DataScope.all());
+
+        assertThat(configuration.mybatisPlusInterceptor(properties, beans.getBeanProvider(DataScopeResolver.class)).getInterceptors())
+                .extracting(Object::getClass).containsExactly(
+                        TenantLineInnerInterceptor.class, DataPermissionInterceptor.class, OptimisticLockerInnerInterceptor.class,
+                        BlockAttackInnerInterceptor.class, PaginationInnerInterceptor.class);
+        assertThatThrownBy(() -> configuration.mybatisPlusInterceptor(properties, NO_DATA_SCOPE_RESOLVER))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("no DataScopeResolver bean");
     }
 }
