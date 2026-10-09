@@ -10,6 +10,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
@@ -53,7 +54,12 @@ public class DdkRedisAutoConfiguration {
         return new GenericJacksonJsonRedisSerializer(RedisJsonMapper.create(trusted));
     }
 
+    /**
+     * 延迟创建：这个配置排在 Spring Boot 的 Redis 自动配置之前，注册时还看不到连接工厂，不能用条件注解判断它在不在。
+     * 应用排除了 Redis 自动配置（例如本地环境不连 Redis）时没有连接工厂，延迟创建让应用照常启动，只有真的用到模板时才报错。
+     */
     @Bean
+    @Lazy
     @ConditionalOnMissingBean(name = "redisTemplate")
     public RedisTemplate<String, Object> redisTemplate(
             RedisConnectionFactory connectionFactory,
