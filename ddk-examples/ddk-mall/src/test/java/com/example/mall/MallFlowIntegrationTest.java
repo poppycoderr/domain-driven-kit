@@ -142,6 +142,9 @@ class MallFlowIntegrationTest {
         await().atMost(Duration.ofSeconds(60)).until(() -> orders.get(7L, placed.id()).status().equals("PAID"));
         await().atMost(Duration.ofSeconds(60)).until(() -> inventory.reservationsOf(placed.id()).stream().allMatch(r -> r.status().equals("CONFIRMED")));
         assertThat(inventory.get("SKU-MOUSE").onHand()).isEqualTo(onHand - 4);
+        // 搜索读模型跟着订单走到了「已支付」，这张宽表和待刷新表都在 MySQL 上
+        await().atMost(Duration.ofSeconds(30)).until(() -> "PAID".equals(jdbc.query(
+                "SELECT status FROM t_order_search WHERE order_id = ?", rs -> rs.next() ? rs.getString(1) : null, placed.id())));
         assertThat(inventory.get("SKU-MOUSE").reserved()).isEqualTo(reserved);
     }
 

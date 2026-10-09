@@ -13,6 +13,7 @@
 | `ddk-concurrency-starter` | 库存按 SKU 加锁，一次锁多个聚合 |
 | `ddk-job-starter` | 超时关单的定时任务，多实例下同一轮只执行一次 |
 | `ddk-cache-starter` | 商品与库存的缓存 |
+| `ddk-projection-starter` | 订单搜索用的读模型：订单变了就标记，提交后刷新，可以整体重建 |
 | `ddk-mcp-starter` | 把用例开放成 MCP 工具 |
 | `ddk-tracer-starter` | 响应带 `X-Trace-Id`，链路跟随线程池里的任务 |
 | `ddk-archguard-starter` | 分层、定时任务、MCP 工具的位置由测试检查 |
@@ -74,6 +75,10 @@ curl -s -X POST localhost:8080/payments/orders/<id>/pay -H 'X-Customer-Id: 7'
 # 换一个顾客查同一个订单：ORDER_NOT_FOUND，不透露订单是否存在
 curl -s localhost:8080/orders/<id> -H 'X-Customer-Id: 8'
 
+# 按商品名称搜自己的订单，可以再按状态筛。查的是读模型，刚下的单要过一小会儿才搜得到
+curl -s -X POST localhost:8080/orders/search -H 'X-Customer-Id: 7' -H 'Content-Type: application/json' \
+  -d '{"keyword":"键盘","status":"PENDING_PAYMENT"}'
+
 # 我的订单
 curl -s -X POST localhost:8080/orders/page -H 'X-Customer-Id: 7' -H 'Content-Type: application/json' -d '{}'
 
@@ -105,6 +110,28 @@ curl -s -X POST localhost:8080/inventory/reservations/1001/release
 # 补货
 curl -s -X POST localhost:8080/inventory/SKU-MONITOR/restock -H 'Content-Type: application/json' -d '{"quantity":5}'
 ```
+
+## 订单搜索：一个读模型
+
+`POST /orders/search` 查的不是订单表，而是另一张为搜索准备的宽表 `t_order_search`：每个订单一行，商品名称拼在一起，带着状态和金额。订单表为写入和一致性而设计，这张表为「按商品名搜、按状态筛、一行展示」而设计。
+
+```text
+下单 / 库存确认 / 支付 / 取消（订单的事务）
+  保存订单
+  标记「这个订单的搜索数据需要刷新」      ← 和订单在同一个事务里提交
+提交
+  └─ 后台：读取订单现在的状态 → 覆盖 t_order_search 里的那一行
+```
+
+- **不管是哪个事件。** 四种事件做的事完全一样：重新读一遍订单，覆盖读模型里的那一行。所以事件乱序、重复都不会让读模型出错。
+- **读模型丢了可以重建。** 下面的接口把每个订单都重新刷新一遍，走的是同一段代码：
+
+  ```bash
+  curl -s -X POST localhost:8080/orders/search/rebuild     # 返回标记了多少个订单
+  curl -s localhost:8080/orders/search/status              # 还有多少个在等待刷新
+  ```
+
+- **换存储只换一个类。** 订单上下文只认识 `OrderSearchIndex` 这个端口，现在的实现是关系库里的 `LIKE`；数据量上去之后换成搜索引擎，其余代码不动。
 
 ## 可观测性
 
@@ -153,10 +180,11 @@ sum by (cache, result) (ddk_cache_access_total)
 
 ## 给 AI agent 用：MCP 工具
 
-应用在 `/mcp` 上提供 MCP 服务（streamable HTTP），面向客服场景开放了五个工具：
+应用在 `/mcp` 上提供 MCP 服务（streamable HTTP），面向客服场景开放了六个工具：
 
 | 工具 | 作用 |
 |---|---|
+| `search_orders` | 按商品名称和状态搜顾客的订单 |
 | `get_order` | 查顾客的一个订单 |
 | `cancel_order` | 替顾客取消还没支付的订单 |
 | `get_payment` | 查订单的支付情况 |
@@ -218,7 +246,7 @@ com.example.mall
 ├── platform                 各上下文共用的技术代码：顾客身份、接口文档分组
 ├── order                    订单上下文，内部是四层
 │   ├── adapter/{controller,messaging,job,mcp}
-│   ├── application/{command,query,response,service,handler,integration,config}
+│   ├── application/{command,query,response,service,handler,integration,projection,config}
 │   ├── domain/{model,event,acl,error}
 │   └── infrastructure/{acl/impl,converter,id,orm}
 ├── inventory                库存上下文，同样是四层；订单在这里只是一个编号
@@ -267,3 +295,5 @@ com.example.mall
 | 用例开放成 MCP 工具，放在适配层，由架构测试检查 | 三个上下文的 `adapter/mcp`，`MCP_TOOLS_MUST_RESIDE_IN_ADAPTER` |
 | 一次请求引发的消息处理都在同一条链路上 | 事件 starter 的观测加链路 starter 的上下文传播，应用里没有相关代码 |
 | 可观测性的上报用单独的 profile 打开 | `application-observability.yml`，`docker-compose.yml` 里的 `lgtm` |
+| 读模型由写模型刷新而不是由事件逐个应用，可以重建 | `OrderSearchProjection`、`OrderEventHandler` 里的 `markDirty` |
+| 读模型的存储藏在端口后面 | `OrderSearchIndex` 与 `OrderSearchIndexImpl` |

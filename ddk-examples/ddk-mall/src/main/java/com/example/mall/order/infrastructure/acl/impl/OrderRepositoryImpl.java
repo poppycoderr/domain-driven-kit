@@ -41,6 +41,16 @@ public class OrderRepositoryImpl extends GenericRepositoryImpl<Order, OrderId, O
     }
 
     @Override
+    public List<OrderId> findIdsAfter(OrderId after, int limit) {
+        return getBaseMapper().selectList(Wrappers.lambdaQuery(OrderPO.class)
+                        .select(OrderPO::getId)
+                        .gt(after != null, OrderPO::getId, after == null ? null : after.value())
+                        .orderByAsc(OrderPO::getId)
+                        .last("LIMIT " + limit))
+                .stream().map(po -> OrderId.of(po.getId())).toList();
+    }
+
+    @Override
     protected void afterInsert(OrderPO po) {
         po.getLines().forEach(orderLineMapper::insert);
     }
