@@ -24,6 +24,8 @@ import java.util.concurrent.Executors;
  * 事务提交后把事件序列化成 JSON 再分发，消费方走的是和真实中间件完全相同的路径：同样要解析消息体，同样拿不到发布方的对象。
  * 用单线程按提交顺序处理，同一个聚合的事件不会颠倒。
  * <p>
+ * 链路上下文在发布时写进消息头，处理时再取出来，和经过消息中间件时一样。
+ * <p>
  * 只用于本地开发和测试：事件在内存里，进程退出就丢，处理失败只记日志，不会重投。
  */
 public class LocalEventDelivery implements ApplicationListener<PayloadApplicationEvent<?>>, DisposableBean {
@@ -36,6 +38,8 @@ public class LocalEventDelivery implements ApplicationListener<PayloadApplicatio
 
     private final JsonMapper jsonMapper;
 
+    private final EventObservations observations;
+
     private final ExecutorService executor = Executors.newSingleThreadExecutor(runnable -> {
         Thread thread = new Thread(runnable, "ddk-local-events");
         thread.setDaemon(true);
@@ -43,6 +47,12 @@ public class LocalEventDelivery implements ApplicationListener<PayloadApplicatio
     });
 
     public LocalEventDelivery(IntegrationEventDispatcher dispatcher, IntegrationEventRouting routing, JsonMapper jsonMapper) {
+        this(dispatcher, routing, jsonMapper, EventObservations.NOOP);
+    }
+
+    public LocalEventDelivery(IntegrationEventDispatcher dispatcher, IntegrationEventRouting routing, JsonMapper jsonMapper,
+            EventObservations observations) {
+        this.observations = observations;
         this.dispatcher = dispatcher;
         this.routing = routing;
         this.jsonMapper = jsonMapper;
@@ -69,6 +79,7 @@ public class LocalEventDelivery implements ApplicationListener<PayloadApplicatio
         Map<String, String> headers = new LinkedHashMap<>();
         routing.headers(event).forEach((name, value) -> headers.put(name, String.valueOf(value)));
         String json = jsonMapper.writeValueAsString(event);
+        observations.startPublish(target[0], headers::put).stop();
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
 
             @Override

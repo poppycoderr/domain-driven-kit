@@ -4,8 +4,10 @@ import com.ddk.core.jackson.IdentifierJacksonModule;
 import com.ddk.event.starter.consumer.IntegrationEventConsumer;
 import com.ddk.event.starter.consumer.IntegrationEventDispatcher;
 import com.ddk.event.starter.inbox.IdempotentConsumer;
+import com.ddk.event.starter.internal.EventObservations;
 import com.ddk.event.starter.internal.IntegrationEventRouting;
 import com.ddk.event.starter.internal.LocalEventDelivery;
+import io.micrometer.observation.ObservationRegistry;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -32,8 +34,9 @@ public class DdkEventConsumerAutoConfiguration {
     @ConditionalOnBean(IntegrationEventConsumer.class)
     @ConditionalOnMissingBean
     IntegrationEventDispatcher integrationEventDispatcher(List<IntegrationEventConsumer<?>> consumers, ObjectProvider<JsonMapper> mapper,
-            ObjectProvider<IdempotentConsumer> idempotentConsumer) {
-        return new IntegrationEventDispatcher(consumers, json(mapper), idempotentConsumer.getIfAvailable());
+            ObjectProvider<IdempotentConsumer> idempotentConsumer, ObjectProvider<ObservationRegistry> observationRegistry) {
+        return new IntegrationEventDispatcher(consumers, json(mapper), idempotentConsumer.getIfAvailable(),
+                observationRegistry.getIfAvailable(() -> ObservationRegistry.NOOP));
     }
 
     /**
@@ -42,8 +45,10 @@ public class DdkEventConsumerAutoConfiguration {
     @Bean
     @ConditionalOnBean(IntegrationEventDispatcher.class)
     @ConditionalOnProperty(prefix = DdkEventProperties.PREFIX + ".local-delivery", name = "enabled", havingValue = "true")
-    LocalEventDelivery ddkLocalEventDelivery(IntegrationEventDispatcher dispatcher, ObjectProvider<JsonMapper> mapper) {
-        return new LocalEventDelivery(dispatcher, new IntegrationEventRouting(), json(mapper));
+    LocalEventDelivery ddkLocalEventDelivery(IntegrationEventDispatcher dispatcher, ObjectProvider<JsonMapper> mapper,
+            ObjectProvider<ObservationRegistry> observationRegistry) {
+        return new LocalEventDelivery(dispatcher, new IntegrationEventRouting(), json(mapper),
+                new EventObservations(observationRegistry.getIfAvailable(() -> ObservationRegistry.NOOP)));
     }
 
     private static JsonMapper json(ObjectProvider<JsonMapper> mapper) {

@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.boot.test.context.runner.WebApplicationContextRunner;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.core.task.TaskDecorator;
+import org.springframework.core.task.support.ContextPropagatingTaskDecorator;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -45,6 +47,17 @@ class DdkTracerAutoConfigurationTest {
             }
 
             assertThat(response.getHeader("X-Request-Trace")).isEqualTo(span.context().traceId());
+        });
+    }
+
+    @Test
+    void carriesTheTraceContextIntoTaskExecutorsUnlessTheApplicationDecidesOtherwise() {
+        web.run(context -> assertThat(context).hasSingleBean(ContextPropagatingTaskDecorator.class));
+        web.withPropertyValues("ddk.tracer.async-propagation.enabled=false")
+                .run(context -> assertThat(context).doesNotHaveBean(TaskDecorator.class));
+        web.withBean("applicationDecorator", TaskDecorator.class, () -> runnable -> runnable).run(context -> {
+            assertThat(context).hasSingleBean(TaskDecorator.class);
+            assertThat(context).doesNotHaveBean(ContextPropagatingTaskDecorator.class);
         });
     }
 

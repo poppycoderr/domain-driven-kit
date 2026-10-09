@@ -1,7 +1,9 @@
 package com.ddk.event.starter.config;
 
 import com.ddk.core.jackson.IdentifierJacksonModule;
+import com.ddk.event.starter.internal.EventObservations;
 import com.ddk.event.starter.internal.RocketMqEventTransport;
+import io.micrometer.observation.ObservationRegistry;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.springframework.beans.factory.BeanFactory;
@@ -50,10 +52,11 @@ public class DdkRocketMqEventAutoConfiguration {
     @ConditionalOnBean({DefaultMQProducer.class, EventExternalizationConfiguration.class})
     @ConditionalOnProperty(name = "spring.modulith.events.externalization.mode", havingValue = "module-listener", matchIfMissing = true)
     EventExternalizerModuleListener ddkRocketMqEventExternalizer(EventExternalizationConfiguration configuration, DefaultMQProducer producer,
-            ObjectProvider<JsonMapper> mapper, BeanFactory beanFactory) {
+            ObjectProvider<JsonMapper> mapper, ObjectProvider<ObservationRegistry> observationRegistry, BeanFactory beanFactory) {
         StandardEvaluationContext context = new StandardEvaluationContext();
         context.setBeanResolver(new BeanFactoryResolver(beanFactory));
         JsonMapper json = mapper.getIfAvailable(() -> JsonMapper.builder().addModule(new IdentifierJacksonModule()).build());
-        return new EventExternalizerModuleListener(configuration, new RocketMqEventTransport(producer, configuration, json, context));
+        return new EventExternalizerModuleListener(configuration, new RocketMqEventTransport(producer, configuration, json, context,
+                new EventObservations(observationRegistry.getIfAvailable(() -> ObservationRegistry.NOOP))));
     }
 }

@@ -1,5 +1,6 @@
 package com.ddk.event.starter.internal;
 
+import io.micrometer.observation.Observation;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.client.producer.MessageQueueSelector;
 import org.apache.rocketmq.client.producer.SendCallback;
@@ -23,6 +24,7 @@ import java.util.concurrent.CompletableFuture;
  * <p>
  * 投递目标按 RocketMQ 的惯例写成 {@code topic} 或 {@code topic:tag}。有 key 的事件按 key 哈希选队列，同一个聚合的事件落在同一个队列里，
  * 与 Kafka 按 key 分区一样保持顺序；key 同时写进消息的 keys，便于在控制台按业务标识查消息。事件的消息头写成用户属性。
+ * 每次发送都是一次观测：应用里有链路追踪时，链路上下文随用户属性一起发出去，消费方据此接上同一条链路。
  * 发送结果不是 {@link SendStatus#SEND_OK} 时按失败处理：发布记录保留为未完成，重投可能产生重复，由消费端幂等兜底。
  */
 public final class RocketMqEventTransport implements EventExternalizationTransport {
@@ -37,8 +39,16 @@ public final class RocketMqEventTransport implements EventExternalizationTranspo
 
     private final EvaluationContext context;
 
+    private final EventObservations observations;
+
     public RocketMqEventTransport(DefaultMQProducer producer, EventExternalizationConfiguration configuration, JsonMapper mapper,
             EvaluationContext context) {
+        this(producer, configuration, mapper, context, EventObservations.NOOP);
+    }
+
+    public RocketMqEventTransport(DefaultMQProducer producer, EventExternalizationConfiguration configuration, JsonMapper mapper,
+            EvaluationContext context, EventObservations observations) {
+        this.observations = observations;
         this.producer = producer;
         this.configuration = configuration;
         this.mapper = mapper;
@@ -51,7 +61,14 @@ public final class RocketMqEventTransport implements EventExternalizationTranspo
         String key = routing.getKey(payload);
         Message message = message(routing.getTarget(payload), key, payload);
 
+        Observation observation = observations.startPublish(message.getTopic(), message::putUserProperty);
         CompletableFuture<SendResult> result = new CompletableFuture<>();
+        result.whenComplete((sent, failure) -> {
+            if (failure != null) {
+                observation.error(failure);
+            }
+            observation.stop();
+        });
         SendCallback callback = new SendCallback() {
 
             @Override
