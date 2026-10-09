@@ -34,6 +34,7 @@ class ArchitectureTest {
                 CommonArchRules.DDK_INTERNALS_MUST_NOT_BE_USED,
                 CommonArchRules.SCHEDULED_JOBS_MUST_RESIDE_IN_ADAPTER,
                 CommonArchRules.SCHEDULED_JOBS_MUST_BE_LOCKED,
+                CommonArchRules.MCP_TOOLS_MUST_RESIDE_IN_ADAPTER,
                 CONTEXTS_ARE_INDEPENDENT);
     }
 }

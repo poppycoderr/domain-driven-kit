@@ -2,7 +2,7 @@
 
 用一个完整的业务场景把 DDK 的各个 starter 串起来：下单 → 预占库存 → 支付 → 完成，超时未支付则取消并释放库存。订单、库存、支付三个限界上下文部署成一个应用（模块化单体），上下文之间只通过集成事件协作。
 
-这个应用分步建设，目前完成了前 4 步：下单、预占、支付、扣减，以及超时关单，整条业务链路已经连通。
+这个应用分步建设，目前完成了前 5 步：业务链路已经连通，读侧有缓存，接口有文档，用例可以被 AI agent 通过 MCP 调用。
 
 | 步骤 | 内容 | 状态 |
 |---|---|---|
@@ -10,7 +10,7 @@
 | 2 | 库存上下文：预占、释放、扣减，按 SKU 加锁 | 已完成 |
 | 3 | 订单与库存之间的消息：outbox、RocketMQ、幂等消费 | 已完成 |
 | 4 | 支付上下文（模拟渠道）、超时关单 | 已完成 |
-| 5 | 缓存、接口文档、MCP 工具 | 未开始 |
+| 5 | 缓存、接口文档、MCP 工具 | 已完成 |
 | 6 | 可观测性、整体文档 | 未开始 |
 
 ## 运行
@@ -31,12 +31,13 @@ mvn -pl ddk-examples/ddk-mall spring-boot:run -Dspring-boot.run.profiles=compose
 
 表结构由 Flyway 在启动时创建，并带三件商品和它们的库存：`SKU-KEYBOARD`（10 件）、`SKU-MOUSE`（50 件）、`SKU-MONITOR`（3 件）。
 
-两种运行方式有三处差别，业务代码完全相同：
+默认 profile 排除了 Spring Boot 的 Redis 自动配置，应用里没有任何 Redis 连接。两种运行方式有四处差别，业务代码完全相同：
 
 | | 默认 profile | `compose` profile |
 |---|---|---|
 | 库存锁 | 进程内的锁，只适合单实例，启动时打一条警告 | Redis，多个实例之间互斥 |
 | 定时任务的锁 | 总是放行的替身（`LocalJobLock`），只适合单实例 | Redis，多个实例里同一轮只有一个执行 |
+| 缓存 | 只有进程内的一级（Caffeine） | 商品两级（Caffeine + Redis），库存只用 Redis |
 | 上下文之间的消息 | DDK 的进程内转发（`ddk.event.local-delivery`），进程退出就丢，失败不重投 | 先写进事件发布记录，提交后经 RocketMQ 投递，失败可重投 |
 
 ## 冒烟命令
@@ -99,6 +100,30 @@ curl -s -X POST localhost:8080/inventory/reservations/1001/release
 curl -s -X POST localhost:8080/inventory/SKU-MONITOR/restock -H 'Content-Type: application/json' -d '{"quantity":5}'
 ```
 
+## 接口文档
+
+启动后打开 `http://localhost:8080/swagger-ui.html`。文档按限界上下文分成三组（右上角切换），对应 `/v3/api-docs/order`、`/v3/api-docs/inventory`、`/v3/api-docs/payment`。每一组都带统一的错误响应和全部错误码的清单，这部分由 DDK 的 Web starter 自动补上。
+
+## 给 AI agent 用：MCP 工具
+
+应用在 `/mcp` 上提供 MCP 服务（streamable HTTP），面向客服场景开放了五个工具：
+
+| 工具 | 作用 |
+|---|---|
+| `get_order` | 查顾客的一个订单 |
+| `cancel_order` | 替顾客取消还没支付的订单 |
+| `get_payment` | 查订单的支付情况 |
+| `get_stock` | 查一个 SKU 的库存 |
+| `get_order_reservations` | 查订单占用的库存 |
+
+在 Claude Code 里接入：
+
+```bash
+claude mcp add --transport http ddk-mall http://localhost:8080/mcp
+```
+
+工具和接口调用同一个应用服务，业务规则只有一份：agent 用别的顾客 ID 查订单同样得到 `ORDER_NOT_FOUND`。只开放了查询和取消；发起支付、补货这类操作没有做成工具。示例没有做认证，真实项目里 `/mcp` 要和其他接口一样用 Spring Security 保护。
+
 ## 上下文怎么协作
 
 ```mermaid
@@ -143,19 +168,19 @@ sequenceDiagram
 ```text
 com.example.mall
 ├── MallApplication
-├── platform                 各上下文共用的技术代码：从请求头解析顾客身份
+├── platform                 各上下文共用的技术代码：顾客身份、接口文档分组、本地任务锁
 ├── order                    订单上下文，内部是四层
-│   ├── adapter/{controller,messaging,job}
+│   ├── adapter/{controller,messaging,job,mcp}
 │   ├── application/{command,query,response,service,handler,integration,config}
 │   ├── domain/{model,event,acl,error}
 │   └── infrastructure/{acl/impl,converter,id,orm}
 ├── inventory                库存上下文，同样是四层；订单在这里只是一个编号
-│   ├── adapter/{controller,messaging}
+│   ├── adapter/{controller,messaging,mcp}
 │   ├── application/{command,response,service,integration}
 │   ├── domain/{model,event,acl,error}
 │   └── infrastructure/{acl/impl,converter,id,lock,orm}
 └── payment                  支付上下文；渠道是一个端口，目前的实现是模拟的
-    ├── adapter/{controller,messaging}
+    ├── adapter/{controller,messaging,mcp}
     ├── application/{response,service,handler,integration}
     ├── domain/{model,event,acl,error}
     └── infrastructure/{acl/impl,channel,converter,id,orm}
@@ -188,3 +213,8 @@ com.example.mall
 | 付款与取消交叉时退款 | `PaymentService.cancelForOrder`，`PaymentApiTest` |
 | 定时任务放在适配层并加锁，由架构测试检查 | `CloseExpiredOrdersJob`，`SCHEDULED_JOBS_MUST_BE_LOCKED` |
 | 批量任务逐个处理，各自一个事务，一个失败不影响其他 | `OrderService.closeExpired` |
+| 缓存放在端口的实现里，领域和应用层不知道有缓存；不存在的商品也缓存 | `ProductCatalogImpl` 上的 `@Cacheable` |
+| 写操作在事务提交之后让缓存失效，而不是提交之前 | `InventoryService.locked` |
+| 按缓存设定策略：很少变的开一级缓存，变化频繁的只用共享的二级缓存 | `application.yml` 里的 `ddk.cache.caches` |
+| 接口文档按限界上下文分组 | `platform/ApiDocs` |
+| 用例开放成 MCP 工具，放在适配层，由架构测试检查 | 三个上下文的 `adapter/mcp`，`MCP_TOOLS_MUST_RESIDE_IN_ADAPTER` |

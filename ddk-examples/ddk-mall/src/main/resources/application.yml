@@ -7,6 +7,14 @@ spring:
     username: sa
     password:
 
+  # 默认 profile 没有 Redis：不创建连接，缓存只剩进程内的一级，锁和任务锁用进程内的替身。compose profile 里恢复
+  autoconfigure:
+    exclude: org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration
+  ai:
+    mcp:
+      server:
+        name: ddk-mall
+
   modulith:
     events:
       jdbc:
@@ -22,6 +30,17 @@ ddk:
     # 默认 profile 没有消息中间件：上下文之间的消息由 DDK 在进程内转发。compose profile 里关掉，改走 RocketMQ
     local-delivery:
       enabled: true
+  cache:
+    key-prefix: "mall:cache:"
+    caches:
+      # 商品很少变：两级缓存，各实例的一级缓存最多滞后 5 分钟
+      product:
+        ttl: 1h
+        local-enabled: true
+        local-ttl: 5m
+      # 库存变化频繁：有 Redis 时只用共享的二级缓存，写操作提交后失效，过期时间兜底
+      stock:
+        ttl: 1m
   # 默认 profile 不连 Redis：库存锁退回进程内实现，只适合单实例。compose profile 里打开
   concurrency:
     enabled: false

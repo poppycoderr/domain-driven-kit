@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 @Testcontainers(disabledWithoutDocker = true)
 @DirtiesContext
-@SpringBootTest(properties = {"ddk.concurrency.enabled=true", "ddk.concurrency.key-prefix=mall-test:", "ddk.concurrency.lock.wait-time=20s"})
+@SpringBootTest(properties = {"spring.autoconfigure.exclude=", "ddk.concurrency.enabled=true", "ddk.concurrency.key-prefix=mall-test:", "ddk.concurrency.lock.wait-time=20s"})
 class StockConcurrencyIntegrationTest {
 
     @Container

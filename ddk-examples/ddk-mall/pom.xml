@@ -50,6 +50,22 @@
             <artifactId>ddk-job-starter</artifactId>
         </dependency>
 
+        <!-- 读侧缓存：商品目录与库存。有 Redis 时是两级缓存，默认 profile 只有进程内的一级 -->
+        <dependency>
+            <groupId>com.ddk</groupId>
+            <artifactId>ddk-cache-starter</artifactId>
+        </dependency>
+        <!-- 把用例开放成 MCP 工具，供 AI agent 调用 -->
+        <dependency>
+            <groupId>com.ddk</groupId>
+            <artifactId>ddk-mcp-starter</artifactId>
+        </dependency>
+        <!-- 接口文档与 Swagger UI（/swagger-ui.html）；DDK 的 Web starter 会补上错误响应与错误码清单 -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+        </dependency>
+
         <!-- 表结构由 Flyway 迁移脚本管理；flyway-mysql 是连接 MySQL 时需要的方言模块 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
