@@ -5,7 +5,9 @@ import com.ddk.core.domain.IntegrationEvent;
 import com.ddk.core.jackson.IdentifierJacksonModule;
 import com.ddk.event.starter.inbox.IdempotentConsumer;
 import com.ddk.event.starter.internal.IntegrationEventContractVerifier;
+import com.ddk.event.starter.internal.GuardedMulticasterPostProcessor;
 import com.ddk.event.starter.internal.IntegrationEventRouting;
+import com.ddk.event.starter.internal.TransactionalPublicationGuard;
 import com.ddk.event.starter.internal.SpringDomainEventPublisher;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -14,9 +16,11 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.bind.Binder;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.modulith.events.EventExternalizationConfiguration;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -63,6 +67,22 @@ public class DdkEventAutoConfiguration {
         IntegrationEventContractVerifier ddkIntegrationEventContractVerifier(BeanFactory beanFactory, IntegrationEventRouting routing) {
             List<String> packages = AutoConfigurationPackages.has(beanFactory) ? AutoConfigurationPackages.get(beanFactory) : List.of();
             return new IntegrationEventContractVerifier(packages, routing, IntegrationEventContractVerifier.class.getClassLoader());
+        }
+
+        @Bean
+        @ConditionalOnMissingBean
+        TransactionalPublicationGuard ddkTransactionalPublicationGuard(DdkEventProperties properties) {
+            return new TransactionalPublicationGuard(properties.getOutsideTransaction());
+        }
+
+        /**
+         * 声明成 static：后处理器要在事件广播器创建之前就位，不能依赖这个配置类的实例。处理方式因此直接从环境里读。
+         */
+        @Bean
+        static GuardedMulticasterPostProcessor ddkGuardedMulticasterPostProcessor(Environment environment) {
+            return new GuardedMulticasterPostProcessor(() -> Binder.get(environment)
+                    .bind(DdkEventProperties.PREFIX + ".outside-transaction", DdkEventProperties.OutsideTransaction.class)
+                    .orElse(DdkEventProperties.OutsideTransaction.FAIL));
         }
 
         @Bean

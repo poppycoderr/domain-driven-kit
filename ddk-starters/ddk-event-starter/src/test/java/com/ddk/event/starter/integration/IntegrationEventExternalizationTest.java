@@ -13,6 +13,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.modulith.events.IncompleteEventPublications;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -43,6 +44,9 @@ public class IntegrationEventExternalizationTest {
 
     @Autowired
     private JdbcTemplate jdbc;
+
+    @Autowired
+    private IncompleteEventPublications incompletePublications;
 
     @BeforeEach
     void reset() {
@@ -76,6 +80,17 @@ public class IntegrationEventExternalizationTest {
 
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM event_publication", Long.class)).isZero();
         assertThat(orderEvents.messages).isEmpty();
+    }
+
+    @Test
+    void publishingOutsideATransactionFailsInsteadOfSilentlyLosingTheEvent() {
+        assertThatThrownBy(() -> publisher.publishEventsOf(Order.pay(OrderId.of(9L))))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("outside a transaction");
+
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM event_publication", Long.class)).isZero();
+        assertThat(orderEvents.messages).isEmpty();
+        assertThat(incompletePublications).as("Modulith's own API is still available behind the guard").isNotNull();
     }
 
     @Test

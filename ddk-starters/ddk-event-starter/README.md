@@ -58,6 +58,17 @@ The Modulith versions are managed by the DDK BOM.
 
 If the application declares its own `EventExternalizationConfiguration`, DDK's selection backs off.
 
+### Publish inside a transaction
+
+Integration events leave through the transaction: recorded when published, delivered after the commit. Published without a transaction, an event is never delivered, and Spring Modulith still writes a publication record that stays incomplete. DDK checks at the moment of publishing and, by default, throws:
+
+```text
+IllegalStateException: com.acme.order.OrderPaid was published outside a transaction and will not be delivered:
+publish integration events inside the transaction that changes the data, for example from a @Transactional service method
+```
+
+The check runs before Modulith records the event, so a failed publication leaves nothing behind. `ddk.event.outside-transaction=warn` logs instead of throwing, and `ignore` restores the old silence; with either, the incomplete record is written as before.
+
 ### RocketMQ
 
 Spring Modulith has no RocketMQ module, so this starter provides one. Add the client instead of a Modulith broker module, and point it at a NameServer:
@@ -254,5 +265,6 @@ CREATE TABLE ddk_processed_message (
 | `ddk.event.rocketmq.send-timeout` | `3s` | Timeout of one send |
 | `ddk.event.rocketmq.consumer.enabled` | `true` | Consume from RocketMQ when the application declares consumers |
 | `ddk.event.rocketmq.consumer.orderly` | `true` | Orderly consumption; `false` consumes concurrently and redelivers failed messages individually |
+| `ddk.event.outside-transaction` | `fail` | What to do when an integration event is published outside a transaction: `fail` throws where it is published, `warn` logs, `ignore` stays silent |
 | `ddk.event.local-delivery.enabled` | `false` | Deliver integration events in-process to the consumers of the same application; development and tests only |
 | `spring.modulith.events.*` | Spring Modulith | Registry schema, republishing on restart, completion mode, staleness |

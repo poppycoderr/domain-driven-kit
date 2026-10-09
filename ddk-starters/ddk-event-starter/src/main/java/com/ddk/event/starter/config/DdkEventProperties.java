@@ -41,6 +41,18 @@ public class DdkEventProperties {
      */
     private LocalDelivery localDelivery = new LocalDelivery();
 
+    /**
+     * 集成事件在事务之外发布时怎么办。这样的事件不会被投递：{@code fail} 在发布处抛出异常，{@code warn} 只记一条警告，
+     * {@code ignore} 保持沉默。
+     */
+    private OutsideTransaction outsideTransaction = OutsideTransaction.FAIL;
+
+    public enum OutsideTransaction {
+        FAIL,
+        WARN,
+        IGNORE
+    }
+
     @Data
     public static class LocalDelivery {
 

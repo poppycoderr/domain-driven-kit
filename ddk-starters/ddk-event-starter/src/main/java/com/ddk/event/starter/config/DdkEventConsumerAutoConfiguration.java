@@ -5,6 +5,7 @@ import com.ddk.event.starter.consumer.IntegrationEventConsumer;
 import com.ddk.event.starter.consumer.IntegrationEventDispatcher;
 import com.ddk.event.starter.inbox.IdempotentConsumer;
 import com.ddk.event.starter.internal.EventObservations;
+import com.ddk.event.starter.internal.TransactionalPublicationGuard;
 import com.ddk.event.starter.internal.IntegrationEventRouting;
 import com.ddk.event.starter.internal.LocalEventDelivery;
 import io.micrometer.observation.ObservationRegistry;
@@ -49,6 +50,16 @@ public class DdkEventConsumerAutoConfiguration {
             ObjectProvider<ObservationRegistry> observationRegistry) {
         return new LocalEventDelivery(dispatcher, new IntegrationEventRouting(), json(mapper),
                 new EventObservations(observationRegistry.getIfAvailable(() -> ObservationRegistry.NOOP)));
+    }
+
+    /**
+     * 进程内转发同样靠事务送出事件。应用没有引入 Spring Modulith 时，检查由这里注册。
+     */
+    @Bean
+    @ConditionalOnBean(LocalEventDelivery.class)
+    @ConditionalOnMissingBean
+    TransactionalPublicationGuard ddkLocalTransactionalPublicationGuard(DdkEventProperties properties) {
+        return new TransactionalPublicationGuard(properties.getOutsideTransaction());
     }
 
     private static JsonMapper json(ObjectProvider<JsonMapper> mapper) {
