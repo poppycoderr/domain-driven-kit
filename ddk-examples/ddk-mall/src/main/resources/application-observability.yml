@@ -1,0 +1,17 @@
+# 向 docker-compose.yml 里的 lgtm 容器上报链路和指标，和 compose profile 一起用
+management:
+  tracing:
+    sampling:
+      # 示例里全量采样，方便每个请求都能查到；生产环境按流量调低
+      probability: 1.0
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: http://localhost:4318/v1/traces
+  otlp:
+    metrics:
+      export:
+        enabled: true
+        url: http://localhost:4318/v1/metrics
+        step: 10s
