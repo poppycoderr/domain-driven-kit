@@ -20,6 +20,10 @@ The query side: read models that are refreshed from the write model and can be r
 - `ddk-projection-starter`: read models that follow the write model. `Projections.markDirty(name, id)` records a changed entry in the caller's transaction; after the commit a `Projection` bean regenerates that entry from the current state of the write model. Failures are retried with a growing delay, repeated marks are coalesced, a change during a refresh is never lost, and `Projections.rebuild(name)` refreshes everything. Works on MySQL, PostgreSQL and H2
 - Row-level data scope in `ddk-mybatis-starter` (`ddk.mybatis.data-scope.*`): queries, updates and deletes on the listed tables are narrowed to what the current operator may see, by group column (`dept_id`), by creator column (`create_by`), or both. The application answers one question through a `DataScopeResolver` bean: what is this operator's `DataScope`. Like multi-tenancy it fails closed: a statement on a scoped table without an operator throws. Off by default
 
+### Changed
+
+- `MybatisPlusAutoConfiguration.mybatisPlusInterceptor` takes an additional `ObjectProvider<DataScopeResolver>`. It is a bean method that Spring calls; code that invoked it directly needs the extra argument
+
 ## [0.7.0] - 2026-10-09
 
 Two mistakes that used to pass silently now fail where they are made: publishing an integration event outside a transaction, and taking an aggregate lock inside one. Both can be switched back to a warning. Scheduled jobs no longer need Redis in a single-instance environment.
