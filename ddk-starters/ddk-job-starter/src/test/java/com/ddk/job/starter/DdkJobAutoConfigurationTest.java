@@ -1,6 +1,7 @@
 package com.ddk.job.starter;
 
 import com.ddk.job.starter.config.DdkJobAutoConfiguration;
+import com.ddk.job.starter.internal.LocalLockProvider;
 import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.provider.redis.spring.RedisLockProvider;
 import org.junit.jupiter.api.DisplayName;
@@ -41,6 +42,17 @@ class DdkJobAutoConfigurationTest {
     @DisplayName("没有 Redis 连接时不注册 LockProvider")
     void noProviderWithoutRedis() {
         runner.run(context -> assertThat(context).doesNotHaveBean(LockProvider.class));
+    }
+
+    @Test
+    @DisplayName("store=local 时用进程内的锁，不需要 Redis；有 Redis 也不用它")
+    void localStoreNeedsNoRedis() {
+        runner.withPropertyValues("ddk.job.lock.store=local")
+                .run(context -> assertThat(context.getBean(LockProvider.class)).isInstanceOf(LocalLockProvider.class));
+        runner.withUserConfiguration(RedisConfiguration.class).withPropertyValues("ddk.job.lock.store=local")
+                .run(context -> assertThat(context.getBean(LockProvider.class)).isInstanceOf(LocalLockProvider.class));
+        runner.withUserConfiguration(CustomLockProvider.class).withPropertyValues("ddk.job.lock.store=local")
+                .run(context -> assertThat(context.getBean(LockProvider.class)).isSameAs(CustomLockProvider.PROVIDER));
     }
 
     @Test

@@ -44,7 +44,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
-        <!-- 超时关单的定时任务。任务锁同样放在 Redis 里，默认 profile 用一个进程内的替身 -->
+        <!-- 超时关单的定时任务。任务锁同样放在 Redis 里，默认 profile 改放在进程内存里（ddk.job.lock.store=local） -->
         <dependency>
             <groupId>com.ddk</groupId>
             <artifactId>ddk-job-starter</artifactId>

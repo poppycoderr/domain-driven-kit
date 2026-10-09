@@ -41,7 +41,7 @@ mvn -pl ddk-examples/ddk-mall spring-boot:run -Dspring-boot.run.profiles=compose
 | | 默认 profile | `compose` profile |
 |---|---|---|
 | 库存锁 | 进程内的锁，只适合单实例，启动时打一条警告 | Redis，多个实例之间互斥 |
-| 定时任务的锁 | 总是放行的替身（`LocalJobLock`），只适合单实例 | Redis，多个实例里同一轮只有一个执行 |
+| 定时任务的锁 | 放在进程内存里（`ddk.job.lock.store=local`），只适合单实例 | Redis，多个实例里同一轮只有一个执行 |
 | 缓存 | 只有进程内的一级（Caffeine） | 商品两级（Caffeine + Redis），库存只用 Redis |
 | 链路与指标 | 产生但不上报 | 加上 `observability` profile 后经 OTLP 上报 |
 | 上下文之间的消息 | DDK 的进程内转发（`ddk.event.local-delivery`），进程退出就丢，失败不重投 | 先写进事件发布记录，提交后经 RocketMQ 投递，失败可重投 |
@@ -215,7 +215,7 @@ sequenceDiagram
 ```text
 com.example.mall
 ├── MallApplication
-├── platform                 各上下文共用的技术代码：顾客身份、接口文档分组、本地任务锁
+├── platform                 各上下文共用的技术代码：顾客身份、接口文档分组
 ├── order                    订单上下文，内部是四层
 │   ├── adapter/{controller,messaging,job,mcp}
 │   ├── application/{command,query,response,service,handler,integration,config}

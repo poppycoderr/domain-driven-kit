@@ -49,6 +49,7 @@ import static org.awaitility.Awaitility.await;
         "ddk.event.local-delivery.enabled=false",
         "ddk.event.rocketmq.producer-group=mall-flow-test",
         "spring.autoconfigure.exclude=",
+        "ddk.job.lock.store=redis",
         "ddk.concurrency.enabled=true",
         "ddk.concurrency.key-prefix=mall-flow:"
 })

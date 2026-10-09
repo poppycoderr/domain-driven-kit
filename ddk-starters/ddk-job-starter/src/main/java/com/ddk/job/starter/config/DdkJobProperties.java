@@ -23,8 +23,19 @@ public class DdkJobProperties {
 
     private Lock lock = new Lock();
 
+    public enum Store {
+        REDIS,
+        LOCAL
+    }
+
     @Data
     public static class Lock {
+
+        /**
+         * 锁放在哪里。{@code redis} 让多个实例互斥；{@code local} 把锁放在当前进程的内存里，不需要 Redis，但只能用在单实例上，
+         * 适合本地开发。
+         */
+        private Store store = Store.REDIS;
 
         /**
          * 持有锁的默认最长时间。执行任务的实例宕机后，其他实例最多等这么久才能接手，所以要比任务的正常耗时长，但不要长太多。

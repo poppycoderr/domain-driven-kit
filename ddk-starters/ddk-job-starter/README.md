@@ -46,11 +46,25 @@ public class OrderJobs {
 
 Both have defaults under `ddk.job.lock.*` and can be set per job on `@SchedulerLock`. A job that outlives `lockAtMostFor` can overlap with the next run on another instance, so a job should still be safe to run twice.
 
+## Without Redis
+
+A local environment often has no Redis. With the default store and no Redis connection there is no `LockProvider`, and a job that carries `@SchedulerLock` fails when it fires. Choose the local store for that environment:
+
+```yaml
+ddk:
+  job:
+    lock:
+      store: local
+```
+
+Locks then live in the memory of the current process. Jobs with the same name still do not overlap inside that process, and `lockAtMostFor` / `lockAtLeastFor` keep their meaning. Nothing is shared between instances, so this is for a single instance only; the starter logs a warning at startup. It has to be chosen explicitly: a missing Redis connection never switches to it silently.
+
 ## Configuration
 
 | Property | Default | Description |
 |---|---|---|
 | `ddk.job.enabled` | `true` | Turn scheduling off, for example in a local environment that should only serve the API |
+| `ddk.job.lock.store` | `redis` | Where locks are kept. `local` keeps them in the memory of the current process: no Redis needed, single instance only |
 | `ddk.job.lock.at-most-for` | `10m` | Default `lockAtMostFor` |
 | `ddk.job.lock.at-least-for` | `0s` | Default `lockAtLeastFor` |
 | `ddk.job.lock.key-prefix` | `ddk:job-lock` | Prefix of the Redis key; the full key is `<prefix>:<spring.application.name>:<job name>` |

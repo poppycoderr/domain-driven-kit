@@ -20,6 +20,9 @@ ddk:
     rocketmq:
       name-server: localhost:9876
       producer-group: mall-producer
+  job:
+    lock:
+      store: redis
   concurrency:
     enabled: true
     key-prefix: "mall:"
