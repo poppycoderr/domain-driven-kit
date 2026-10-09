@@ -122,7 +122,7 @@ AI capabilities (on Spring AI 2.0):
 | Scheduling | ShedLock | Done: `ddk-job-starter` runs a `@Scheduled` job on one instance at a time, and `SCHEDULED_JOBS_MUST_RESIDE_IN_ADAPTER` makes jobs call application services only. No XXL-Job starter: it is GPL-3.0, which DDK (Apache-2.0) does not link against; a scheduling platform with a compatible license may be integrated later | High |
 | Schema migration | Flyway | Done: archetypes ship a baseline migration, the example uses migrations instead of `schema.sql`, and agent rules require a new migration per schema change | High |
 | API docs | springdoc-openapi | Done in the web starter: 400 / 409 / 500 error responses on every operation and a catalogue of error codes; springdoc already expands `ApiResponse<T>` by its generic type | High |
-| Read models | Elasticsearch | Projections driven by domain events, with rebuilds | Medium |
+| Read models | JDBC pending table; Elasticsearch | Done: `ddk-projection-starter` marks changed entries in the transaction, refreshes the read model from the write model after commit, retries failures and rebuilds on demand. Open: Elasticsearch as a destination (index management, alias switch on rebuild) | Medium |
 | Cross-cutting | MyBatis-Plus plugins | Done: `OperatorContext`, audit fields (`createBy` / `updateBy`) and multi-tenancy that fails closed without a tenant, and row-level data scope by group and by creator. Soft delete is MyBatis-Plus's own `@TableLogic` and needs no DDK code | Medium |
 | Config and discovery | Nacos | Refreshable `ddk.*` properties, kept as an optional dependency | Medium |
 | Traffic control | Sentinel | Circuit breaking at the application-service level, with fallbacks mapped to error codes | Low |

@@ -122,7 +122,7 @@ AI 能力（基于 Spring AI 2.0）：
 | 定时任务 | ShedLock | 已完成：`ddk-job-starter` 让 `@Scheduled` 任务同一时刻只在一个实例上执行，`SCHEDULED_JOBS_MUST_RESIDE_IN_ADAPTER` 规则让任务只能调用应用服务。不做 XXL-Job starter：它是 GPL-3.0，DDK（Apache-2.0）不链接它；以后可以集成许可证兼容的调度平台 | 高 |
 | 数据库演进 | Flyway | 已完成：archetype 自带基线迁移脚本，示例改用迁移脚本而不是 `schema.sql`，代理约定要求每次表结构变化新增一个迁移 | 高 |
 | 接口文档 | springdoc-openapi | 已在 Web starter 完成：每个接口补上 400 / 409 / 500 错误响应，错误码汇总成清单；`ApiResponse<T>` 由 springdoc 按泛型展开 | 高 |
-| 读模型 | Elasticsearch | 领域事件驱动的投影与重建 | 中 |
+| 读模型 | JDBC 待刷新表；Elasticsearch | 已完成：`ddk-projection-starter` 在事务里标记变更的数据，提交后从写模型刷新读模型，失败重试，可按需重建。未完成：把 Elasticsearch 作为目的地（索引管理、重建时切换别名） | 中 |
 | 横切能力 | MyBatis-Plus 插件 | 已完成：`OperatorContext`、审计字段（`createBy` / `updateBy`）、取不到租户就拒绝执行的多租户、按组和按创建人的行级数据权限。逻辑删除用 MyBatis-Plus 自带的 `@TableLogic` 即可，不需要 DDK 的代码 | 中 |
 | 配置与注册 | Nacos | 配置刷新对 `ddk.*` 属性生效，保持 starter 可选依赖 | 中 |
 | 流量治理 | Sentinel | 应用服务级别的熔断与降级，降级结果映射为业务错误码 | 低 |

@@ -187,6 +187,11 @@
                 <artifactId>ddk-job-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.ddk</groupId>
+                <artifactId>ddk-projection-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <!-- MyBatis-Plus (Spring Boot 4 starter) -->
             <dependency>

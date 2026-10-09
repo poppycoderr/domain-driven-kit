@@ -26,6 +26,7 @@
         <module>ddk-mcp-starter</module>
         <module>ddk-concurrency-starter</module>
         <module>ddk-job-starter</module>
+        <module>ddk-projection-starter</module>
     </modules>
 
 </project>
