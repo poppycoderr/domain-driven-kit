@@ -35,7 +35,8 @@ public final class GuardedMulticasterPostProcessor implements BeanPostProcessor 
         ProxyFactory proxy = new ProxyFactory(bean);
         proxy.setProxyTargetClass(true);
         proxy.addAdvice((MethodInterceptor) invocation -> {
-            Object[] arguments = invocation.getArguments();
+            // 用 var：不同 JDK 对数组元素上的可空标注读法不一样，显式写出类型会在其中一些上通不过空值检查
+            var arguments = invocation.getArguments();
             if ("multicastEvent".equals(invocation.getMethod().getName()) && arguments.length > 0
                     && arguments[0] instanceof PayloadApplicationEvent<?> event) {
                 new TransactionalPublicationGuard(mode.get()).check(event.getPayload());
