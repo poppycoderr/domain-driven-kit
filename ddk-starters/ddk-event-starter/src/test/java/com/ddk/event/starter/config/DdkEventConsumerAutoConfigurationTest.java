@@ -1,5 +1,7 @@
 package com.ddk.event.starter.config;
 
+import com.ddk.core.domain.IntegrationEvent;
+import com.ddk.event.starter.internal.TransactionalPublicationGuard;
 import com.ddk.event.starter.consumer.IntegrationEventConsumer;
 import com.ddk.event.starter.consumer.IntegrationEventDispatcher;
 import com.ddk.event.starter.consumer.ReceivedEvent;
@@ -12,6 +14,8 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("集成事件消费端自动装配")
@@ -20,6 +24,24 @@ class DdkEventConsumerAutoConfigurationTest {
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(DdkEventAutoConfiguration.class, DdkEventConsumerAutoConfiguration.class,
                     DdkRocketMqEventConsumerAutoConfiguration.class));
+
+    @Test
+    @DisplayName("进程内转发开启时注册事务外发布的检查，处理方式取自配置")
+    void localDeliveryComesWithThePublicationGuard() {
+        runner.withUserConfiguration(Consumers.class).withPropertyValues("ddk.event.local-delivery.enabled=true").run(context -> {
+            assertThat(context).hasSingleBean(TransactionalPublicationGuard.class);
+            assertThatThrownBy(() -> context.publishEvent(new Shipped(1L))).isInstanceOf(IllegalStateException.class);
+        });
+        runner.withUserConfiguration(Consumers.class)
+                .withPropertyValues("ddk.event.local-delivery.enabled=true", "ddk.event.outside-transaction=warn")
+                .run(context -> assertThatCode(() -> context.publishEvent(new Shipped(1L))).doesNotThrowAnyException());
+    }
+
+    @IntegrationEvent("shipments")
+    record Shipped(
+            Long shipmentId
+    ) {
+    }
 
     @Test
     @DisplayName("没有声明消费方时什么都不注册")

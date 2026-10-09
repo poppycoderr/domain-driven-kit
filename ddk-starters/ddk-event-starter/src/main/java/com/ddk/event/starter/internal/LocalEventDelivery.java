@@ -62,7 +62,7 @@ public class LocalEventDelivery implements ApplicationListener<PayloadApplicatio
      * 这里用普通的监听器加事务同步，而不是 {@code @TransactionalEventListener}：后者要么声明具体的事件类型，要么监听 {@code Object}，
      * 而监听 {@code Object} 的事务监听器会让 Spring Modulith 把应用里的每一个事件都写进发布记录。
      * <p>
-     * 事件在发布时就序列化，之后对象再被修改也不影响送出去的内容。没有事务时不送达，与真实投递的行为一致。
+     * 事件在发布时就序列化，之后对象再被修改也不影响送出去的内容。没有事务时不送达，与真实投递的行为一致；这种情况由 {@link TransactionalPublicationGuard} 报告。
      */
     @Override
     public void onApplicationEvent(PayloadApplicationEvent<?> published) {
@@ -72,7 +72,6 @@ public class LocalEventDelivery implements ApplicationListener<PayloadApplicatio
             return;
         }
         if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-            log.warn("{} was published outside a transaction and is not delivered", event.getClass().getName());
             return;
         }
         String[] target = contract.value().split(":", 2);

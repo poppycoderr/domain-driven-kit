@@ -12,6 +12,10 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ## [Unreleased]
 
+### Breaking
+
+- Publishing an integration event outside a transaction now throws `IllegalStateException`. Such an event was never delivered, and with Spring Modulith it left an incomplete publication record behind, all without a word in the log. The check runs before the event is recorded. Set `ddk.event.outside-transaction=warn` or `ignore` to keep an application running while its publishing code is fixed
+
 ## [0.6.0] - 2026-10-09
 
 Both sides of integration events: declared consumers join the publishing side, and the trace follows an event from the request that caused it to the handler that processes it. `ddk-mall`, a reference application with three bounded contexts, uses every starter side by side; building it surfaced the fixes below.
