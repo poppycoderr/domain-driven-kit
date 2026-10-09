@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.cache.CacheManager;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
@@ -39,6 +40,9 @@ class PaymentApiTest {
     private JdbcTemplate jdbc;
 
     @Autowired
+    private CacheManager cacheManager;
+
+    @Autowired
     private CloseExpiredOrdersJob closeExpiredOrdersJob;
 
     @Autowired
@@ -53,6 +57,8 @@ class PaymentApiTest {
         jdbc.update("UPDATE t_stock SET on_hand = 10, reserved = 0 WHERE sku_id = 'SKU-KEYBOARD'");
         jdbc.update("UPDATE t_stock SET on_hand = 50, reserved = 0 WHERE sku_id = 'SKU-MOUSE'");
         jdbc.update("UPDATE t_stock SET on_hand = 3, reserved = 0 WHERE sku_id = 'SKU-MONITOR'");
+        // 上面绕过应用直接改了表，缓存里的库存要一并清掉
+        cacheManager.getCache("stock").clear();
     }
 
     @Test

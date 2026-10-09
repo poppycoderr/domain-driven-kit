@@ -6,16 +6,21 @@ import com.ddk.test.containers.DdkContainers;
 import com.ddk.test.containers.RedisContainer;
 import com.ddk.test.containers.RocketMqContainer;
 import com.example.mall.inventory.adapter.messaging.payload.OrderPlacedPayload;
+import com.example.mall.inventory.application.response.StockResponse;
 import com.example.mall.inventory.application.service.InventoryService;
 import com.example.mall.order.application.command.PlaceOrderCommand;
 import com.example.mall.order.application.response.OrderResponse;
 import com.example.mall.order.application.service.OrderService;
+import com.example.mall.order.domain.acl.ProductCatalog;
 import com.example.mall.payment.application.service.PaymentService;
 import com.ddk.event.starter.consumer.IntegrationEventDispatcher;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cache.CacheManager;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -43,6 +48,7 @@ import static org.awaitility.Awaitility.await;
 @SpringBootTest(properties = {
         "ddk.event.local-delivery.enabled=false",
         "ddk.event.rocketmq.producer-group=mall-flow-test",
+        "spring.autoconfigure.exclude=",
         "ddk.concurrency.enabled=true",
         "ddk.concurrency.key-prefix=mall-flow:"
 })
@@ -71,6 +77,18 @@ class MallFlowIntegrationTest {
 
     @Autowired
     private JdbcTemplate jdbc;
+
+    @Autowired
+    private CacheManager cacheManager;
+
+    @Autowired
+    private StringRedisTemplate redis;
+
+    @Autowired
+    private RedisTemplate<String, Object> redisObjects;
+
+    @Autowired
+    private ProductCatalog productCatalog;
 
     @DynamicPropertySource
     static void containers(DynamicPropertyRegistry registry) {
@@ -178,6 +196,36 @@ class MallFlowIntegrationTest {
 
         assertThat(orders.get(7L, placed.id()).status()).isEqualTo("CANCELLED");
         assertThat(cancelledMessages(placed.id())).isEqualTo(before + 1);
+    }
+
+    @Test
+    void stockIsServedFromRedisAndInvalidatedOnceAWriteCommits() {
+        cacheManager.getCache("stock").evict("SKU-MONITOR");
+        StockResponse loaded = inventory.get("SKU-MONITOR");
+        assertThat(redis.hasKey("mall:cache:stock::SKU-MONITOR")).isTrue();
+
+        // 绕过应用改表：读到的仍是 Redis 里的值，说明第二次读取确实来自缓存，并且值能从 Redis 反序列化回来
+        jdbc.update("UPDATE t_stock SET on_hand = on_hand + 100, version = version + 1 WHERE sku_id = 'SKU-MONITOR'");
+        assertThat(inventory.get("SKU-MONITOR")).isEqualTo(loaded);
+
+        // 经应用写入：提交后缓存失效，读到最新值
+        StockResponse restocked = inventory.restock("SKU-MONITOR", 1);
+        assertThat(redis.hasKey("mall:cache:stock::SKU-MONITOR")).isFalse();
+        assertThat(inventory.get("SKU-MONITOR")).isEqualTo(restocked);
+        assertThat(restocked.onHand()).isEqualTo(loaded.onHand() + 101);
+
+        jdbc.update("UPDATE t_stock SET on_hand = ?, version = version + 1 WHERE sku_id = 'SKU-MONITOR'", loaded.onHand());
+        cacheManager.getCache("stock").evict("SKU-MONITOR");
+    }
+
+    @Test
+    void productsAreStoredInRedisInAFormThatReadsBackAsTheSameValue() {
+        cacheManager.getCache("product").evict("SKU-MOUSE");
+
+        ProductCatalog.Product mouse = productCatalog.find("SKU-MOUSE").orElseThrow();
+
+        assertThat(redisObjects.opsForValue().get("mall:cache:product::SKU-MOUSE")).isEqualTo(mouse);
+        assertThat(productCatalog.find("SKU-MOUSE")).contains(mouse);
     }
 
     private String paymentStatus(Long orderId) {

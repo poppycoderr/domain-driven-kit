@@ -1,5 +1,7 @@
 # 连接 docker-compose.yml 里的 MySQL、Redis 与 RocketMQ
 spring:
+  autoconfigure:
+    exclude: ""
   datasource:
     url: jdbc:mysql://localhost:3306/mall?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC
     username: mall

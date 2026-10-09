@@ -16,6 +16,9 @@ import com.example.mall.inventory.domain.model.SkuId;
 import com.example.mall.inventory.domain.model.Stock;
 import com.example.mall.inventory.domain.model.StockReservation;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -31,10 +34,16 @@ import java.util.function.Supplier;
  * {@code @Transactional}：事务必须整个落在锁的范围之内，锁释放时数据已经提交。
  * <p>
  * 预占、释放、扣减都可以重复执行：它们由消息驱动，而同一条消息可能被投递多次。
+ * <p>
+ * 库存的查询结果放在缓存里，写操作在事务提交之后让涉及的 SKU 失效。失效必须在提交之后：提交之前失效的话，
+ * 另一个请求可能立刻把旧值重新读进缓存。提交和失效之间仍有一个极短的窗口会读到旧值，缓存的过期时间是它的上限。
+ * 预占用的是数据库里的库存，不读缓存，所以缓存只影响展示，不影响是否超卖。
  */
 @Service
 @RequiredArgsConstructor
 public class InventoryService {
+
+    private static final String STOCK_CACHE = "stock";
 
     private static final String ORDER_PLACED_CONSUMER = "inventory.order-placed";
 
@@ -52,6 +61,9 @@ public class InventoryService {
 
     private final ApplicationEventPublisher publisher;
 
+    private final CacheManager cacheManager;
+
+    @Cacheable(cacheNames = STOCK_CACHE, key = "#skuId")
     public StockResponse get(String skuId) {
         return StockResponse.from(requireStock(SkuId.of(skuId)));
     }
@@ -106,10 +118,10 @@ public class InventoryService {
     public void reserveForOrder(String messageId, ReserveStockCommand command) {
         List<SkuId> skuIds = command.lines().stream().map(line -> SkuId.of(line.skuId())).toList();
         try {
-            stockLock.withSkus(skuIds, () -> transaction.execute(status -> idempotentConsumer.handle(ORDER_PLACED_CONSUMER, messageId, () -> {
+            locked(skuIds, () -> idempotentConsumer.handle(ORDER_PLACED_CONSUMER, messageId, () -> {
                 reserveLines(command);
                 publisher.publishEvent(new StockReservedMessage(UUID.randomUUID().toString(), command.orderId()));
-            })));
+            }));
         } catch (BusinessException rejection) {
             if (rejection.getErrorCode() != InventoryError.INSUFFICIENT_STOCK && rejection.getErrorCode() != InventoryError.STOCK_NOT_FOUND) {
                 throw rejection;
@@ -157,8 +169,20 @@ public class InventoryService {
         });
     }
 
+    /**
+     * 锁住这些 SKU，在锁里开启并提交事务，提交（或回滚）之后让它们的缓存失效。
+     */
     private <T> T locked(List<SkuId> skuIds, Supplier<T> action) {
-        return stockLock.withSkus(skuIds, () -> transaction.execute(status -> action.get()));
+        return stockLock.withSkus(skuIds, () -> {
+            try {
+                return transaction.execute(status -> action.get());
+            } finally {
+                Cache cache = cacheManager.getCache(STOCK_CACHE);
+                if (cache != null) {
+                    skuIds.forEach(skuId -> cache.evict(skuId.value()));
+                }
+            }
+        });
     }
 
     private Stock requireStock(SkuId skuId) {
