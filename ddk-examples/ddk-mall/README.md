@@ -117,7 +117,7 @@ mvn -pl ddk-examples/ddk-mall spring-boot:run -Dspring-boot.run.profiles=compose
 
 后端是一个容器（`grafana/otel-lgtm`），里面有 OpenTelemetry Collector、Tempo、Prometheus 和 Grafana。应用经 OTLP 上报，Grafana 在 `http://localhost:3000`。
 
-**看一条链路。** 下一单，把响应头里的 `X-Trace-Id` 粘到 Grafana 的 Explore → Tempo 里查询。一次下单是一条完整的链路，跨了三个上下文和四条消息：
+**看一条链路。** 下一单，把响应头里的 `X-Trace-Id` 粘到 Grafana 的 Explore → Tempo 里查询。一次下单是一条完整的链路，跨了三个上下文和三条消息：
 
 ```text
 http post /orders

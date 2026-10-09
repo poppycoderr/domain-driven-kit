@@ -156,7 +156,7 @@ DDK is maintained by one person and is in its 0.x series: a minor release may co
 | `ddk-tracer-starter` | Distributed tracing with the trace ID in a response header | Usable |
 | `ddk-seata-starter` | Distributed transactions with XID propagation on outbound HTTP calls | Usable |
 | `ddk-archetypes` | Three- and four-layer Maven archetypes with architecture tests in every generated project | Usable, with integration tests on generated projects |
-| `ddk-examples` | `ddk-example-user`: a runnable four-layer user registration example. `ddk-mall`: a reference application with order, inventory and payment contexts, built step by step (order and inventory contexts done and connected through RocketMQ) | Usable |
+| `ddk-examples` | `ddk-example-user`: a runnable four-layer user registration example. [`ddk-mall`](./ddk-examples/ddk-mall): a reference application where order, inventory and payment contexts work together through integration events, using every starter side by side | Usable |
 
 ## Domain Model
 
@@ -270,7 +270,7 @@ Released so far:
 Next:
 
 6. **More integrations**: Elasticsearch read models, data permissions, Nacos, Sentinel, object storage
-7. **v1.0 Production ready**: the `ddk-mall` reference application, native images, a frozen public API
+7. **v1.0 Production ready**: native images, a frozen public API
 
 See [ROADMAP.md](./ROADMAP.md) for the full plan.
 
