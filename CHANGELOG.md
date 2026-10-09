@@ -14,6 +14,7 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ### Breaking
 
+- Acquiring an aggregate lock inside a transaction now throws `IllegalStateException`, through `AggregateLocks` and `@AggregateLock` alike. Such a lock is released before the transaction commits, so the next holder reads data from before the commit; nothing reported it. Re-entering a lock the thread already holds is not affected. Set `ddk.concurrency.lock.inside-transaction=warn` or `ignore` to keep the old behaviour. `AggregateLocks` built with the existing four-argument constructor does not check
 - Publishing an integration event outside a transaction now throws `IllegalStateException`. Such an event was never delivered, and with Spring Modulith it left an incomplete publication record behind, all without a word in the log. The check runs before the event is recorded. Set `ddk.event.outside-transaction=warn` or `ignore` to keep an application running while its publishing code is fixed
 
 ### Added

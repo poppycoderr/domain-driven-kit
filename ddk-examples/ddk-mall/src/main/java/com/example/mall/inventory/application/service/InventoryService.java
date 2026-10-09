@@ -31,7 +31,8 @@ import java.util.function.Supplier;
  * 库存应用服务。
  * <p>
  * 写操作的结构都是「先拿到涉及的 SKU 的锁，再在锁里开启并提交事务」，所以这里用 {@link TransactionTemplate} 而不是
- * {@code @Transactional}：事务必须整个落在锁的范围之内，锁释放时数据已经提交。
+ * {@code @Transactional}：事务必须整个落在锁的范围之内，锁释放时数据已经提交。顺序反过来（在事务里面加锁）时
+ * DDK 的聚合锁会直接报错。
  * <p>
  * 预占、释放、扣减都可以重复执行：它们由消息驱动，而同一条消息可能被投递多次。
  * <p>

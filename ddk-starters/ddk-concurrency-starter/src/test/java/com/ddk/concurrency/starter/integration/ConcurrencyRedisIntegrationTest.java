@@ -6,6 +6,7 @@ import com.ddk.concurrency.starter.AggregateLock;
 import com.ddk.concurrency.starter.AggregateLocks;
 import com.ddk.concurrency.starter.Idempotent;
 import com.ddk.concurrency.starter.RateLimit;
+import com.ddk.concurrency.starter.config.DdkConcurrencyProperties.InsideTransaction;
 import com.ddk.core.domain.Identifier;
 import com.ddk.core.exception.AggregateBusyException;
 import com.ddk.core.exception.DuplicateRequestException;
@@ -26,6 +27,7 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -62,6 +64,9 @@ class ConcurrencyRedisIntegrationTest {
 
     @Autowired
     private RedissonClient redisson;
+
+    @Autowired
+    private TransactionTemplate transaction;
 
     @DynamicPropertySource
     static void redis(DynamicPropertyRegistry registry) {
@@ -124,6 +129,49 @@ class ConcurrencyRedisIntegrationTest {
 
         assertThat(orders.patient(11L)).isEqualTo("waited");
         assertThat(first.get(10, TimeUnit.SECONDS)).isEqualTo("cancelled 11");
+    }
+
+    @Test
+    @DisplayName("在事务里面加锁直接报错：编程式入口和注解都一样，报错时没有留下锁")
+    void lockingInsideATransactionFails() {
+        assertThatThrownBy(() -> transaction.executeWithoutResult(status -> locks.execute("order", 61L, () -> "never")))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("it:lock:order:61")
+                .hasMessageContaining("inside a transaction")
+                .hasMessageContaining("ddk.concurrency.lock.inside-transaction=warn");
+        assertThatThrownBy(() -> transaction.executeWithoutResult(status -> orders.fail(62L)))
+                .as("an annotated method called from an outer transaction")
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("inside a transaction");
+
+        assertThat(redisson.getLock("it:lock:order:61").isLocked()).isFalse();
+        assertThat(redisson.getLock("it:lock:order:62").isLocked()).isFalse();
+    }
+
+    @Test
+    @DisplayName("先加锁再开事务，事务里重入同一把锁不算在事务里面加锁")
+    void reenteringAHeldLockInsideATransactionIsAllowed() {
+        String result = locks.execute("order", 63L, () -> {
+            String inner = transaction.execute(status -> locks.execute("order", 63L, () -> "inner"));
+            return inner;
+        });
+
+        assertThat(result).isEqualTo("inner");
+        assertThat(redisson.getLock("it:lock:order:63").isLocked()).isFalse();
+    }
+
+    @Test
+    @DisplayName("warn 与 ignore 放行在事务里面加的锁；原有的构造方法不做检查")
+    void warnAndIgnoreLetTheLockThrough() {
+        AggregateLocks warning = new AggregateLocks(redisson, "it:", Duration.ofSeconds(1), null, InsideTransaction.WARN);
+        AggregateLocks ignoring = new AggregateLocks(redisson, "it:", Duration.ofSeconds(1), null, InsideTransaction.IGNORE);
+        AggregateLocks legacy = new AggregateLocks(redisson, "it:", Duration.ofSeconds(1), null);
+
+        String warned = transaction.execute(status -> warning.execute("order", 64L, () -> "warned"));
+        String ignored = transaction.execute(status -> ignoring.execute("order", 65L, () -> "ignored"));
+        String unchecked = transaction.execute(status -> legacy.execute("order", 66L, () -> "legacy"));
+
+        assertThat(List.of(warned, ignored, unchecked)).containsExactly("warned", "ignored", "legacy");
     }
 
     @Test

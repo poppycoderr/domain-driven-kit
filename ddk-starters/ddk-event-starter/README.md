@@ -169,7 +169,13 @@ Where the messages come from:
 | In-process | `ddk.event.local-delivery.enabled=true` | For local development and tests without a broker. After commit the event is serialized and handed to the consumers of the same application on a single thread, through the same decoding. Nothing is persisted and failures are only logged |
 | Anything else | Your own listener | Call `IntegrationEventDispatcher.dispatch(group, topic, tag, headers, json)` from a Kafka, AMQP or JMS listener to reuse decoding, headers and deduplication |
 
-Do not put `idempotent()` on a consumer whose work must take a lock before its transaction starts. The inbox opens the transaction before `handle` runs, which would put the lock inside it. In that case call `IdempotentConsumer` yourself in the application service, inside the lock and inside the transaction.
+Do not put `idempotent()` on a consumer whose work must take a lock before its transaction starts. The inbox opens the transaction before `handle` runs, which would put the lock inside it, and `ddk-concurrency-starter` refuses to take a lock there. Call `IdempotentConsumer` yourself, inside the lock. It opens the transaction when there is none, so the nesting comes out right in one statement:
+
+```java
+// lock → transaction → inbox registration → your code → commit → unlock
+aggregateLocks.executeAll("sku", skuIds, () ->
+        idempotentConsumer.handle("inventory.order-placed", event.eventId(), () -> reserve(command)));
+```
 
 ## Tracing and metrics
 

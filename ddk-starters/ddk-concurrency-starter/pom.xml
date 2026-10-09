@@ -37,6 +37,13 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- 可选：用来发现「在事务里面加锁」，应用里没有事务支持时这项检查不生效 -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>

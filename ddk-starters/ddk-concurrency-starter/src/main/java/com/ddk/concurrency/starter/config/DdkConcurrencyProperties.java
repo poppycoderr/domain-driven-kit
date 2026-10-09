@@ -43,6 +43,18 @@ public class DdkConcurrencyProperties {
          * 持有锁的默认最长时间。不设置时由 Redisson 的看门狗自动续期，直到操作结束。
          */
         private @Nullable Duration leaseTime;
+
+        /**
+         * 在事务里面加锁时怎么办。这样的锁在事务提交之前就释放了，别的线程拿到锁时读到的还是提交前的数据：
+         * {@code fail} 在加锁处抛出异常，{@code warn} 只记一条警告，{@code ignore} 不检查。同一个线程重入已经持有的锁不算。
+         */
+        private InsideTransaction insideTransaction = InsideTransaction.FAIL;
+    }
+
+    public enum InsideTransaction {
+        FAIL,
+        WARN,
+        IGNORE
     }
 
     @Data
