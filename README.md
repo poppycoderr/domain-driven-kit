@@ -78,7 +78,7 @@ curl -fsSL https://raw.githubusercontent.com/poppycoderr/domain-driven-kit/main/
 cd order-service && mvn verify
 ```
 
-Use `--layers 3` for the three-layer skeleton, or `DDK_REF=v0.5.0` to build a released version. Run `ddk.sh help` for all options.
+Use `--layers 3` for the three-layer skeleton, or `DDK_REF=v0.6.0` to build a released version. Run `ddk.sh help` for all options.
 
 To build DDK by hand instead:
 
@@ -105,7 +105,7 @@ Use in another project. Import the BOM first, then drop the versions:
         <dependency>
             <groupId>com.ddk</groupId>
             <artifactId>ddk-dependencies</artifactId>
-            <version>0.6.0-SNAPSHOT</version>
+            <version>0.7.0-SNAPSHOT</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -266,11 +266,12 @@ Released so far:
 4. **v0.4 Middleware integrations**: aggregate locks, duplicate-submit protection and rate limits, scheduled jobs, Flyway, the error contract in API docs, `ddk-test`
 
 5. **v0.5 Operator context**: audit fields and fail-closed multi-tenancy driven by one operator context, ArchGuard fix hints in English
+6. **v0.6 Events end to end**: declared consumers, traces that follow events across contexts, and the `ddk-mall` reference application
 
 Next:
 
-6. **More integrations**: Elasticsearch read models, data permissions, Nacos, Sentinel, object storage
-7. **v1.0 Production ready**: native images, a frozen public API
+7. **More integrations**: Elasticsearch read models, data permissions, Nacos, Sentinel, object storage
+8. **v1.0 Production ready**: native images, a frozen public API
 
 See [ROADMAP.md](./ROADMAP.md) for the full plan.
 

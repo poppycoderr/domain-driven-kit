@@ -78,7 +78,7 @@ curl -fsSL https://raw.githubusercontent.com/poppycoderr/domain-driven-kit/main/
 cd order-service && mvn verify
 ```
 
-加 `--layers 3` 生成三层骨架，设置 `DDK_REF=v0.5.0` 构建指定发布版本，`ddk.sh help` 查看全部选项。
+加 `--layers 3` 生成三层骨架，设置 `DDK_REF=v0.6.0` 构建指定发布版本，`ddk.sh help` 查看全部选项。
 
 手动构建 DDK：
 
@@ -105,7 +105,7 @@ mvn -B install
         <dependency>
             <groupId>com.ddk</groupId>
             <artifactId>ddk-dependencies</artifactId>
-            <version>0.6.0-SNAPSHOT</version>
+            <version>0.7.0-SNAPSHOT</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -266,11 +266,12 @@ com.ddk.core
 4. **v0.4 中间件集成**：聚合锁、防重复提交与限流、定时任务、Flyway、接口文档里的错误约定、`ddk-test`
 
 5. **v0.5 操作者上下文**：由同一个操作者上下文驱动的审计字段与多租户（取不到租户即拒绝执行），ArchGuard 英文修复建议
+6. **v0.6 事件的两端**：声明式消费、跨上下文随事件传递的链路、参考应用 `ddk-mall`
 
 接下来：
 
-6. **更多集成**：Elasticsearch 读模型、数据权限、Nacos、Sentinel、对象存储
-7. **v1.0 生产就绪**：原生镜像、公开 API 冻结
+7. **更多集成**：Elasticsearch 读模型、数据权限、Nacos、Sentinel、对象存储
+8. **v1.0 生产就绪**：原生镜像、公开 API 冻结
 
 完整路线图见 [ROADMAP.zh-CN.md](./ROADMAP.zh-CN.md)。
 
