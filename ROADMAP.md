@@ -124,13 +124,23 @@ AI capabilities (on Spring AI 2.0):
 | API docs | springdoc-openapi | Done in the web starter: 400 / 409 / 500 error responses on every operation and a catalogue of error codes; springdoc already expands `ApiResponse<T>` by its generic type | High |
 | Read models | JDBC pending table; Elasticsearch | Done: `ddk-projection-starter` marks changed entries in the transaction, refreshes the read model from the write model after commit, retries failures and rebuilds on demand. `ddk-mall` switches its order search between a relational table and Elasticsearch behind one port. Open: Elasticsearch-specific helpers (index management, alias switch on rebuild) | Medium |
 | Cross-cutting | MyBatis-Plus plugins | Done: `OperatorContext`, audit fields (`createBy` / `updateBy`) and multi-tenancy that fails closed without a tenant, and row-level data scope by group and by creator. Soft delete is MyBatis-Plus's own `@TableLogic` and needs no DDK code | Medium |
-| Config and discovery | Nacos | Refreshable `ddk.*` properties, kept as an optional dependency | Medium |
-| Traffic control | Sentinel | Circuit breaking at the application-service level, with fallbacks mapped to error codes | Low |
+| Config and discovery | Nacos | Refreshable `ddk.*` properties, kept as an optional dependency. Waiting on upstream, see below | Medium |
+| Traffic control | Sentinel | Circuit breaking at the application-service level, with fallbacks mapped to error codes. Waiting on upstream, see below | Low |
 | Object storage | S3-compatible (MinIO / OSS) | File references as value objects; the domain never touches the SDK | Low |
 
 Testing:
 
 - [x] `ddk-test`: aggregate assertions (which events were raised, whether invariants hold) and Testcontainers presets (MySQL, Redis, RocketMQ)
+
+**Nacos and Sentinel wait for Spring Cloud.** Both come through Spring Cloud Alibaba, which follows Spring Cloud, which follows Spring Boot. As checked on Maven Central on 2026-10-12:
+
+| Line | Latest | Built for |
+|---|---|---|
+| Spring Cloud | 2025.1.3 (GA), 2026.0.0-M1 (milestone) | 2025.1.x targets Spring Boot 4.0 |
+| Spring Cloud Alibaba | 2025.1.0.0 | Spring Cloud 2025.1, Spring Boot 4.0 |
+| DDK | | Spring Boot 4.1 |
+
+There is no GA Spring Cloud release for Spring Boot 4.1 yet, so a DDK starter for either would sit on an unsupported combination. These two rows are picked up again when Spring Cloud 2026.0 and a matching Spring Cloud Alibaba are released.
 
 ## v1.0 · Production ready
 
