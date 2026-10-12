@@ -47,6 +47,8 @@ class ObservabilityTest {
                         org.hamcrest.Matchers.greaterThanOrEqualTo(1.0))));
         mockMvc.perform(get("/actuator/metrics/ddk.event.publish").param("tag", "messaging.destination.name:mall-inventory-events"))
                 .andExpect(status().isOk());
+        // Elasticsearch 的客户端在类路径上但默认不使用，它不应该把健康检查拖成 DOWN
+        mockMvc.perform(get("/actuator/health")).andExpect(status().isOk()).andExpect(jsonPath("$.status").value("UP"));
         mockMvc.perform(get("/actuator/metrics/ddk.cache.access").param("tag", "cache:product")).andExpect(status().isOk());
     }
 }

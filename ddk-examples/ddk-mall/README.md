@@ -131,7 +131,15 @@ curl -s -X POST localhost:8080/inventory/SKU-MONITOR/restock -H 'Content-Type: a
   curl -s localhost:8080/orders/search/status              # 还有多少个在等待刷新
   ```
 
-- **换存储只换一个类。** 订单上下文只认识 `OrderSearchIndex` 这个端口，现在的实现是关系库里的 `LIKE`；数据量上去之后换成搜索引擎，其余代码不动。
+- **换存储只换一个类。** 订单上下文只认识 `OrderSearchIndex` 这个端口。默认实现是关系库里的 `LIKE`，另有一个 Elasticsearch 的实现，用 `search` profile 切换：
+
+  ```bash
+  docker compose -f ddk-examples/ddk-mall/docker-compose.yml --profile search up -d
+  mvn -pl ddk-examples/ddk-mall spring-boot:run -Dspring-boot.run.profiles=compose,search
+  curl -s -X POST localhost:8080/orders/search/rebuild     # 把已有的订单灌进新的存储
+  ```
+
+  投影、接口、MCP 工具都没有变化。Elasticsearch 是近实时的，写入后约一秒才搜得到；它不可用时刷新会失败并由投影 starter 重试，不丢更新。
 
 ## 可观测性
 
@@ -248,7 +256,7 @@ com.example.mall
 │   ├── adapter/{controller,messaging,job,mcp}
 │   ├── application/{command,query,response,service,handler,integration,projection,config}
 │   ├── domain/{model,event,acl,error}
-│   └── infrastructure/{acl/impl,converter,id,orm}
+│   └── infrastructure/{acl/impl,converter,id,orm,search}
 ├── inventory                库存上下文，同样是四层；订单在这里只是一个编号
 │   ├── adapter/{controller,messaging,mcp}
 │   ├── application/{command,response,service,integration}
@@ -296,4 +304,4 @@ com.example.mall
 | 一次请求引发的消息处理都在同一条链路上 | 事件 starter 的观测加链路 starter 的上下文传播，应用里没有相关代码 |
 | 可观测性的上报用单独的 profile 打开 | `application-observability.yml`，`docker-compose.yml` 里的 `lgtm` |
 | 读模型由写模型刷新而不是由事件逐个应用，可以重建 | `OrderSearchProjection`、`OrderEventHandler` 里的 `markDirty` |
-| 读模型的存储藏在端口后面 | `OrderSearchIndex` 与 `OrderSearchIndexImpl` |
+| 读模型的存储藏在端口后面，关系库和 Elasticsearch 两个实现用配置切换 | `OrderSearchIndex`、`OrderSearchIndexImpl`、`ElasticsearchOrderSearchIndex` |

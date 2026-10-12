@@ -60,6 +60,11 @@
             <groupId>com.ddk</groupId>
             <artifactId>ddk-projection-starter</artifactId>
         </dependency>
+        <!-- 订单搜索可以换成 Elasticsearch（search profile）。只引入客户端，默认 profile 不连接它 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-elasticsearch</artifactId>
+        </dependency>
         <!-- 把用例开放成 MCP 工具，供 AI agent 调用 -->
         <dependency>
             <groupId>com.ddk</groupId>
@@ -122,6 +127,11 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers-mysql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-elasticsearch</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

@@ -66,6 +66,7 @@ class OrderEventsTest {
 | `DdkContainers.redis()` | `redis:7-alpine` | `getHost()` and `getPort()` |
 | `DdkContainers.mysql()` | `mysql:8.4` | `utf8mb4`; needs `org.testcontainers:testcontainers-mysql` and the MySQL driver on the test classpath |
 | `DdkContainers.rocketmq()` | `apache/rocketmq:5.5.0` | NameServer and one broker in one container; `getNameServer()`, `createTopic(topic, queues)` |
+| `DdkContainers.elasticsearch()` | `docker.elastic.co/elasticsearch/elasticsearch:9.4.5` | Single node, authentication off; `getHttpHostAddress()`. Needs `org.testcontainers:testcontainers-elasticsearch` on the test classpath. About 1.1 GB to pull and 1 GB of memory |
 
 RocketMQ is the one that is hard to get right by hand. Clients ask the NameServer for the broker's address and then connect to the broker directly, so the address the broker registers must be reachable from the host. The preset picks a free host port, makes the broker listen on the same port inside the container and maps it one to one. Topic auto-creation is off; `createTopic` creates the topic on the broker and returns once its route is visible on the NameServer, so the first send does not fail with "No route info".
 
