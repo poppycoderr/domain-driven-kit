@@ -10,6 +10,11 @@
     </parent>
     <packaging>pom</packaging>
 
+    <properties>
+        <!-- 示例与模板不是供人依赖的库，不做 API 兼容性检查 -->
+        <japicmp.skip>true</japicmp.skip>
+    </properties>
+
     <artifactId>ddk-examples</artifactId>
 
     <modules>
