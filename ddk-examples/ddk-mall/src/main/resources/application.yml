@@ -50,6 +50,9 @@ ddk:
     enabled: false
 
 mall:
+  search:
+    # 订单搜索读模型放在哪里：database（关系库里的宽表）或 elasticsearch
+    store: database
   order:
     # 下单后多久没有支付就关闭订单；关单任务多久扫描一次
     payment-timeout: 30m
@@ -61,6 +64,10 @@ mall:
 
 # 默认不向外上报：链路照常生成（响应头里有 X-Trace-Id，日志里有 traceId），只是不导出。observability profile 里打开导出
 management:
+  # 默认不使用 Elasticsearch，它的健康检查也关掉，否则 /actuator/health 会因为连不上而报告 DOWN。search profile 里打开
+  health:
+    elasticsearch:
+      enabled: false
   endpoints:
     web:
       exposure:

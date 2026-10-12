@@ -11,8 +11,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.mysql.MySQLContainer;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -40,6 +45,9 @@ class DdkContainersTest {
     @Container
     static final RocketMqContainer ROCKETMQ = DdkContainers.rocketmq();
 
+    @Container
+    static final ElasticsearchContainer ELASTICSEARCH = DdkContainers.elasticsearch();
+
     @Test
     @DisplayName("Redis：端口已映射，服务可用")
     void redisIsReachable() throws Exception {
@@ -56,6 +64,16 @@ class DdkContainersTest {
             assertThat(result.getString(1)).isEqualTo("utf8mb4");
             assertThat(result.getString(2)).startsWith("8.4");
         }
+    }
+
+    @Test
+    @DisplayName("Elasticsearch：不需要认证，从宿主机用 HTTP 直接访问，版本与固定的镜像一致")
+    void elasticsearchAnswersOverPlainHttp() throws Exception {
+        HttpResponse<String> response = HttpClient.newHttpClient().send(
+                HttpRequest.newBuilder(URI.create("http://" + ELASTICSEARCH.getHttpHostAddress())).build(), HttpResponse.BodyHandlers.ofString());
+
+        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.body()).contains("\"number\" : \"9.4.5\"");
     }
 
     @Test

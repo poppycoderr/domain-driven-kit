@@ -1,5 +1,6 @@
 package com.ddk.test.containers;
 
+import org.testcontainers.elasticsearch.ElasticsearchContainer;
 import org.testcontainers.mysql.MySQLContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -29,6 +30,8 @@ public final class DdkContainers {
 
     public static final String ROCKETMQ_IMAGE = "apache/rocketmq:5.5.0";
 
+    public static final String ELASTICSEARCH_IMAGE = "docker.elastic.co/elasticsearch/elasticsearch:9.4.5";
+
     private DdkContainers() {
     }
 
@@ -42,6 +45,16 @@ public final class DdkContainers {
     public static MySQLContainer mysql() {
         return new MySQLContainer(DockerImageName.parse(MYSQL_IMAGE))
                 .withCommand("--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci");
+    }
+
+    /**
+     * 单节点的 Elasticsearch 9，关闭了安全认证，用 {@code getHttpHostAddress()} 取访问地址。
+     * 需要测试类路径上有 {@code org.testcontainers:testcontainers-elasticsearch}。镜像约 1.1 GB，容器占用约 1 GB 内存。
+     */
+    public static ElasticsearchContainer elasticsearch() {
+        return new ElasticsearchContainer(DockerImageName.parse(ELASTICSEARCH_IMAGE))
+                .withEnv("xpack.security.enabled", "false")
+                .withEnv("ES_JAVA_OPTS", "-Xms512m -Xmx512m");
     }
 
     public static RocketMqContainer rocketmq() {

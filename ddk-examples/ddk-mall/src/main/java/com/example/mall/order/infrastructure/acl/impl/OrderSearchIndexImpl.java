@@ -13,17 +13,20 @@ import com.example.mall.order.domain.model.OrderSummary;
 import com.example.mall.order.infrastructure.orm.mapper.OrderSearchMapper;
 import com.example.mall.order.infrastructure.orm.po.OrderSearchPO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 
 /**
- * 订单搜索读模型的实现：关系库里的一张宽表，商品名称用 LIKE 匹配。数据量上去之后换成搜索引擎，接口不变。
+ * 订单搜索读模型的默认实现：关系库里的一张宽表，商品名称用 LIKE 匹配。{@code mall.search.store=elasticsearch} 时
+ * 由 Elasticsearch 的实现替换，接口不变。
  * <p>
  * 写入是「有则更新、无则插入」。两个线程同时为同一个订单插入时后一个会撞上主键而失败，这次刷新随之失败，
  * 由投影 starter 稍后重试，重试时走的是更新。
  */
 @Component
+@ConditionalOnProperty(name = "mall.search.store", havingValue = "database", matchIfMissing = true)
 @RequiredArgsConstructor
 public class OrderSearchIndexImpl implements OrderSearchIndex {
 

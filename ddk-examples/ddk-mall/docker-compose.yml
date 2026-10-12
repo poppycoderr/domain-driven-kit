@@ -60,3 +60,16 @@ services:
     ports:
       - "3000:3000"
       - "4318:4318"
+
+  # 订单搜索用的 Elasticsearch，只在 search profile 下启动（镜像约 1.1 GB，占用约 1 GB 内存）：
+  #   docker compose --profile search up -d
+  #   mvn spring-boot:run -Dspring-boot.run.profiles=compose,search
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.4.5
+    profiles: [ "search" ]
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"

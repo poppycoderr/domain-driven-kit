@@ -1,0 +1,15 @@
+# 订单搜索改用 docker-compose.yml 里的 Elasticsearch，和 compose profile 一起用：
+#   docker compose --profile search up -d
+#   mvn spring-boot:run -Dspring-boot.run.profiles=compose,search
+spring:
+  elasticsearch:
+    uris: http://localhost:9200
+
+management:
+  health:
+    elasticsearch:
+      enabled: true
+
+mall:
+  search:
+    store: elasticsearch
