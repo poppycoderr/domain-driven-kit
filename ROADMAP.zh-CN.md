@@ -124,13 +124,23 @@ AI 能力（基于 Spring AI 2.0）：
 | 接口文档 | springdoc-openapi | 已在 Web starter 完成：每个接口补上 400 / 409 / 500 错误响应，错误码汇总成清单；`ApiResponse<T>` 由 springdoc 按泛型展开 | 高 |
 | 读模型 | JDBC 待刷新表；Elasticsearch | 已完成：`ddk-projection-starter` 在事务里标记变更的数据，提交后从写模型刷新读模型，失败重试，可按需重建。`ddk-mall` 的订单搜索在同一个端口后面可以在关系库和 Elasticsearch 之间切换。未完成：Elasticsearch 专用的辅助（索引管理、重建时切换别名） | 中 |
 | 横切能力 | MyBatis-Plus 插件 | 已完成：`OperatorContext`、审计字段（`createBy` / `updateBy`）、取不到租户就拒绝执行的多租户、按组和按创建人的行级数据权限。逻辑删除用 MyBatis-Plus 自带的 `@TableLogic` 即可，不需要 DDK 的代码 | 中 |
-| 配置与注册 | Nacos | 配置刷新对 `ddk.*` 属性生效，保持 starter 可选依赖 | 中 |
-| 流量治理 | Sentinel | 应用服务级别的熔断与降级，降级结果映射为业务错误码 | 低 |
+| 配置与注册 | Nacos | 配置刷新对 `ddk.*` 属性生效，保持 starter 可选依赖。等待上游，见下 | 中 |
+| 流量治理 | Sentinel | 应用服务级别的熔断与降级，降级结果映射为业务错误码。等待上游，见下 | 低 |
 | 对象存储 | S3 兼容（MinIO / OSS） | 以值对象表示文件引用，领域层不接触 SDK | 低 |
 
 测试工具：
 
 - [x] `ddk-test`：聚合断言（产生了哪些事件、不变量是否成立）、Testcontainers 预置（MySQL、Redis、RocketMQ）
+
+**Nacos 和 Sentinel 在等 Spring Cloud。** 两者都经由 Spring Cloud Alibaba 接入，它跟随 Spring Cloud，Spring Cloud 又跟随 Spring Boot。2026-10-12 在 Maven Central 上核对的情况：
+
+| 产品线 | 最新版本 | 面向的版本 |
+|---|---|---|
+| Spring Cloud | 2025.1.3（正式版）、2026.0.0-M1（里程碑版） | 2025.1.x 面向 Spring Boot 4.0 |
+| Spring Cloud Alibaba | 2025.1.0.0 | Spring Cloud 2025.1、Spring Boot 4.0 |
+| DDK | | Spring Boot 4.1 |
+
+面向 Spring Boot 4.1 的 Spring Cloud 还没有正式版，现在为这两者做 DDK starter 等于建在一个不受支持的组合上。等 Spring Cloud 2026.0 和对应的 Spring Cloud Alibaba 发布之后再做这两行。
 
 ## v1.0 · 生产就绪
 
