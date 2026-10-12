@@ -18,6 +18,8 @@
     </modules>
 
     <properties>
+        <!-- 示例与模板不是供人依赖的库，不做 API 兼容性检查 -->
+        <japicmp.skip>true</japicmp.skip>
         <!-- 集成测试会生成项目并对它执行 mvn verify，需要 DDK 已安装到本地仓库，因此默认跳过，由 archetype-it profile 开启 -->
         <archetype.test.skip>true</archetype.test.skip>
     </properties>

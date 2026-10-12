@@ -8,6 +8,7 @@ Guidance for AI coding agents (Claude Code, Codex and others) contributing to Do
 mvn -B -ntp install -Parchetype-it,release   # what CI runs: tests, archetype ITs, Javadoc
 mvn verify                                    # quick local gate
 mvn spotless:apply                            # fix formatting findings
+scripts/install-api-baseline.sh && mvn verify -Papi-check   # compare the public API with the last release
 ```
 
 `mvn verify` fails on any of these, and none of them may be weakened to get a green build:
@@ -16,6 +17,7 @@ mvn spotless:apply                            # fix formatting findings
 - JaCoCo: at least 70% line and 50% branch coverage per module
 - NullAway: main code is `@NullMarked`; mark anything that may be `null` with JSpecify `@Nullable`. NullAway only runs on modules that recompile, so run `mvn clean compile` when checking nullness findings
 - ArchUnit: `DomainPackagePurityTest` in `ddk-core`, and the architecture tests in the example and generated projects
+- API compatibility (CI, `-Papi-check`): japicmp compares every module with the release named in `api.baseline.version`. A binary or source incompatible change to a public or protected member outside `*.internal` fails the build. An intended break goes into the `excludes` of the `api-check` profile in the root pom and under **Breaking** in `CHANGELOG.md`. After a release, set `api.baseline.version` to it and empty the list
 
 Integration tests for the cache starter use Testcontainers and need a running Docker daemon.
 

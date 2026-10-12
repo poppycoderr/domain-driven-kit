@@ -34,8 +34,15 @@ jobs:
       # ddk-cache-starter 测试类的语法错误，导致整个 reactor 长期构建失败。
       # 用 install 而不是 verify：archetype 集成测试会生成项目并对它执行 mvn verify，
       # 生成的项目要从本地仓库解析 DDK 各模块。
+      # 公开 API 兼容性检查要和上一个发布版本比较。DDK 没有发布到 Maven Central，基线 jar 从 GitHub Release 下载后装进本地仓库
+      - name: Install the API baseline
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: scripts/install-api-baseline.sh
+
+      # api-check：与上一个发布版本相比出现不兼容的公开 API 变化时构建失败，有意的变化要在根 pom 的放行列表里写明
       - name: Build and test
-        run: mvn -B -ntp install -Parchetype-it,release
+        run: mvn -B -ntp install -Parchetype-it,release,api-check
 
       - name: Upload test reports
         if: always()

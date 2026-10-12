@@ -65,6 +65,9 @@
         <spring-ai.version>2.0.1</spring-ai.version>
         <spring-modulith.version>2.1.1</spring-modulith.version>
         <rocketmq.version>5.5.1</rocketmq.version>
+        <japicmp.version>0.26.3</japicmp.version>
+        <!-- 公开 API 与哪个已发布版本比较；每次发布之后改成刚发布的版本 -->
+        <api.baseline.version>0.8.0</api.baseline.version>
         <okio.version>3.16.4</okio.version>
         <redisson.version>4.7.0</redisson.version>
         <springdoc.version>3.1.1</springdoc.version>
@@ -458,6 +461,62 @@
     </build>
 
     <profiles>
+        <!--
+            公开 API 兼容性检查：把每个模块的 jar 与上一个发布版本比较，出现不兼容的变化就让构建失败。
+            0.x 阶段允许破坏性变更，但必须是有意的：在下面的 excludes 里写明放行的成员，并记进 CHANGELOG 的 Breaking。
+            发布之后把 api.baseline.version 改成新版本，并清空放行列表。
+            基线 jar 从本地仓库解析；本地没有时先运行 scripts/install-api-baseline.sh。
+        -->
+        <profile>
+            <id>api-check</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.github.siom79.japicmp</groupId>
+                        <artifactId>japicmp-maven-plugin</artifactId>
+                        <version>${japicmp.version}</version>
+                        <configuration>
+                            <oldVersion>
+                                <dependency>
+                                    <groupId>${project.groupId}</groupId>
+                                    <artifactId>${project.artifactId}</artifactId>
+                                    <version>${api.baseline.version}</version>
+                                    <type>jar</type>
+                                </dependency>
+                            </oldVersion>
+                            <newVersion>
+                                <file>
+                                    <path>${project.build.directory}/${project.build.finalName}.jar</path>
+                                </file>
+                            </newVersion>
+                            <parameter>
+                                <onlyModified>true</onlyModified>
+                                <accessModifier>protected</accessModifier>
+                                <breakBuildOnBinaryIncompatibleModifications>true</breakBuildOnBinaryIncompatibleModifications>
+                                <breakBuildOnSourceIncompatibleModifications>true</breakBuildOnSourceIncompatibleModifications>
+                                <!-- 上一个版本里还没有的模块没有可比的基线 -->
+                                <ignoreMissingOldVersion>true</ignoreMissingOldVersion>
+                                <ignoreMissingClasses>true</ignoreMissingClasses>
+                                <skipPomModules>true</skipPomModules>
+                                <excludes>
+                                    <!-- internal 包不属于公开 API -->
+                                    <exclude>*.internal</exclude>
+                                </excludes>
+                            </parameter>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>api-compatibility</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>cmp</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
         <!-- 发布产物：源码包与 Javadoc 包。CI 同样启用，Javadoc 写错（未知标签、坏链接、HTML 不闭合）会让构建失败 -->
         <profile>
             <id>release</id>
