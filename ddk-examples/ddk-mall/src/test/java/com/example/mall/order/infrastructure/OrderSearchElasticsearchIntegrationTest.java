@@ -92,7 +92,11 @@ class OrderSearchElasticsearchIntegrationTest {
     @Test
     void theIndexCanBeRebuiltAfterItsDocumentsAreLost() throws Exception {
         long orderId = place(73L, "{\"lines\":[{\"skuId\":\"SKU-MOUSE\",\"quantity\":2}]}");
-        await().atMost(Duration.ofSeconds(20)).untilAsserted(() -> search(73L, "{}").andExpect(jsonPath("$.data.total").value("1")));
+        // 等订单走到「待支付」、并且读模型没有剩余的刷新，再删文档；否则还在路上的那次刷新会把文档写回来
+        await().atMost(Duration.ofSeconds(20)).untilAsserted(() -> search(73L, "{\"status\":\"PENDING_PAYMENT\"}")
+                .andExpect(jsonPath("$.data.total").value("1")));
+        await().atMost(Duration.ofSeconds(20)).untilAsserted(() -> mockMvc.perform(get("/orders/search/status"))
+                .andExpect(jsonPath("$.data.pending").value("0")));
         elasticsearch.deleteByQuery(request -> request.index("mall-orders-test").query(query -> query.matchAll(all -> all)).refresh(true));
         search(73L, "{}").andExpect(jsonPath("$.data.total").value("0"));
 
