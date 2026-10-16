@@ -1,5 +1,7 @@
 package com.ddk.event.starter.consumer;
 
+import org.springframework.util.ClassUtils;
+
 /**
  * 一类集成事件的消费方，声明为 Bean 即生效。
  * <p>
@@ -35,5 +37,19 @@ public interface IntegrationEventConsumer<T> {
      */
     default boolean idempotent() {
         return false;
+    }
+
+    /**
+     * 消费方在消费组里的稳定标识。去重表以「消费组:标识」记录处理过的事件，所以它决定了「同一个事件对这个消费方是否已经处理过」。
+     * <p>
+     * 默认是实现类的简单类名，取自用户类而不是 Spring 生成的代理类。它在这些情况下不够用，需要覆盖成一个固定的字符串：
+     * <ul>
+     *     <li>同一个消费组里有两个简单类名相同的去重消费方，或者同一个类注册了两个 Bean：启动会失败，提示补上标识；</li>
+     *     <li>匿名类：没有类名，启动会失败；</li>
+     *     <li>准备重命名实现类：标识随类名变化后，已经处理过的事件再被投递时会被当成新事件。先把标识固定成旧的类名再改名。</li>
+     * </ul>
+     */
+    default String consumerId() {
+        return ClassUtils.getUserClass(getClass()).getSimpleName();
     }
 }

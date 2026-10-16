@@ -17,6 +17,15 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 - `DdkContainers.elasticsearch()` in `ddk-test`: a single-node Elasticsearch 9 without authentication, for integration tests
 - `ddk-mall` can keep its order search read model in Elasticsearch (`search` profile). The projection, the API and the MCP tool are unchanged; only the implementation of the `OrderSearchIndex` port is swapped
 
+### Changed
+
+- An idempotent integration event consumer that Spring proxies (for example because `handle` is `@Transactional`) is now recorded in the inbox under its own class name instead of the proxy's generated name. Events it handled before the upgrade and that are redelivered afterwards are handled again; override `consumerId()` with the old name (`Name$$SpringCGLIB$$0`) if that matters during the upgrade
+
+### Fixed
+
+- Idempotent integration event consumers in one group were told apart by their simple class name. Two classes with the same simple name shared one inbox identity, so the second skipped every event the first had handled. `IntegrationEventConsumer.consumerId()` now names a consumer explicitly, and identities that clash within a group fail at startup. Consumers without a clash keep their identity, so existing inbox records stay valid
+
+
 ## [0.8.0] - 2026-10-10
 
 The query side: read models that are refreshed from the write model and can be rebuilt, and row-level data scope on top of multi-tenancy. `ddk-mall` uses the first for order search.
