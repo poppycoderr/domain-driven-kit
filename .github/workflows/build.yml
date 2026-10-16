@@ -34,6 +34,10 @@ jobs:
       # ddk-cache-starter 测试类的语法错误，导致整个 reactor 长期构建失败。
       # 用 install 而不是 verify：archetype 集成测试会生成项目并对它执行 mvn verify，
       # 生成的项目要从本地仓库解析 DDK 各模块。
+      # 安装脚本的版本选择：不联网、不构建 DDK，几秒钟
+      - name: Test the installer
+        run: scripts/test-ddk.sh
+
       # 公开 API 兼容性检查要和上一个发布版本比较。DDK 没有发布到 Maven Central，基线 jar 从 GitHub Release 下载后装进本地仓库
       - name: Install the API baseline
         env:
