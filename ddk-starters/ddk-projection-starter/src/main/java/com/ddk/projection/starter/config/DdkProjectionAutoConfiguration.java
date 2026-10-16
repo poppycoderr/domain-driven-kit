@@ -35,10 +35,9 @@ public class DdkProjectionAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     PendingRefreshes ddkPendingRefreshes(JdbcTemplate jdbc, PlatformTransactionManager transactionManager, DdkProjectionProperties properties) {
+        properties.validate();
         PendingRefreshes pending = new PendingRefreshes(jdbc, transactionManager, properties.getTable(), Clock.systemUTC());
-        if (properties.isInitializeSchema()) {
-            jdbc.execute(pending.schema());
-        }
+        pending.prepare(properties.isInitializeSchema());
         return pending;
     }
 
@@ -46,7 +45,7 @@ public class DdkProjectionAutoConfiguration {
     @ConditionalOnMissingBean
     RefreshWorker ddkRefreshWorker(List<Projection> projections, PendingRefreshes pending, DdkProjectionProperties properties) {
         return new RefreshWorker(projections, pending, properties.getBatchSize(), properties.getSweepInterval(),
-                properties.getRetryDelay(), properties.getMaxRetryDelay());
+                properties.getRetryDelay(), properties.getMaxRetryDelay(), properties.getLeaseTime());
     }
 
     @Bean

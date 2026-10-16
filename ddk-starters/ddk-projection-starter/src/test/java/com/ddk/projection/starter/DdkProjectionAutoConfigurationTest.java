@@ -46,8 +46,8 @@ class DdkProjectionAutoConfigurationTest {
                 .run(context -> assertThat(context).doesNotHaveBean(Projections.class));
         runner.withUserConfiguration(OneProjection.class)
                 .withPropertyValues("ddk.projection.initialize-schema=false", "ddk.projection.table=never_created")
-                .run(context -> assertThat(context.getBean(JdbcTemplate.class)
-                        .queryForObject("SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'NEVER_CREATED'", Long.class)).isZero());
+                .run(context -> assertThat(context).hasFailed().getFailure().rootCause()
+                        .hasMessageContaining("Pending refresh table never_created does not exist").hasMessageContaining("CREATE TABLE"));
     }
 
     @Test
@@ -57,6 +57,22 @@ class DdkProjectionAutoConfigurationTest {
                 .getFailure().rootCause().hasMessageContaining("Two projections are named catalog"));
         runner.withUserConfiguration(OneProjection.class).withPropertyValues("ddk.projection.table=pending; DROP TABLE x")
                 .run(context -> assertThat(context).hasFailed().getFailure().rootCause().hasMessageContaining("Invalid pending refresh table name"));
+    }
+
+    @Test
+    @DisplayName("非法的批量大小、间隔、租约和退避组合让启动失败，而不是让后台线程空转")
+    void invalidSettingsFailAtStartup() {
+        assertStartupFails("ddk.projection.batch-size=0", "batch-size must be greater than 0");
+        assertStartupFails("ddk.projection.batch-size=-5", "batch-size must be greater than 0");
+        assertStartupFails("ddk.projection.sweep-interval=0s", "sweep-interval must be a positive duration");
+        assertStartupFails("ddk.projection.retry-delay=-1s", "retry-delay must be a positive duration");
+        assertStartupFails("ddk.projection.lease-time=0s", "lease-time must be a positive duration");
+        assertStartupFails("ddk.projection.retry-delay=10m", "must not exceed ddk.projection.max-retry-delay");
+    }
+
+    private void assertStartupFails(String property, String message) {
+        runner.withUserConfiguration(OneProjection.class).withPropertyValues(property)
+                .run(context -> assertThat(context).hasFailed().getFailure().rootCause().hasMessageContaining(message));
     }
 
     @Configuration(proxyBeanMethods = false)
