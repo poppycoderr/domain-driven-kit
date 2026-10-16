@@ -12,10 +12,15 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ## [Unreleased]
 
+### Breaking
+
+- `LAYERED_ARCHITECTURE_RULE` no longer lets application services reference infrastructure classes. The four-layer documentation always said that infrastructure only implements domain ports; the rule now agrees, as the three-layer rule already did. Depend on the domain port instead. Wiring that has to name an implementation goes into a `@Configuration` class outside the layers, which both layering rules now exempt
+
 ### Added
 
 - `DdkContainers.elasticsearch()` in `ddk-test`: a single-node Elasticsearch 9 without authentication, for integration tests
 - `ddk-mall` can keep its order search read model in Elasticsearch (`search` profile). The projection, the API and the MCP tool are unchanged; only the implementation of the `OrderSearchIndex` port is swapped
+- `CommonArchRules.domainMustNotDependOn(String...)`: the domain purity rule with packages of your own added, such as an internal SDK
 
 ### Changed
 
@@ -26,6 +31,8 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 - `@Idempotent` released registrations by key only: a call that ran past the TTL and then failed deleted the registration of a newer call with the same key, letting a third one in. Each registration now stores its own token and is removed with a compare-and-delete. A failure to remove it no longer replaces the method's exception
 - Projections could keep a stale read-model entry with nothing left to correct it when two instances refreshed the same entry: a worker that read old state and finished last overwrote the newer state, and its acknowledgement removed nothing but also changed nothing. Marks also restarted at version 1 after deletion, so an old acknowledgement could delete a newer mark. Each mark now has a generation that is never reused and is claimed with a lease (`ddk.projection.lease-time`); a worker whose acknowledgement misses marks the entry again, so the read model always converges
+- `DOMAIN_MUST_NOT_DEPEND_ON_FRAMEWORKS` did not cover Jackson 3 (`tools.jackson..`), the Jackson that Spring Boot 4 uses, so domain classes could depend on it unnoticed
+- The four-layer template advised `AFTER_COMMIT` for every domain event subscriber, including work that must happen with the business change. The `ddk-add-domain-event` skill now chooses by purpose: `@EventListener` inside the transaction for integration messages and read-model marks, `AFTER_COMMIT` only for notifications that may be lost, an integration event for work that must complete
 
 ## [0.8.0] - 2026-10-10
 

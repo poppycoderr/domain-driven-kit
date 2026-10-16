@@ -67,11 +67,13 @@ Hints come in English and Chinese. The language follows the JVM's default locale
 
 ## Rules
 
+Both layering rules make one exception: a class annotated with Spring's `@Configuration` that sits outside the layers (for example in a `config` package) may reference any layer, because wiring sometimes has to name an implementation. Other classes outside the layers get no exception.
+
 | Rule | Checks |
 |---|---|
-| `LAYERED_ARCHITECTURE_RULE` | Four layers: `..adapter..`/`..ui..` → `..application..` → `..domain..`; `..infrastructure..` only implements domain ports |
+| `LAYERED_ARCHITECTURE_RULE` | Four layers: `..adapter..`/`..ui..` → `..application..` → `..domain..`; `..infrastructure..` only implements domain ports and is referenced by no other layer, application services included |
 | `THREE_LAYER_ARCHITECTURE_RULE` | Three layers: `..adapter..` → `..business..`; `..infrastructure..` implements business interfaces and is referenced by no other layer |
-| `DOMAIN_MUST_NOT_DEPEND_ON_FRAMEWORKS` | `..domain..` does not use Spring, MyBatis(-Plus), Jackson or JPA |
+| `DOMAIN_MUST_NOT_DEPEND_ON_FRAMEWORKS` | `..domain..` does not use Spring, MyBatis(-Plus), Jackson 2 or 3, or JPA. `CommonArchRules.domainMustNotDependOn("com.acme.legacy..")` adds packages of your own |
 | `DOMAIN_MUST_NOT_DEPEND_ON_OUTER_LAYERS` | `..domain..` does not depend on application, adapter or infrastructure packages |
 | `DDK_INTERNALS_MUST_NOT_BE_USED` | Application code does not depend on `com.ddk..internal..`, which holds starter implementation details that may change in any release |
 | `SCHEDULED_JOBS_MUST_RESIDE_IN_ADAPTER` | `@Scheduled` and `@XxlJob` methods are declared in `..adapter..` classes, so a job is one more entry point that goes through application services |

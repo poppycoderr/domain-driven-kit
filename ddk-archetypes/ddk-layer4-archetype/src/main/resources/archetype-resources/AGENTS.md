@@ -28,7 +28,7 @@ adapter ──► application ──► domain ◄── infrastructure
 | `application.command` / `query` | `*Command`（record）、`*Query`（分页查询继承 `PageQuery`） | 框架无关以外的逻辑 |
 | `application.response` | `*Response`（record，提供 `static from(聚合)`） | 直接把聚合交给 Jackson |
 | `application.service` | 应用服务：取聚合、调用领域方法、保存、转响应；`@Transactional` 在这里 | 业务规则、状态判断 |
-| `application.handler` | 领域事件订阅方，`@TransactionalEventListener(phase = AFTER_COMMIT)` | 需要与原事务一起提交的写操作 |
+| `application.handler` | 领域事件订阅方：必须和业务一起提交的（翻译成集成消息、标记读模型）用 `@EventListener`，可以丢的通知用 `@TransactionalEventListener(phase = AFTER_COMMIT)`，见 `ddk-add-domain-event` | 用 `AFTER_COMMIT` 做必须完成的事 |
 | `domain.model` | 聚合根（继承 `AggregateRoot`）、类型化标识（继承 `Identifier`）、值对象（record 实现 `ValueObject`）、枚举 | Spring、MyBatis、Jackson 的任何类型 |
 | `domain.event` | 领域事件（record 实现 `DomainEvent`，过去式命名） | |
 | `domain.acl` | 仓储契约（继承 `GenericRepository<聚合, 类型化标识>`）与外部能力端口 | 实现类 |
