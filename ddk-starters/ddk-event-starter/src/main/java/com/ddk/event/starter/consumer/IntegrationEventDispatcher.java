@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import tools.jackson.databind.json.JsonMapper;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -53,15 +54,37 @@ public class IntegrationEventDispatcher {
         this.consumers = List.copyOf(consumers);
         this.jsonMapper = jsonMapper;
         this.idempotentConsumer = idempotentConsumer;
+        Map<String, IntegrationEventConsumer<?>> identities = new HashMap<>();
         for (IntegrationEventConsumer<?> consumer : consumers) {
             if (consumer.source().isBlank() || consumer.group().isBlank()) {
                 throw new IllegalStateException(consumer.getClass().getName() + " must declare a group and a source");
             }
-            if (consumer.idempotent() && idempotentConsumer == null) {
+            if (!consumer.idempotent()) {
+                continue;
+            }
+            if (idempotentConsumer == null) {
                 throw new IllegalStateException(consumer.getClass().getName()
                         + " is idempotent but no IdempotentConsumer is available: set ddk.event.inbox.enabled=true");
             }
+            String identity = inboxName(consumer);
+            if (consumer.consumerId().isBlank()) {
+                throw new IllegalStateException(consumer.getClass().getName()
+                        + " is idempotent but has no consumer id (anonymous class?): override consumerId() with a stable name");
+            }
+            IntegrationEventConsumer<?> clash = identities.putIfAbsent(identity, consumer);
+            if (clash != null) {
+                throw new IllegalStateException("Idempotent consumers " + clash.getClass().getName() + " and " + consumer.getClass().getName()
+                        + " share the identity " + identity + ", so one would skip every event the other handled. "
+                        + "Override consumerId() on one of them with a stable name");
+            }
         }
+    }
+
+    /**
+     * 去重表里的消费者名称：消费组加消费方标识。
+     */
+    static String inboxName(IntegrationEventConsumer<?> consumer) {
+        return consumer.group() + ":" + consumer.consumerId();
     }
 
     public List<IntegrationEventConsumer<?>> consumers() {
@@ -99,10 +122,10 @@ public class IntegrationEventDispatcher {
             throw new IllegalStateException(consumer.getClass().getName() + " is idempotent but the message has no " + EVENT_ID_HEADER
                     + " header: declare @IntegrationEvent(id = ...) on the published event");
         }
-        boolean processed = idempotentConsumer.handle(consumer.group() + ":" + consumer.getClass().getSimpleName(), eventId,
-                () -> consumer.handle(event));
+        String identity = inboxName(consumer);
+        boolean processed = idempotentConsumer.handle(identity, eventId, () -> consumer.handle(event));
         if (!processed) {
-            log.debug("Skipped duplicate event [{}] for {}", eventId, consumer.getClass().getSimpleName());
+            log.debug("Skipped duplicate event [{}] for {}", eventId, identity);
         }
     }
 

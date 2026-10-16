@@ -160,6 +160,7 @@ public class OrderPlacedConsumer implements IntegrationEventConsumer<OrderPlaced
 - `ReceivedEvent` carries `eventId`, `type` and `version` from the `ddk-event-*` headers.
 - Delivery is at least once. When `handle` throws, the message is delivered again.
 - `idempotent()` returning `true` wraps `handle` in `IdempotentConsumer`, keyed by the event ID. It needs `ddk.event.inbox.enabled=true` and an event ID declared by the publisher; otherwise startup or the first message fails with a message that says so.
+- The inbox records an event as handled under `<group>:<consumerId()>`. `consumerId()` defaults to the simple name of the implementing class, taken from the user class rather than a Spring proxy. Two idempotent consumers of one group with the same identity would skip each other's events, so startup fails instead: two classes with the same simple name, two beans of one class, or an anonymous class need an explicit `consumerId()`. Renaming a class changes its default identity, and events it already handled would be handled again if redelivered; fix `consumerId()` to the old name before renaming.
 
 Where the messages come from:
 
