@@ -78,7 +78,7 @@ curl -fsSL https://raw.githubusercontent.com/poppycoderr/domain-driven-kit/main/
 cd order-service && mvn verify
 ```
 
-加 `--layers 3` 生成三层骨架，设置 `DDK_REF=v0.8.0` 构建指定发布版本，`ddk.sh help` 查看全部选项。
+脚本默认构建最新的发布版本，并输出实际使用的版本号和提交。加 `--layers 3` 生成三层骨架，`DDK_REF=v0.8.0` 指定某个发布版本，`DDK_REF=main` 使用开发中的快照。之后再运行时，只有 ref 相同、提交相同、Maven 产物仍在，才会复用已有的安装。`ddk.sh help` 查看全部选项。
 
 手动构建 DDK：
 
