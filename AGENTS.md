@@ -31,7 +31,7 @@ Integration tests for the cache starter use Testcontainers and need a running Do
 | `ddk-dependencies` | BOM; does not inherit the parent pom |
 | `ddk-archetypes/*` | Three- and four-layer project templates (Velocity; Markdown headings use `$h2`) |
 | `ddk-examples/*` | Runnable reference applications |
-| `scripts/` | `ddk.sh` installer and the diagram translation script |
+| `scripts/` | `ddk.sh` installer and its test (`test-ddk.sh`), the API baseline installer, and the diagram translation script |
 
 ## Conventions
 

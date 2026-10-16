@@ -78,7 +78,7 @@ curl -fsSL https://raw.githubusercontent.com/poppycoderr/domain-driven-kit/main/
 cd order-service && mvn verify
 ```
 
-Use `--layers 3` for the three-layer skeleton, or `DDK_REF=v0.8.0` to build a released version. Run `ddk.sh help` for all options.
+The script builds the newest release by default and prints the version and commit it used. Use `--layers 3` for the three-layer skeleton, `DDK_REF=v0.8.0` for a specific release, or `DDK_REF=main` for the development snapshot. A later run reuses an install only when it is the same ref, at the same commit, with its Maven artifacts still present. Run `ddk.sh help` for all options.
 
 To build DDK by hand instead:
 
