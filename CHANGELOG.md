@@ -17,6 +17,14 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 - `DdkContainers.elasticsearch()` in `ddk-test`: a single-node Elasticsearch 9 without authentication, for integration tests
 - `ddk-mall` can keep its order search read model in Elasticsearch (`search` profile). The projection, the API and the MCP tool are unchanged; only the implementation of the `OrderSearchIndex` port is swapped
 
+### Changed
+
+- `ddk-projection-starter` adds three columns to its pending table. With `initialize-schema=true` they are added at startup; with `initialize-schema=false` the application now fails at startup, printing the statements, when the table is missing or has the 0.8 structure. Invalid settings (batch size below 1, non-positive durations, `retry-delay` above `max-retry-delay`) also fail at startup
+
+### Fixed
+
+- Projections could keep a stale read-model entry with nothing left to correct it when two instances refreshed the same entry: a worker that read old state and finished last overwrote the newer state, and its acknowledgement removed nothing but also changed nothing. Marks also restarted at version 1 after deletion, so an old acknowledgement could delete a newer mark. Each mark now has a generation that is never reused and is claimed with a lease (`ddk.projection.lease-time`); a worker whose acknowledgement misses marks the entry again, so the read model always converges
+
 ## [0.8.0] - 2026-10-10
 
 The query side: read models that are refreshed from the write model and can be rebuilt, and row-level data scope on top of multi-tenancy. `ddk-mall` uses the first for order search.
