@@ -40,6 +40,39 @@ class CommonArchRulesTest {
     }
 
     @Test
+    void domainPurityRuleRejectsJackson2AndJackson3() {
+        fails(CommonArchRules.DOMAIN_MUST_NOT_DEPEND_ON_FRAMEWORKS, "four.jackson3", "four.jackson3.domain.Order");
+        fails(CommonArchRules.DOMAIN_MUST_NOT_DEPEND_ON_FRAMEWORKS, "four.jackson2", "four.jackson2.domain.Order");
+    }
+
+    @Test
+    void domainPurityRuleAllowsTheJdkJSpecifyAndDdkDomainTypes() {
+        passes(CommonArchRules.DOMAIN_MUST_NOT_DEPEND_ON_FRAMEWORKS, "four.allowed");
+    }
+
+    @Test
+    void projectsCanForbidMorePackagesInTheDomain() {
+        passes(CommonArchRules.domainMustNotDependOn(), "four.allowed");
+        fails(CommonArchRules.domainMustNotDependOn("java.time.."), "four.allowed", "four.allowed.domain.Order");
+        fails(CommonArchRules.domainMustNotDependOn("com.acme.legacy.."), "four.jackson3", "four.jackson3.domain.Order");
+    }
+
+    @Test
+    void fourLayerRuleRejectsApplicationServicesHoldingInfrastructureImplementations() {
+        fails(CommonArchRules.LAYERED_ARCHITECTURE_RULE, "four.appinfra", "four.appinfra.application.OrderService");
+    }
+
+    @Test
+    void fourLayerRuleLeavesWiringOutsideTheLayersAlone() {
+        passes(CommonArchRules.LAYERED_ARCHITECTURE_RULE, "four.wiring");
+    }
+
+    @Test
+    void theWiringExceptionOnlyCoversConfigurationClasses() {
+        fails(CommonArchRules.LAYERED_ARCHITECTURE_RULE, "four.outsider", "four.outsider.support.Notifications");
+    }
+
+    @Test
     void threeLayerRuleAcceptsDependencyInversion() {
         passes(CommonArchRules.THREE_LAYER_ARCHITECTURE_RULE, "three.valid");
     }

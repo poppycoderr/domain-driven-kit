@@ -28,10 +28,12 @@ final class RuleHints {
     static {
         HINTS.put(CommonArchRules.LAYERED_ARCHITECTURE_RULE, new Hint("LAYERED_ARCHITECTURE_RULE",
                 "依赖方向应为 adapter → application → domain，infrastructure 只实现 domain.acl 中的接口。"
-                        + "控制器里的仓储调用移到应用服务；应用服务与领域层对 *RepositoryImpl、*Mapper、*PO 的引用改为 domain.acl 中的接口。",
+                        + "控制器里的仓储调用移到应用服务；应用服务与领域层对 *RepositoryImpl、*Mapper、*PO 的引用改为 domain.acl 中的接口。"
+                        + "确实需要手工装配时，写成分层之外的 @Configuration 类。",
                 "Dependencies point adapter → application → domain, and infrastructure only implements the interfaces in domain.acl. "
                         + "Move repository calls out of controllers into application services; in the application and domain layers, "
-                        + "replace references to *RepositoryImpl, *Mapper and *PO with the interfaces in domain.acl."));
+                        + "replace references to *RepositoryImpl, *Mapper and *PO with the interfaces in domain.acl. "
+                        + "Wiring that has to name implementations belongs in a @Configuration class outside the layers."));
         HINTS.put(CommonArchRules.THREE_LAYER_ARCHITECTURE_RULE, new Hint("THREE_LAYER_ARCHITECTURE_RULE",
                 "依赖方向应为 adapter → business，infrastructure 只实现 business.acl 中的接口。"
                         + "业务层与适配层对 *RepositoryImpl、*Mapper、*PO 的引用改为 business.acl 中的接口。",
