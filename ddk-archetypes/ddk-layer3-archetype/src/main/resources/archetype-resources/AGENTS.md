@@ -31,7 +31,7 @@ adapter ──► business ◄── infrastructure
 | `business.response` | `*Response`（record，提供 `static from(实体)`） | 直接把实体交给 Jackson |
 | `business.service` | 业务服务：用例编排与事务 | 可以写进实体方法的状态判断 |
 | `business.model` | 实体、值对象（record）、枚举，可继承 DDK 领域模型基类 | PO、Mapper |
-| `business.event` / `handler` | 业务事件（record 实现 `DomainEvent`）与订阅方（`AFTER_COMMIT`） | |
+| `business.event` / `handler` | 业务事件（record 实现 `DomainEvent`）与订阅方：必须和业务一起提交的（翻译成集成消息、标记读模型）用 `@EventListener`，可以丢的通知用 `AFTER_COMMIT` | 用 `AFTER_COMMIT` 做必须完成的事 |
 | `business.acl` | 仓储契约（继承 `GenericRepository<聚合, 类型化标识>`）与外部能力接口 `*Gateway` | 实现类 |
 | `business.error` | 错误码枚举（实现 `ErrorCode`） | |
 | `infrastructure.acl.impl` | 仓储实现（继承 `GenericRepositoryImpl`）与接口实现 | 业务规则 |
