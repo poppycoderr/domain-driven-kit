@@ -1,5 +1,8 @@
 package com.ddk.archguard.starter.rules;
 
+import com.tngtech.archunit.base.DescribedPredicate;
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.library.Architectures;
 
@@ -41,19 +44,33 @@ public final class CommonArchRules {
     }
 
     /**
-     * 框架包前缀。领域层不得依赖其中任何一个。
+     * 框架包前缀。领域层不得依赖其中任何一个。Jackson 2 与 Jackson 3（Spring Boot 4 使用的 {@code tools.jackson}）都在内。
+     * 需要禁止更多的包时用 {@link #domainMustNotDependOn(String...)}。
      */
     static final String[] FRAMEWORK_PACKAGES = {
             "org.springframework..",
             "com.baomidou..",
             "com.fasterxml.jackson..",
+            "tools.jackson..",
             "org.apache.ibatis..",
             "jakarta.persistence..",
             "javax.persistence..",
     };
 
     /**
+     * 分层之外、标了 Spring {@code @Configuration} 的装配类。它要同时看到应用服务和基础设施的实现，所以不受分层规则约束；
+     * 分层之外的其他类不享受这个例外。按注解的类名判断，规则本身不依赖 Spring。
+     */
+    private static final DescribedPredicate<JavaClass> WIRING = JavaClass.Predicates
+            .resideOutsideOfPackages("..ui..", "..adapter..", "..application..", "..domain..", "..business..", "..infrastructure..")
+            .and(CanBeAnnotated.Predicates.annotatedWith("org.springframework.context.annotation.Configuration"))
+            .as("@Configuration classes outside the layers");
+
+    /**
      * 四层依赖方向：UI -> Application -> Domain，Infrastructure 只为实现领域契约而反向依赖 Domain。
+     * <p>
+     * 任何一层都不能引用 Infrastructure：应用服务依赖领域层的端口（仓储接口、{@code domain.acl} 里的接口），由 Spring 注入实现。
+     * 需要同时看到应用服务和实现类的装配代码，写成 {@code @Configuration} 类放在不属于任何一层的包里（例如 {@code config}），不受这条规则约束。
      * <p>
      * 层允许为空：刚生成的骨架、或者没有适配层的纯后台服务，不会因为「某层没有类」而失败。
      */
@@ -69,7 +86,8 @@ public final class CommonArchRules {
             .whereLayer("Application").mayOnlyBeAccessedByLayers("UI")
             // Infrastructure 可以访问 Domain，因为仓储实现要实现领域层定义的接口
             .whereLayer("Domain").mayOnlyBeAccessedByLayers("Application", "Infrastructure")
-            .whereLayer("Infrastructure").mayOnlyBeAccessedByLayers("Application");
+            .whereLayer("Infrastructure").mayNotBeAccessedByAnyLayer()
+            .ignoreDependency(WIRING, DescribedPredicate.alwaysTrue());
 
     /**
      * 三层依赖方向：Adapter -> Business，Infrastructure 实现 Business 定义的接口。
@@ -86,7 +104,8 @@ public final class CommonArchRules {
 
             .whereLayer("Adapter").mayNotBeAccessedByAnyLayer()
             .whereLayer("Business").mayOnlyBeAccessedByLayers("Adapter", "Infrastructure")
-            .whereLayer("Infrastructure").mayNotBeAccessedByAnyLayer();
+            .whereLayer("Infrastructure").mayNotBeAccessedByAnyLayer()
+            .ignoreDependency(WIRING, DescribedPredicate.alwaysTrue());
 
     /**
      * 领域层必须保持框架无关。
@@ -100,6 +119,22 @@ public final class CommonArchRules {
             .should().dependOnClassesThat().resideInAnyPackage(FRAMEWORK_PACKAGES)
             .because("the domain model must be unit-testable without a container, and persistence details must not leak into it")
             .allowEmptyShould(true);
+
+    /**
+     * 与 {@link #DOMAIN_MUST_NOT_DEPEND_ON_FRAMEWORKS} 相同，另外禁止项目自己指定的包，例如公司内部的 SDK、旧系统的客户端。
+     *
+     * @param extraPackages ArchUnit 的包写法，例如 {@code "com.acme.legacy.."}
+     */
+    public static ArchRule domainMustNotDependOn(String... extraPackages) {
+        String[] packages = new String[FRAMEWORK_PACKAGES.length + extraPackages.length];
+        System.arraycopy(FRAMEWORK_PACKAGES, 0, packages, 0, FRAMEWORK_PACKAGES.length);
+        System.arraycopy(extraPackages, 0, packages, FRAMEWORK_PACKAGES.length, extraPackages.length);
+        return noClasses()
+                .that().resideInAPackage("..domain..")
+                .should().dependOnClassesThat().resideInAnyPackage(packages)
+                .because("the domain model must be unit-testable without a container, and persistence details must not leak into it")
+                .allowEmptyShould(true);
+    }
 
     /**
      * 领域层不得依赖应用层与适配层。
