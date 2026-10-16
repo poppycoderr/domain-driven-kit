@@ -20,11 +20,12 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 ### Changed
 
 - The default scope of `@Idempotent` and `@RateLimit` is now the full class name, method name and parameter types (`com.acme.OrderService#place(PlaceOrderCommand)`) instead of `OrderService.place`, so classes with the same simple name and overloaded methods no longer share registrations or quotas. The Redis keys change accordingly: during a deployment, a request registered under the old key is not recognised as a duplicate by the new version for up to one TTL, and rate-limit windows start afresh. Set `scope` explicitly to keep a key stable
+- `ddk-projection-starter` adds three columns to its pending table. With `initialize-schema=true` they are added at startup; with `initialize-schema=false` the application now fails at startup, printing the statements, when the table is missing or has the 0.8 structure. Invalid settings (batch size below 1, non-positive durations, `retry-delay` above `max-retry-delay`) also fail at startup
 
 ### Fixed
 
 - `@Idempotent` released registrations by key only: a call that ran past the TTL and then failed deleted the registration of a newer call with the same key, letting a third one in. Each registration now stores its own token and is removed with a compare-and-delete. A failure to remove it no longer replaces the method's exception
-
+- Projections could keep a stale read-model entry with nothing left to correct it when two instances refreshed the same entry: a worker that read old state and finished last overwrote the newer state, and its acknowledgement removed nothing but also changed nothing. Marks also restarted at version 1 after deletion, so an old acknowledgement could delete a newer mark. Each mark now has a generation that is never reused and is claimed with a lease (`ddk.projection.lease-time`); a worker whose acknowledgement misses marks the entry again, so the read model always converges
 
 ## [0.8.0] - 2026-10-10
 

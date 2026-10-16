@@ -50,4 +50,35 @@ public class DdkProjectionProperties {
      * 重试等待时间的上限。
      */
     private Duration maxRetryDelay = Duration.ofMinutes(5);
+
+    /**
+     * 领取一条标记后独占它的时间。超过这个时间还没处理完（停顿、宕机），别的实例可以接手。
+     * 应当长于一次刷新的正常耗时；短了不会出错，只会多刷新几次。
+     */
+    private Duration leaseTime = Duration.ofMinutes(2);
+
+    /**
+     * 启动时检查配置，不合法的配置会让后台线程空转或不停重试，要在启动时就暴露。
+     *
+     * @throws IllegalStateException 配置不合法
+     */
+    public void validate() {
+        require(batchSize > 0, "ddk.projection.batch-size must be greater than 0, was " + batchSize);
+        requirePositive(sweepInterval, "sweep-interval");
+        requirePositive(retryDelay, "retry-delay");
+        requirePositive(maxRetryDelay, "max-retry-delay");
+        requirePositive(leaseTime, "lease-time");
+        require(retryDelay.compareTo(maxRetryDelay) <= 0,
+                "ddk.projection.retry-delay (" + retryDelay + ") must not exceed ddk.projection.max-retry-delay (" + maxRetryDelay + ")");
+    }
+
+    private static void requirePositive(Duration value, String name) {
+        require(value != null && value.isPositive(), "ddk.projection." + name + " must be a positive duration, was " + value);
+    }
+
+    private static void require(boolean condition, String message) {
+        if (!condition) {
+            throw new IllegalStateException(message);
+        }
+    }
 }

@@ -21,7 +21,10 @@ import java.util.stream.Collectors;
  * 处理待刷新的标记：逐条调用读模型的 {@code refresh}，成功的删除标记，失败的推迟重试。
  * <p>
  * 用一个后台线程串行处理。事务提交后被唤醒一次，另外按固定间隔清扫，处理别的实例留下的、重启前没处理完的、以及到了重试时间的标记。
- * 多个实例会各自处理同一批标记，同一条数据因此可能被刷新不止一次；{@code refresh} 是覆盖式的，重复刷新没有副作用。
+ * <p>
+ * 多个实例共用同一张表。每条标记先领取再处理，同一时刻只有一个领取者；领取有租约，worker 停顿或宕机超过租约后别人可以接手。
+ * 失去租约的 worker 恢复后仍可能把旧状态写进读模型，但它的确认会落空并重新标记这条数据，读模型随后收敛到最新状态，
+ * 见 {@link PendingRefreshes}。
  */
 public class RefreshWorker implements SmartLifecycle {
 
@@ -39,6 +42,8 @@ public class RefreshWorker implements SmartLifecycle {
 
     private final Duration maxRetryDelay;
 
+    private final Duration leaseTime;
+
     private final AtomicBoolean queued = new AtomicBoolean();
 
     private volatile ScheduledExecutorService executor = newExecutor();
@@ -46,7 +51,8 @@ public class RefreshWorker implements SmartLifecycle {
     private volatile boolean running;
 
     public RefreshWorker(Collection<Projection> projections, PendingRefreshes pending, int batchSize, Duration sweepInterval,
-            Duration retryDelay, Duration maxRetryDelay) {
+            Duration retryDelay, Duration maxRetryDelay, Duration leaseTime) {
+        this.leaseTime = leaseTime;
         this.projections = projections.stream().collect(Collectors.toMap(Projection::name, Function.identity(), (first, second) -> first));
         this.pending = pending;
         this.batchSize = batchSize;
@@ -98,21 +104,28 @@ public class RefreshWorker implements SmartLifecycle {
     }
 
     private boolean refresh(PendingRefreshes.Pending item) {
+        PendingRefreshes.Claim claim = pending.claim(item, leaseTime).orElse(null);
+        if (claim == null) {
+            return false;
+        }
         Projection projection = projections.get(item.projection());
         try {
             if (projection == null) {
                 throw new IllegalStateException("No projection named " + item.projection() + " in this application");
             }
             projection.refresh(item.id());
-            pending.done(item);
-            return true;
         } catch (RuntimeException e) {
             Duration delay = backoff(item.attempts());
             log.warn("Refreshing [{}] of projection [{}] failed (attempt {}), retrying in {}", item.id(), item.projection(),
                     item.attempts() + 1, delay, e);
-            pending.failed(item, delay, e.toString());
+            pending.failed(claim, delay, e.toString());
             return false;
         }
+        if (!pending.done(claim)) {
+            log.debug("[{}] of projection [{}] changed or was taken over during the refresh; marked again", item.id(), item.projection());
+            return false;
+        }
+        return true;
     }
 
     /**
