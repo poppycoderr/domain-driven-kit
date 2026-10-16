@@ -6,6 +6,7 @@ import com.ddk.concurrency.starter.AggregateLock;
 import com.ddk.concurrency.starter.AggregateLocks;
 import com.ddk.concurrency.starter.Idempotent;
 import com.ddk.concurrency.starter.RateLimit;
+import com.ddk.concurrency.starter.internal.RequestRegistry;
 import com.ddk.concurrency.starter.config.DdkConcurrencyProperties.InsideTransaction;
 import com.ddk.core.domain.Identifier;
 import com.ddk.core.exception.AggregateBusyException;
@@ -53,11 +54,16 @@ import static org.awaitility.Awaitility.await;
 })
 class ConcurrencyRedisIntegrationTest {
 
+    private static final String SERVICE = OrderService.class.getName();
+
     @Container
     static final RedisContainer REDIS = DdkContainers.redis();
 
     @Autowired
     private OrderService orders;
+
+    @Autowired
+    private com.ddk.concurrency.starter.integration.other.OrderService otherOrders;
 
     @Autowired
     private AggregateLocks locks;
@@ -231,7 +237,7 @@ class ConcurrencyRedisIntegrationTest {
         assertThatThrownBy(() -> orders.submit("req-1")).isInstanceOf(DuplicateRequestException.class);
         assertThat(orders.submit("req-2")).isEqualTo(2);
 
-        long ttl = redisson.getBucket("it:idempotent:OrderService.submit:req-1", StringCodec.INSTANCE).remainTimeToLive();
+        long ttl = redisson.getBucket("it:idempotent:" + SERVICE + "#submit(String):req-1", StringCodec.INSTANCE).remainTimeToLive();
         assertThat(ttl).isBetween(Duration.ofMinutes(9).toMillis(), Duration.ofMinutes(10).toMillis());
     }
 
@@ -247,6 +253,32 @@ class ConcurrencyRedisIntegrationTest {
     }
 
     @Test
+    @DisplayName("一个请求执行超过 TTL 后失败：撤销只删自己的登记，不会解除后来者的保护")
+    void anExpiredRequestCannotReleaseItsSuccessor() {
+        RequestRegistry registry = new RequestRegistry(redisson, "it:");
+        RequestRegistry.Registration first = registry.register("ownership", "req-1", Duration.ofMillis(200));
+        assertThat(first).isNotNull();
+        await().atMost(Duration.ofSeconds(5)).until(() -> !redisson.getBucket("it:idempotent:ownership:req-1", StringCodec.INSTANCE).isExists());
+        RequestRegistry.Registration second = registry.register("ownership", "req-1", Duration.ofMinutes(1));
+        assertThat(second).isNotNull();
+
+        assertThat(registry.release(first)).as("the first request's registration is gone").isFalse();
+
+        assertThat(registry.register("ownership", "req-1", Duration.ofMinutes(1))).as("a third request is still rejected").isNull();
+        assertThat(registry.release(second)).isTrue();
+        assertThat(registry.register("ownership", "req-1", Duration.ofMinutes(1))).as("released by its owner").isNotNull();
+    }
+
+    @Test
+    @DisplayName("不同包里的同名类、重载的方法默认各自一个作用域")
+    void defaultScopesTellClassesAndOverloadsApart() {
+        assertThat(orders.submit("req-3")).isEqualTo(1);
+        assertThat(orders.submit("req-3", 2)).as("an overload with the same key").isEqualTo("submitted 2");
+        assertThat(otherOrders.submit("req-3")).as("another class with the same simple name").isEqualTo("other");
+        assertThatThrownBy(() -> orders.submit("req-3", 2)).isInstanceOf(DuplicateRequestException.class);
+    }
+
+    @Test
     @DisplayName("每个 key 各有一份额度，超过时抛 RateLimitedException，窗口过后恢复")
     void rateLimitIsPerKey() {
         assertThat(orders.search("alice")).isEqualTo("results for alice");
@@ -255,7 +287,7 @@ class ConcurrencyRedisIntegrationTest {
         assertThat(orders.search("bob")).isEqualTo("results for bob");
 
         await().atMost(Duration.ofSeconds(5)).ignoreExceptions().until(() -> orders.search("alice").equals("results for alice"));
-        assertThat(redisson.getKeys().getKeysStream().toList()).anyMatch(key -> key.startsWith("it:rate:OrderService.search:2/1000ms:alice"));
+        assertThat(redisson.getKeys().getKeysStream().toList()).anyMatch(key -> key.startsWith("it:rate:" + SERVICE + "#search(String):2/1000ms:alice"));
     }
 
     @Test
@@ -264,8 +296,8 @@ class ConcurrencyRedisIntegrationTest {
         assertThat(orders.export("req-1")).isEqualTo("exported");
         assertThatThrownBy(() -> orders.export("req-2")).isInstanceOf(RateLimitedException.class);
 
-        assertThat(redisson.getBucket("it:idempotent:OrderService.export:req-2", StringCodec.INSTANCE).isExists()).isFalse();
-        assertThat(redisson.getBucket("it:idempotent:OrderService.export:req-1", StringCodec.INSTANCE).isExists()).isTrue();
+        assertThat(redisson.getBucket("it:idempotent:" + SERVICE + "#export(String):req-2", StringCodec.INSTANCE).isExists()).isFalse();
+        assertThat(redisson.getBucket("it:idempotent:" + SERVICE + "#export(String):req-1", StringCodec.INSTANCE).isExists()).isTrue();
     }
 
     @Test
@@ -371,6 +403,11 @@ class ConcurrencyRedisIntegrationTest {
             return submissions.incrementAndGet();
         }
 
+        @Idempotent(key = "#requestId")
+        String submit(String requestId, int quantity) {
+            return "submitted " + quantity;
+        }
+
         @Idempotent(key = "#requestId", scope = "checkout", ttl = "30s")
         String submitOnce(String requestId, boolean fail) {
             if (fail) {
@@ -387,6 +424,11 @@ class ConcurrencyRedisIntegrationTest {
         @Bean
         OrderService orderService(RedissonClient redisson) {
             return new OrderService(redisson);
+        }
+
+        @Bean
+        com.ddk.concurrency.starter.integration.other.OrderService otherOrderService() {
+            return new com.ddk.concurrency.starter.integration.other.OrderService();
         }
     }
 }

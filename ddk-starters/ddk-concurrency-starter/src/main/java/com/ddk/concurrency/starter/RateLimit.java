@@ -33,7 +33,8 @@ public @interface RateLimit {
     String key() default "";
 
     /**
-     * 额度的作用域，不同用例之间互不影响。留空用「类名.方法名」。
+     * 额度的作用域，不同用例之间互不影响。留空用「完整类名#方法名(参数类型)」，例如 {@code com.acme.OrderService#place(PlaceOrderCommand)}：
+     * 不同包里的同名类、重载的方法都不会共用作用域。
      */
     String scope() default "";
 }
