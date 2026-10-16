@@ -17,6 +17,15 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 - `DdkContainers.elasticsearch()` in `ddk-test`: a single-node Elasticsearch 9 without authentication, for integration tests
 - `ddk-mall` can keep its order search read model in Elasticsearch (`search` profile). The projection, the API and the MCP tool are unchanged; only the implementation of the `OrderSearchIndex` port is swapped
 
+### Changed
+
+- The default scope of `@Idempotent` and `@RateLimit` is now the full class name, method name and parameter types (`com.acme.OrderService#place(PlaceOrderCommand)`) instead of `OrderService.place`, so classes with the same simple name and overloaded methods no longer share registrations or quotas. The Redis keys change accordingly: during a deployment, a request registered under the old key is not recognised as a duplicate by the new version for up to one TTL, and rate-limit windows start afresh. Set `scope` explicitly to keep a key stable
+
+### Fixed
+
+- `@Idempotent` released registrations by key only: a call that ran past the TTL and then failed deleted the registration of a newer call with the same key, letting a third one in. Each registration now stores its own token and is removed with a compare-and-delete. A failure to remove it no longer replaces the method's exception
+
+
 ## [0.8.0] - 2026-10-10
 
 The query side: read models that are refreshed from the write model and can be rebuilt, and row-level data scope on top of multi-tenancy. `ddk-mall` uses the first for order search.

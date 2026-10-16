@@ -79,13 +79,16 @@ The locks are acquired in a fixed order (sorted by lock name), whatever order th
 
 ## Duplicate-submit protection
 
-`@Idempotent` registers `<key-prefix>idempotent:<scope>:<key>` with `SET NX` and a TTL before the method runs.
+`@Idempotent` registers `<key-prefix>idempotent:<scope>:<key>` with `SET NX`, a random token as the value, and a TTL before the method runs.
 
 - The key should come from the client and stay the same across retries, such as a request ID generated when the form is opened.
 - A second call with the same key inside the TTL throws `DuplicateRequestException` (`DUPLICATE_REQUEST`, 409). The first result is not replayed.
-- If the method throws, the registration is removed and the client can retry with the same key.
-- `scope` defaults to `ClassName.methodName`, so the same key in two use cases does not collide.
+- If the method throws, the registration is removed and the client can retry with the same key. Only the call's own registration is removed: a call that ran past the TTL, while another call registered the same key, leaves that other registration alone.
+- If removing the registration fails (Redis unreachable), the method's own exception still reaches the caller, with the Redis failure attached as suppressed; the registration then expires with its TTL.
+- `scope` defaults to the declaring class's full name, the method name and its parameter types, for example `com.acme.OrderService#place(PlaceOrderCommand)`. Classes with the same simple name in different packages, and overloads, do not share registrations. A proxy does not change the scope.
 - A duplicate is rejected before the lock is requested, so it does not spend the lock's wait time.
+
+What it guarantees: within the TTL, at most one call with a given key is admitted at a time, and a call that failed can be retried. It does not make side effects exactly-once. A call that outlives the TTL can overlap with a retry, and a call that succeeded keeps its registration only until the TTL ends. Payments and other operations that must happen once need a business unique key, a database state check, or the external system's own idempotency key.
 
 This protects against double clicks and client retries. For consumers of at-least-once messages, use `IdempotentConsumer` from the event starter, which registers the message in the same database transaction as the handler's writes.
 
