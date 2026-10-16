@@ -8,12 +8,15 @@
 set -euo pipefail
 
 DDK_REPO="${DDK_REPO:-https://github.com/poppycoderr/domain-driven-kit.git}"
-DDK_REF="${DDK_REF:-main}"
+DDK_REF="${DDK_REF:-latest}"
 DDK_HOME="${DDK_HOME:-$HOME/.ddk}"
 SRC_DIR="$DDK_HOME/src"
+# 记录最近一次安装的是哪个 ref、哪个提交、装出来的版本号，供下次判断能否直接复用
+STATE_FILE="$DDK_HOME/installed"
 
 info() { printf '\033[36m==>\033[0m %s\n' "$*"; }
 fail() { printf '\033[31merror:\033[0m %s\n' "$*" >&2; exit 1; }
+warn() { printf '\033[33mwarning:\033[0m %s\n' "$*" >&2; }
 
 usage() {
     cat <<'EOF'
@@ -30,7 +33,8 @@ Options for "new":
   --layers <3|4>            Three- or four-layer architecture (default: 4)
 
 Environment:
-  DDK_REF    Branch or tag to build (default: main), e.g. DDK_REF=v0.8.0
+  DDK_REF    What to build: "latest" (default, the newest release tag), a tag such as v0.8.0,
+             or a branch such as main for the development snapshot
   DDK_REPO   Git repository to clone
   DDK_HOME   Working directory for the source checkout (default: ~/.ddk)
 EOF
@@ -51,33 +55,105 @@ ddk_version() {
     mvn -f "$SRC_DIR/pom.xml" -q -N help:evaluate -Dexpression=project.version -DforceStdout
 }
 
+# 把 DDK_REF 解析成一个具体的 ref：latest 是最新的发布 tag。连不上仓库时输出为空
+resolve_ref() {
+    if [[ "$DDK_REF" != "latest" ]]; then
+        echo "$DDK_REF"
+        return
+    fi
+    git ls-remote --tags --refs "$DDK_REPO" 'v*' 2>/dev/null \
+        | awk -F/ '{print $3}' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1 || true
+}
+
+# 远端上这个 ref 当前指向的提交。连不上仓库时输出为空
+remote_commit() {
+    local ref="$1"
+    git ls-remote "$DDK_REPO" "refs/tags/$ref^{}" "refs/tags/$ref" "refs/heads/$ref" 2>/dev/null \
+        | sort -k2 -r | awk 'NR == 1 {print $1}' || true
+}
+
+local_repository() {
+    mvn -B -q help:evaluate -Dexpression=settings.localRepository -DforceStdout
+}
+
+# 两个 archetype 都已经在本地 Maven 仓库里
+artifacts_present() {
+    local version="$1" repository
+    repository=$(local_repository)
+    [[ -f "$repository/com/ddk/ddk-layer3-archetype/$version/ddk-layer3-archetype-$version.jar" \
+        && -f "$repository/com/ddk/ddk-layer4-archetype/$version/ddk-layer4-archetype-$version.jar" ]]
+}
+
 install_ddk() {
     require git
     require mvn
     check_java
 
+    local ref
+    ref=$(resolve_ref)
+    [[ -n "$ref" ]] || fail "Cannot list the releases of $DDK_REPO. Check the network, or set DDK_REF to a tag or branch"
+
     if [[ -d "$SRC_DIR/.git" ]]; then
-        info "Updating DDK source ($DDK_REF)"
-        git -C "$SRC_DIR" fetch -q --depth 1 origin "$DDK_REF"
+        info "Updating DDK source ($ref)"
+        git -C "$SRC_DIR" fetch -q --depth 1 origin "$ref"
         git -C "$SRC_DIR" checkout -q --force --detach FETCH_HEAD
     else
-        info "Cloning DDK ($DDK_REF)"
+        info "Cloning DDK ($ref)"
         mkdir -p "$DDK_HOME"
-        git clone -q --depth 1 --branch "$DDK_REF" "$DDK_REPO" "$SRC_DIR"
+        git clone -q --depth 1 --branch "$ref" "$DDK_REPO" "$SRC_DIR"
     fi
 
     # 仓库里始终是 SNAPSHOT 版本，发布版本号只在发布流程中按 tag 改写；按 tag 构建时同样改写，装出来的才是 X.Y.Z
-    if [[ "$DDK_REF" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+    if [[ "$ref" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
         local release="${BASH_REMATCH[1]}"
         mvn -f "$SRC_DIR/pom.xml" -B -ntp -q versions:set -DnewVersion="$release" -DprocessAllModules=true -DgenerateBackupPoms=false
         sed -i.bak "s|<ddk.version>.*</ddk.version>|<ddk.version>$release</ddk.version>|" "$SRC_DIR/ddk-dependencies/pom.xml"
         rm -f "$SRC_DIR/ddk-dependencies/pom.xml.bak"
     fi
 
-    info "Installing DDK $(ddk_version) into the local Maven repository"
+    local version commit
+    version=$(ddk_version)
+    commit=$(git -C "$SRC_DIR" rev-parse HEAD)
+    info "Installing DDK $version ($ref, commit ${commit:0:7}) into the local Maven repository"
     mvn -f "$SRC_DIR/pom.xml" -B -ntp -q install \
         -Dmaven.test.skip=true -Djacoco.skip=true -Dspotless.check.skip=true
-    info "Installed"
+    printf '%s %s %s\n' "$ref" "$commit" "$version" > "$STATE_FILE"
+    info "Installed DDK $version"
+}
+
+# 确保 DDK_REF 对应的版本已经装好，并输出要用的版本号。
+# 已装的正是这个 ref、远端没有更新、Maven 产物也都在时直接复用；否则重新安装。连不上仓库时只能复用已装的同一个 ref。
+ensure_installed() {
+    local ref remote installed_ref="" installed_commit="" installed_version=""
+    ref=$(resolve_ref)
+    if [[ -f "$STATE_FILE" ]]; then
+        read -r installed_ref installed_commit installed_version < "$STATE_FILE" || true
+    fi
+
+    if [[ -z "$ref" ]]; then
+        [[ -n "$installed_ref" && "$installed_ref" =~ ^v[0-9] ]] \
+            || fail "Cannot list the releases of $DDK_REPO, and no release is installed. Check the network, or set DDK_REF"
+        warn "Cannot reach $DDK_REPO to look for a newer release; using the installed $installed_ref"
+        ref="$installed_ref"
+    fi
+    remote=$(remote_commit "$ref")
+
+    if [[ "$installed_ref" == "$ref" && -n "$installed_version" ]] && artifacts_present "$installed_version"; then
+        if [[ -z "$remote" ]]; then
+            warn "Cannot reach $DDK_REPO to check $ref for changes; using what is installed"
+            echo "$installed_version"
+            return
+        fi
+        if [[ "$remote" == "$installed_commit" ]]; then
+            echo "$installed_version"
+            return
+        fi
+    fi
+    [[ -n "$remote" ]] || fail "Cannot reach $DDK_REPO, and DDK $ref is not installed"
+
+    DDK_REF="$ref" install_ddk >&2
+    read -r _ _ installed_version < "$STATE_FILE"
+    echo "$installed_version"
 }
 
 new_project() {
@@ -98,11 +174,16 @@ new_project() {
     [[ -e "$artifact_id" ]] && fail "./$artifact_id already exists"
     [[ -n "$package" ]] || package="$group_id.${artifact_id//-/}"
 
-    [[ -d "$SRC_DIR/.git" ]] || install_ddk
+    require git
+    require mvn
     local version
-    version=$(ddk_version)
+    version=$(ensure_installed)
+    local commit
+    commit=$(awk '{print $2}' "$STATE_FILE")
+    local ref
+    ref=$(awk '{print $1}' "$STATE_FILE")
 
-    info "Generating $artifact_id ($layers layers, package $package) with DDK $version"
+    info "Generating $artifact_id ($layers layers, package $package) with DDK $version ($ref, commit ${commit:0:7})"
     mvn -B -ntp -q archetype:generate \
         -DarchetypeGroupId=com.ddk \
         -DarchetypeArtifactId="ddk-layer${layers}-archetype" \
