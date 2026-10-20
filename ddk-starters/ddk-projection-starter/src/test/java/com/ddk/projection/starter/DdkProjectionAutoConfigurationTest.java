@@ -40,6 +40,13 @@ class DdkProjectionAutoConfigurationTest {
     }
 
     @Test
+    @DisplayName("应用自己声明的 Projections 优先")
+    void userProjectionsWin() {
+        runner.withUserConfiguration(OneProjection.class, OwnProjections.class)
+                .run(context -> assertThat(context).getBean(Projections.class).isSameAs(OwnProjections.STUB));
+    }
+
+    @Test
     @DisplayName("关闭后不注册；关闭自动建表时不建表")
     void canBeTurnedOff() {
         runner.withUserConfiguration(OneProjection.class).withPropertyValues("ddk.projection.enabled=false")
@@ -105,5 +112,31 @@ class DdkProjectionAutoConfigurationTest {
             public void refresh(String id) {
             }
         };
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    static class OwnProjections {
+
+        static final Projections STUB = new Projections() {
+
+            @Override
+            public void markDirty(String projection, Object id) {
+            }
+
+            @Override
+            public long rebuild(String projection) {
+                return 0;
+            }
+
+            @Override
+            public long pending(String projection) {
+                return 0;
+            }
+        };
+
+        @Bean
+        Projections projections() {
+            return STUB;
+        }
     }
 }

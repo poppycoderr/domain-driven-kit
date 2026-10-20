@@ -15,6 +15,7 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 ### Breaking
 
 - `LAYERED_ARCHITECTURE_RULE` no longer lets application services reference infrastructure classes. The four-layer documentation always said that infrastructure only implements domain ports; the rule now agrees, as the three-layer rule already did. Depend on the domain port instead. Wiring that has to name an implementation goes into a `@Configuration` class outside the layers, which both layering rules now exempt
+- `Projections` is now an interface; the implementation moved to the starter's `internal` package. Its public constructor took `internal` types, so no application could call it without breaking the internal-package rule. Injecting `Projections` is unchanged, a test can stub it without a mocking library, and an application bean of the type replaces the starter's
 
 ### Added
 

@@ -501,6 +501,8 @@
                                 <excludes>
                                     <!-- internal 包不属于公开 API -->
                                     <exclude>*.internal</exclude>
+                                    <!-- 0.9：Projections 从类改为接口，实现移入 internal -->
+                                    <exclude>com.ddk.projection.starter.Projections</exclude>
                                 </excludes>
                             </parameter>
                         </configuration>

@@ -2,6 +2,7 @@ package com.ddk.projection.starter.config;
 
 import com.ddk.projection.starter.Projection;
 import com.ddk.projection.starter.Projections;
+import com.ddk.projection.starter.internal.JdbcProjections;
 import com.ddk.projection.starter.internal.PendingRefreshes;
 import com.ddk.projection.starter.internal.RefreshWorker;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -51,6 +52,6 @@ public class DdkProjectionAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     Projections projections(List<Projection> projections, PendingRefreshes pending, RefreshWorker worker) {
-        return new Projections(projections, pending, worker);
+        return new JdbcProjections(projections, pending, worker);
     }
 }
