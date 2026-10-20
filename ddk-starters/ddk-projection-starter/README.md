@@ -118,6 +118,28 @@ long left = projections.pending("order-search");     // what is still waiting
 
 A rebuild only marks; the worker does the refreshing. It survives a restart, because unprocessed marks stay in the table. It does not remove entries the write model no longer has: empty the read model first when that matters.
 
+## Operations
+
+A mark that keeps failing does not hold up the others. It is retried with a doubling delay, capped at `max-retry-delay`, and keeps its attempt count and last error in the table. To find and recover such marks, use `Projections`:
+
+```java
+List<FailedRefresh> failing = projections.failures("order-search", 20);   // tenant, id, attempts, last error, next attempt
+int retried = projections.retryFailed("order-search");                    // after fixing the cause: retry now, not after the backoff
+```
+
+`retryFailed` keeps the attempt count, so a mark that fails again continues its backoff where it was. No manual table edits are needed.
+
+With Micrometer on the classpath (for example through Spring Boot Actuator), the starter publishes:
+
+| Meter | Type | Meaning |
+|---|---|---|
+| `ddk.projection.refresh{projection, outcome}` | Timer | Each refresh and its duration. `outcome` is `success`, `repeated` (the entry changed or was taken over meanwhile and is marked again) or `failed` |
+| `ddk.projection.pending{projection}` | Gauge | Marks waiting, including retries |
+| `ddk.projection.failing{projection}` | Gauge | Marks that failed at least once and wait for a retry |
+| `ddk.projection.oldest.age{projection}` | Gauge, seconds | How long the oldest due mark has been waiting. A rising value means the worker is falling behind or stuck |
+
+The gauges query the pending table when they are scraped. Useful alerts: `oldest.age` above a few sweep intervals, `failing` above zero for longer than `max-retry-delay`, and a rising `failed` rate.
+
 ## Configuration
 
 | Property | Default | Description |
@@ -179,4 +201,4 @@ Upgrade with the old instances stopped. Marks that 0.8 instances write while the
 - **Read models built from other services' events.** Those cannot be regenerated from a write model this application owns. Consume the events with `ddk-event-starter` and update the read model in the consumer.
 - **High write rates.** One background thread per instance refreshes entries one at a time. There is no parallelism and no batching of writes to the read store.
 - **The read store itself.** The starter does not talk to Elasticsearch or any other store; `refresh` does, with whatever client the application uses.
-- **A mark that keeps failing is retried forever.** Watch `attempts` and `last_error` in the pending table; there is no dead-letter state.
+- **A mark that keeps failing is retried forever**, at most every `max-retry-delay`. There is no dead-letter state; find such marks with `Projections.failures` or the `ddk.projection.failing` gauge, see [Operations](#operations).

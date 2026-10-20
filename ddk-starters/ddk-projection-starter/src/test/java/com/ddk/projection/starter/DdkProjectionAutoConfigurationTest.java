@@ -1,19 +1,27 @@
 package com.ddk.projection.starter;
 
 import com.ddk.projection.starter.config.DdkProjectionAutoConfiguration;
+import com.ddk.projection.starter.internal.RefreshMetrics;
 import com.ddk.projection.starter.internal.RefreshWorker;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
 import org.springframework.boot.jdbc.autoconfigure.DataSourceTransactionManagerAutoConfiguration;
 import org.springframework.boot.jdbc.autoconfigure.JdbcTemplateAutoConfiguration;
+import org.springframework.boot.test.context.FilteredClassLoader;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.time.Duration;
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 @DisplayName("读模型投影自动装配")
 class DdkProjectionAutoConfigurationTest {
@@ -36,6 +44,31 @@ class DdkProjectionAutoConfigurationTest {
             assertThat(context).hasSingleBean(Projections.class).hasSingleBean(RefreshWorker.class);
             assertThat(context.getBean(RefreshWorker.class).isRunning()).isTrue();
             assertThat(context.getBean(JdbcTemplate.class).queryForObject("SELECT COUNT(*) FROM read_model_pending", Long.class)).isZero();
+        });
+    }
+
+    @Test
+    @DisplayName("有 MeterRegistry 时输出积压、失败与刷新耗时指标")
+    void publishesMetricsWhenMicrometerIsPresent() {
+        runner.withUserConfiguration(OneProjection.class).withBean(SimpleMeterRegistry.class).run(context -> {
+            MeterRegistry registry = context.getBean(MeterRegistry.class);
+            Projections projections = context.getBean(Projections.class);
+            projections.markDirty("catalog", "1");
+
+            await().atMost(Duration.ofSeconds(5)).until(() -> registry.find("ddk.projection.refresh").tag("outcome", "success").timer() != null);
+            assertThat(registry.get("ddk.projection.refresh").tag("projection", "catalog").timer().count()).isEqualTo(1);
+            assertThat(registry.get("ddk.projection.pending").tag("projection", "catalog").gauge().value()).isZero();
+            assertThat(registry.get("ddk.projection.failing").tag("projection", "catalog").gauge().value()).isZero();
+            assertThat(registry.get("ddk.projection.oldest.age").tag("projection", "catalog").gauge().value()).isZero();
+        });
+    }
+
+    @Test
+    @DisplayName("没有 Micrometer 时照常装配，只是没有指标")
+    void worksWithoutMicrometer() {
+        runner.withUserConfiguration(OneProjection.class).withClassLoader(new FilteredClassLoader(MeterRegistry.class)).run(context -> {
+            assertThat(context).hasNotFailed().hasSingleBean(Projections.class).doesNotHaveBean(RefreshMetrics.class);
+            assertThat(context.getBean(RefreshWorker.class).isRunning()).isTrue();
         });
     }
 
@@ -130,6 +163,16 @@ class DdkProjectionAutoConfigurationTest {
 
             @Override
             public long pending(String projection) {
+                return 0;
+            }
+
+            @Override
+            public List<FailedRefresh> failures(String projection, int limit) {
+                return List.of();
+            }
+
+            @Override
+            public int retryFailed(String projection) {
                 return 0;
             }
         };

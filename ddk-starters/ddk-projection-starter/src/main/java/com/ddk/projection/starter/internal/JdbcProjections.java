@@ -3,12 +3,14 @@ package com.ddk.projection.starter.internal;
 import com.ddk.core.context.Operator;
 import com.ddk.core.context.OperatorContext;
 import com.ddk.core.domain.Identifier;
+import com.ddk.projection.starter.FailedRefresh;
 import com.ddk.projection.starter.Projection;
 import com.ddk.projection.starter.Projections;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
@@ -60,6 +62,22 @@ public class JdbcProjections implements Projections {
     public long pending(String projection) {
         require(projection);
         return pending.count(projection);
+    }
+
+    @Override
+    public List<FailedRefresh> failures(String projection, int limit) {
+        require(projection);
+        return pending.failures(projection, limit);
+    }
+
+    @Override
+    public int retryFailed(String projection) {
+        require(projection);
+        int retried = pending.retryFailed(projection);
+        if (retried > 0) {
+            worker.wake();
+        }
+        return retried;
     }
 
     private Projection require(String name) {

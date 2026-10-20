@@ -359,6 +359,44 @@ class RefreshProtocolTest {
     }
 
     @Test
+    @DisplayName("一直失败的标记可以定位：失败次数、原因、下次重试时间；修好之后可以立即重试，不等退避")
+    void failuresCanBeInspectedAndRetried() {
+        jdbc.update("INSERT INTO t_source (id, state) VALUES ('1', 'v1')");
+        jdbc.update("INSERT INTO t_source (id, state) VALUES ('2', 'v1')");
+        pending.mark("catalog", "", "1");
+        pending.mark("catalog", "tenant-a", "2");
+        java.util.concurrent.atomic.AtomicBoolean broken = new java.util.concurrent.atomic.AtomicBoolean(true);
+        RefreshWorker worker = worker(id -> {
+            if (id.equals("2") && broken.get()) {
+                throw new IllegalStateException("index unavailable");
+            }
+            copy(id);
+        });
+
+        worker.drain();
+        clock.advance(Duration.ofSeconds(30));
+
+        assertThat(pending.failing("catalog")).isEqualTo(1);
+        assertThat(pending.failures("catalog", 10)).singleElement().satisfies(failure -> {
+            assertThat(failure.tenant()).isEqualTo("tenant-a");
+            assertThat(failure.id()).isEqualTo("2");
+            assertThat(failure.attempts()).isEqualTo(1);
+            assertThat(failure.lastError()).contains("index unavailable");
+            assertThat(failure.nextAttempt()).isAfter(clock.instant());
+        });
+        assertThat(pending.oldestDueAge("catalog")).as("the failed mark is not due yet").isZero();
+        assertThat(worker.drain()).as("still backing off").isZero();
+
+        broken.set(false);
+        assertThat(pending.retryFailed("catalog")).isEqualTo(1);
+        clock.advance(Duration.ofSeconds(5));
+        assertThat(pending.oldestDueAge("catalog")).isEqualTo(Duration.ofSeconds(5));
+        drainUntilEmpty(worker);
+        assertThat(view).containsEntry("2", "v1");
+        assertThat(pending.failures("catalog", 10)).isEmpty();
+    }
+
+    @Test
     @DisplayName("租户标识超过 64 个字符时拒绝标记")
     void rejectsOverlongTenants() {
         assertThatThrownBy(() -> pending.mark("catalog", "t".repeat(65), "1")).isInstanceOf(IllegalArgumentException.class);
