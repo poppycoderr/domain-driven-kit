@@ -1,5 +1,6 @@
 package com.example.mall.inventory.adapter.messaging;
 
+import com.ddk.event.starter.consumer.EventContract;
 import com.ddk.event.starter.consumer.IntegrationEventConsumer;
 import com.ddk.event.starter.consumer.ReceivedEvent;
 import com.example.mall.inventory.adapter.messaging.payload.OrderPlacedPayload;
@@ -30,6 +31,11 @@ public class OrderPlacedConsumer implements IntegrationEventConsumer<OrderPlaced
     @Override
     public String source() {
         return "mall-order-events:placed";
+    }
+
+    @Override
+    public EventContract contract() {
+        return EventContract.of("order.placed", 1);
     }
 
     @Override

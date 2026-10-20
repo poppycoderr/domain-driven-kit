@@ -1,5 +1,6 @@
 package com.example.mall.inventory.adapter.messaging;
 
+import com.ddk.event.starter.consumer.EventContract;
 import com.ddk.event.starter.consumer.IntegrationEventConsumer;
 import com.ddk.event.starter.consumer.ReceivedEvent;
 import com.example.mall.inventory.adapter.messaging.payload.OrderCancelledPayload;
@@ -24,6 +25,11 @@ public class OrderCancelledConsumer implements IntegrationEventConsumer<OrderCan
     @Override
     public String source() {
         return "mall-order-events:cancelled";
+    }
+
+    @Override
+    public EventContract contract() {
+        return EventContract.of("order.cancelled", 1);
     }
 
     @Override

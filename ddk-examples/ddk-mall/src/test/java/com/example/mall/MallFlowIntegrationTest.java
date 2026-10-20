@@ -175,9 +175,10 @@ class MallFlowIntegrationTest {
         String json = "{\"orderId\":424242,\"lines\":[{\"skuId\":\"SKU-MOUSE\",\"quantity\":5}]}";
         int before = inventory.get("SKU-MOUSE").reserved();
 
-        Map<String, String> headers = Map.of(IntegrationEventDispatcher.EVENT_ID_HEADER, "redelivered-1");
-        dispatcher.dispatch("mall-inventory", "mall-order-events", "placed", headers, json);
-        dispatcher.dispatch("mall-inventory", "mall-order-events", "placed", headers, json);
+        Map<String, String> headers = Map.of(IntegrationEventDispatcher.EVENT_ID_HEADER, "redelivered-1",
+                IntegrationEventDispatcher.EVENT_TYPE_HEADER, "order.placed", IntegrationEventDispatcher.EVENT_VERSION_HEADER, "1");
+        assertThat(dispatcher.dispatch("mall-inventory", "mall-order-events", "placed", headers, json)).isEqualTo(1);
+        assertThat(dispatcher.dispatch("mall-inventory", "mall-order-events", "placed", headers, json)).isEqualTo(1);
 
         assertThat(inventory.get("SKU-MOUSE").reserved()).isEqualTo(before + payload.lines().getFirst().quantity());
         // Linux 上的 MySQL 区分表名大小写，Spring Modulith 建的表是大写的

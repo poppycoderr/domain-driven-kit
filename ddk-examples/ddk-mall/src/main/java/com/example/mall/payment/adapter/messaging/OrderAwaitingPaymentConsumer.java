@@ -1,5 +1,6 @@
 package com.example.mall.payment.adapter.messaging;
 
+import com.ddk.event.starter.consumer.EventContract;
 import com.ddk.event.starter.consumer.IntegrationEventConsumer;
 import com.ddk.event.starter.consumer.ReceivedEvent;
 import com.example.mall.payment.adapter.messaging.payload.OrderAwaitingPaymentPayload;
@@ -24,6 +25,11 @@ public class OrderAwaitingPaymentConsumer implements IntegrationEventConsumer<Or
     @Override
     public String source() {
         return "mall-order-events:awaiting-payment";
+    }
+
+    @Override
+    public EventContract contract() {
+        return EventContract.of("order.awaiting-payment", 1);
     }
 
     @Override

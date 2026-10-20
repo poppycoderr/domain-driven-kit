@@ -21,6 +21,7 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 - `DdkContainers.elasticsearch()` in `ddk-test`: a single-node Elasticsearch 9 without authentication, for integration tests
 - `ddk-mall` can keep its order search read model in Elasticsearch (`search` profile). The projection, the API and the MCP tool are unchanged; only the implementation of the `OrderSearchIndex` port is swapped
+- `IntegrationEventConsumer.contract()` and `EventContract`: a consumer declares the event type and versions it understands. Messages of another type are not given to it, and messages of another version are skipped with a warning, or rejected for redelivery, before their payload is decoded. Without a declaration nothing changes. `ddk-mall`'s consumers declare their contracts
 - `CommonArchRules.domainMustNotDependOn(String...)`: the domain purity rule with packages of your own added, such as an internal SDK
 
 ### Changed
