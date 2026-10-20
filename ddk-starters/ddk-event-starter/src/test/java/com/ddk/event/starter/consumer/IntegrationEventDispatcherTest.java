@@ -1,5 +1,7 @@
 package com.ddk.event.starter.consumer;
 
+import com.ddk.core.context.Operator;
+import com.ddk.core.context.OperatorContext;
 import com.ddk.event.starter.inbox.IdempotentConsumer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -233,5 +235,83 @@ class IntegrationEventDispatcherTest {
         assertThatThrownBy(() -> new IntegrationEventDispatcher(List.of(broken), jsonMapper, null))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("declares an invalid event contract");
+    }
+
+    static class TenantRecording extends Recording {
+
+        final List<String> operators = new ArrayList<>();
+
+        private final boolean inEventTenant;
+
+        TenantRecording(boolean idempotent, boolean inEventTenant) {
+            super("billing", "orders", idempotent);
+            this.inEventTenant = inEventTenant;
+        }
+
+        @Override
+        public void handle(ReceivedEvent<OrderPaid> event) {
+            super.handle(event);
+            operators.add(OperatorContext.current().map(operator -> operator.id() + "/" + operator.tenantId()).orElse("none"));
+        }
+
+        @Override
+        public boolean runInEventTenant() {
+            return inEventTenant;
+        }
+    }
+
+    @Test
+    @DisplayName("选择在事件租户里处理时，以系统操作者加消息里的租户执行，结束后恢复调用方原来的上下文")
+    void consumersCanRunInTheEventTenant() {
+        TenantRecording consumer = new TenantRecording(false, true);
+        IntegrationEventDispatcher dispatcher = new IntegrationEventDispatcher(List.of(consumer), jsonMapper, null);
+        Operator listener = Operator.of("listener");
+
+        OperatorContext.runAs(listener, () -> {
+            dispatcher.dispatch("billing", "orders", null, Map.of(IntegrationEventDispatcher.EVENT_TENANT_HEADER, "7"), JSON);
+            assertThat(OperatorContext.current()).contains(listener);
+        });
+        dispatcher.dispatch("billing", "orders", null, Map.of(IntegrationEventDispatcher.EVENT_TENANT_HEADER, "8"), JSON);
+
+        assertThat(consumer.operators).containsExactly("ddk-event/7", "ddk-event/8");
+        assertThat(OperatorContext.current()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("消息没有租户时处理失败，不在没有租户的情况下执行；没选择的消费方不读取消息里的租户")
+    void aMissingTenantFailsAndOthersIgnoreIt() {
+        TenantRecording inTenant = new TenantRecording(false, true);
+        IntegrationEventDispatcher strict = new IntegrationEventDispatcher(List.of(inTenant), jsonMapper, null);
+        assertThatThrownBy(() -> strict.dispatch("billing", "orders", null, Map.of(), JSON))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("has no ddk-event-tenant header");
+        assertThatThrownBy(() -> strict.dispatch("billing", "orders", null, Map.of(IntegrationEventDispatcher.EVENT_TENANT_HEADER, " "), JSON))
+                .isInstanceOf(IllegalStateException.class);
+        assertThat(inTenant.received).isEmpty();
+
+        TenantRecording plain = new TenantRecording(false, false);
+        new IntegrationEventDispatcher(List.of(plain), jsonMapper, null)
+                .dispatch("billing", "orders", null, Map.of(IntegrationEventDispatcher.EVENT_TENANT_HEADER, "7"), JSON);
+        assertThat(plain.operators).containsExactly("none");
+    }
+
+    @Test
+    @DisplayName("去重登记也在事件租户里进行")
+    void theInboxRunsInTheEventTenant() {
+        TenantRecording consumer = new TenantRecording(true, true);
+        IdempotentConsumer inbox = mock(IdempotentConsumer.class);
+        List<String> tenantsAtRegistration = new ArrayList<>();
+        doAnswer(invocation -> {
+            tenantsAtRegistration.add(OperatorContext.required().tenantId());
+            invocation.<Runnable>getArgument(2).run();
+            return true;
+        }).when(inbox).handle(eq("billing:TenantRecording"), eq("evt-1"), any());
+        IntegrationEventDispatcher dispatcher = new IntegrationEventDispatcher(List.of(consumer), jsonMapper, inbox);
+
+        dispatcher.dispatch("billing", "orders", null,
+                Map.of(IntegrationEventDispatcher.EVENT_ID_HEADER, "evt-1", IntegrationEventDispatcher.EVENT_TENANT_HEADER, "7"), JSON);
+
+        assertThat(tenantsAtRegistration).containsExactly("7");
+        assertThat(consumer.operators).containsExactly("ddk-event/7");
     }
 }

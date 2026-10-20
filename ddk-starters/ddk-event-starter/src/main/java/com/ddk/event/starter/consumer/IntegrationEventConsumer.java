@@ -63,4 +63,16 @@ public interface IntegrationEventConsumer<T> {
     default @Nullable EventContract contract() {
         return null;
     }
+
+    /**
+     * 是否在事件所属的租户里处理。为 true 时，DDK 读取消息头 {@code ddk-event-tenant}（发布方用 {@code @IntegrationEvent(tenant = ...)}
+     * 声明），以系统操作者 {@code ddk-event} 加这个租户的身份执行 {@link #handle} 和去重登记，结束后恢复线程原来的上下文。
+     * 消息没有这个头时处理失败，由消息中间件重投，不会在没有租户的情况下执行。
+     * <p>
+     * 默认 false：不读取消息里的租户，{@code handle} 在没有操作者的上下文里执行。消息里的租户是发布方的声明，
+     * 只在消费方确认信任这个来源时才据此切换身份。
+     */
+    default boolean runInEventTenant() {
+        return false;
+    }
 }

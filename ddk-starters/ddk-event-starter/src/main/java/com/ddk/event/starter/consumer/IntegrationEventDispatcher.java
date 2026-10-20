@@ -1,5 +1,7 @@
 package com.ddk.event.starter.consumer;
 
+import com.ddk.core.context.Operator;
+import com.ddk.core.context.OperatorContext;
 import com.ddk.event.starter.inbox.IdempotentConsumer;
 import com.ddk.event.starter.internal.EventObservations;
 import io.micrometer.observation.ObservationRegistry;
@@ -25,6 +27,13 @@ public class IntegrationEventDispatcher {
     public static final String EVENT_TYPE_HEADER = "ddk-event-type";
 
     public static final String EVENT_VERSION_HEADER = "ddk-event-version";
+
+    public static final String EVENT_TENANT_HEADER = "ddk-event-tenant";
+
+    /**
+     * 在事件租户里处理时的操作者标识，见 {@link IntegrationEventConsumer#runInEventTenant()}。
+     */
+    public static final String OPERATOR_ID = "ddk-event";
 
     private static final Logger log = LoggerFactory.getLogger(IntegrationEventDispatcher.class);
 
@@ -143,6 +152,19 @@ public class IntegrationEventDispatcher {
             log.warn("Skipped event [{}]: {}", eventId, problem);
             return false;
         }
+        if (!consumer.runInEventTenant()) {
+            return decodeAndHandle(consumer, headers, json);
+        }
+        String tenant = headers.get(EVENT_TENANT_HEADER);
+        if (tenant == null || tenant.isBlank()) {
+            throw new IllegalStateException(consumer.getClass().getName() + " runs in the event's tenant but the message has no "
+                    + EVENT_TENANT_HEADER + " header: declare @IntegrationEvent(tenant = ...) on the published event");
+        }
+        return OperatorContext.callAs(new Operator(OPERATOR_ID, null, tenant), () -> decodeAndHandle(consumer, headers, json));
+    }
+
+    private <T> boolean decodeAndHandle(IntegrationEventConsumer<T> consumer, Map<String, String> headers, String json) {
+        String eventId = headers.get(EVENT_ID_HEADER);
         ReceivedEvent<T> event = new ReceivedEvent<>(eventId, headers.get(EVENT_TYPE_HEADER), version(headers),
                 jsonMapper.readValue(json, consumer.payloadType()));
         if (!consumer.idempotent() || idempotentConsumer == null) {

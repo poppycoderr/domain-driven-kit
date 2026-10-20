@@ -58,4 +58,12 @@ public @interface IntegrationEvent {
      * 迁移期间两个版本并行发布，直到所有消费方都切换过去。
      */
     int version() default 1;
+
+    /**
+     * 事件所属租户的属性名，取值写进消息头 {@code ddk-event-tenant}。多租户应用里，消费方据此在同一个租户里处理事件。
+     * <p>
+     * 和 {@link #id()} 一样必须是事件自身的数据：事件在提交之后才投递，失败后可能在重启之后重投，那时发布时的线程上下文已经不在了。
+     * 通常在创建事件时从聚合或当前操作者取得。属性值为 {@code null} 时不设置该消息头。留空表示事件不带租户。
+     */
+    String tenant() default "";
 }
