@@ -152,4 +152,86 @@ class IntegrationEventDispatcherTest {
 
         assertThatThrownBy(() -> dispatcher.dispatch("billing", "orders", null, Map.of(), JSON)).hasMessage("database down");
     }
+
+    private static Recording withContract(EventContract contract) {
+        return new Recording("billing", "orders", false) {
+
+            @Override
+            public EventContract contract() {
+                return contract;
+            }
+        };
+    }
+
+    private static Map<String, String> headers(String type, String version) {
+        return Map.of(IntegrationEventDispatcher.EVENT_TYPE_HEADER, type, IntegrationEventDispatcher.EVENT_VERSION_HEADER, version);
+    }
+
+    @Test
+    @DisplayName("声明了契约的消费方只接收这个类型；没声明的照常接收全部")
+    void contractsFilterByType() {
+        Recording paidOnly = withContract(EventContract.of("OrderPaid", 1));
+        Recording everything = new Recording("billing", "orders", false);
+        IntegrationEventDispatcher dispatcher = new IntegrationEventDispatcher(List.of(paidOnly, everything), jsonMapper, null);
+
+        assertThat(dispatcher.dispatch("billing", "orders", null, headers("OrderShipped", "1"), JSON)).isEqualTo(1);
+        assertThat(dispatcher.dispatch("billing", "orders", null, Map.of(), JSON)).isEqualTo(1);
+        assertThat(paidOnly.received).isEmpty();
+
+        assertThat(dispatcher.dispatch("billing", "orders", null, headers("OrderPaid", "1"), JSON)).isEqualTo(2);
+        assertThat(paidOnly.received).singleElement().extracting(ReceivedEvent::version).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("版本不在契约里时默认跳过，并且不解析消息体；并行发布的新版本不会被当成旧版本处理")
+    void otherVersionsAreSkippedBeforeDecoding() {
+        Recording v1 = withContract(EventContract.of("OrderPaid", 1));
+        Recording v1AndV2 = withContract(EventContract.of("OrderPaid", 1, 2));
+        IntegrationEventDispatcher dispatcher = new IntegrationEventDispatcher(List.of(v1, v1AndV2), jsonMapper, null);
+
+        assertThat(dispatcher.dispatch("billing", "orders", null, headers("OrderPaid", "2"), JSON)).isEqualTo(1);
+        assertThat(v1.received).isEmpty();
+        assertThat(v1AndV2.received).singleElement().extracting(ReceivedEvent::version).isEqualTo(2);
+
+        IntegrationEventDispatcher onlyV1 = new IntegrationEventDispatcher(List.of(v1), jsonMapper, null);
+        assertThat(onlyV1.dispatch("billing", "orders", null, headers("OrderPaid", "3"), "not json")).isZero();
+        assertThat(onlyV1.dispatch("billing", "orders", null, headers("OrderPaid", "one"), JSON)).isZero();
+        assertThat(onlyV1.dispatch("billing", "orders", null, Map.of(IntegrationEventDispatcher.EVENT_TYPE_HEADER, "OrderPaid"), JSON)).isZero();
+        assertThat(v1.received).isEmpty();
+    }
+
+    @Test
+    @DisplayName("选择拒绝时，版本不在契约里的消息抛出异常，由消息中间件重投")
+    void otherVersionsCanBeRejected() {
+        Recording strict = withContract(EventContract.of("OrderPaid", 1).rejectOtherVersions());
+        IntegrationEventDispatcher dispatcher = new IntegrationEventDispatcher(List.of(strict), jsonMapper, null);
+
+        assertThatThrownBy(() -> dispatcher.dispatch("billing", "orders", null, headers("OrderPaid", "2"), JSON))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("accepts OrderPaid versions [1], got version 2");
+        assertThatThrownBy(() -> dispatcher.dispatch("billing", "orders", null, Map.of(IntegrationEventDispatcher.EVENT_TYPE_HEADER, "OrderPaid"), JSON))
+                .hasMessageContaining("got a message without ddk-event-version");
+        assertThat(strict.received).isEmpty();
+
+        assertThat(dispatcher.dispatch("billing", "orders", null, headers("OrderPaid", "1"), JSON)).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("契约写错时在创建分发器时就报错")
+    void invalidContractsFailEarly() {
+        assertThatThrownBy(() -> EventContract.of("OrderPaid")).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("versions of 1 or above");
+        assertThatThrownBy(() -> EventContract.of("OrderPaid", 0, 1)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> EventContract.of(" ", 1)).isInstanceOf(IllegalArgumentException.class).hasMessageContaining("needs a type");
+
+        Recording broken = new Recording("billing", "orders", false) {
+
+            @Override
+            public EventContract contract() {
+                return EventContract.of("OrderPaid");
+            }
+        };
+        assertThatThrownBy(() -> new IntegrationEventDispatcher(List.of(broken), jsonMapper, null))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("declares an invalid event contract");
+    }
 }

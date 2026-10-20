@@ -157,7 +157,7 @@ public class OrderPlacedConsumer implements IntegrationEventConsumer<OrderPlaced
 
 - A consumer is an entry point like a controller: put it in the adapter layer and call an application service.
 - The payload type belongs to the consumer. It is the consumer's own copy of the publisher's contract with only the fields it uses, so the consumer does not depend on the publisher's classes.
-- `ReceivedEvent` carries `eventId`, `type` and `version` from the `ddk-event-*` headers.
+- `ReceivedEvent` carries `eventId`, `type` and `version` from the `ddk-event-*` headers. `contract()` declares which type and versions the consumer understands, see [Consumer contracts](#consumer-contracts).
 - Delivery is at least once. When `handle` throws, the message is delivered again.
 - `idempotent()` returning `true` wraps `handle` in `IdempotentConsumer`, keyed by the event ID. It needs `ddk.event.inbox.enabled=true` and an event ID declared by the publisher; otherwise startup or the first message fails with a message that says so.
 - The inbox records an event as handled under `<group>:<consumerId()>`. `consumerId()` defaults to the simple name of the implementing class, taken from the user class rather than a Spring proxy. Two idempotent consumers of one group with the same identity would skip each other's events, so startup fails instead: two classes with the same simple name, two beans of one class, or an anonymous class need an explicit `consumerId()`. Renaming a class changes its default identity, and events it already handled would be handled again if redelivered; fix `consumerId()` to the old name before renaming.
@@ -212,9 +212,31 @@ Evolution rules:
 same version     add optional fields only; consumers must ignore fields they don't know
 breaking change  remove / rename a field, change its meaning or type
                  → new event class with version = N + 1 and the same type()
-                 → publish both versions until every consumer has moved
+                 → publish both versions until every consumer has moved;
+                   consumers declare the versions they understand in contract()
                  → then remove the old one
 ```
+
+### Consumer contracts
+
+A consumer that leaves `contract()` at its default receives every message on its topic and tag, whatever the type and version. During a breaking change both versions are published to the same place, so a consumer that only knows version 1 would decode version 2 into its version-1 payload and quietly ignore what changed. Declaring a contract prevents that:
+
+```java
+@Override
+public EventContract contract() {
+    return EventContract.of("order.placed", 1);   // the type and the versions this consumer understands
+}
+```
+
+| Message | No contract | `EventContract.of(type, versions...)` |
+|---|---|---|
+| Another type, or no type header | Handled | Not given to this consumer |
+| The type, a listed version | Handled | Handled |
+| The type, another version, no version header, or one that is not a number | Handled, `version` is 0 when missing or invalid | Skipped with a warning, without decoding the payload |
+
+Skipping is the default because it is what parallel publishing needs: the old consumer keeps handling version 1 and ignores the version-2 copies. Add `.rejectOtherVersions()` when there is no parallel publishing and an unknown version should stop the consumer until it is upgraded. The message then fails and the broker redelivers it. With orderly consumption, the default, its queue waits; with concurrent consumption, RocketMQ's retry limit applies and the message then goes to the dead-letter queue.
+
+A blank type, no versions, or a version below 1 fails at startup.
 
 At startup the starter scans the application's packages for `@IntegrationEvent` classes and fails fast when a declaration is wrong:
 

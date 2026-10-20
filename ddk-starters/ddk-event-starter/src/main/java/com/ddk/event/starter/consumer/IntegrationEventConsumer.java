@@ -1,5 +1,6 @@
 package com.ddk.event.starter.consumer;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.util.ClassUtils;
 
 /**
@@ -51,5 +52,15 @@ public interface IntegrationEventConsumer<T> {
      */
     default String consumerId() {
         return ClassUtils.getUserClass(getClass()).getSimpleName();
+    }
+
+    /**
+     * 这个消费方接受的事件类型和版本。默认 {@code null}：不检查，主题和标签匹配的消息都交给它，与发布方是否并行发布多个版本无关。
+     * <p>
+     * 发布方按约定在破坏性变更时发布新版本。声明契约后，类型不同的消息不会交给这个消费方，版本不认识的消息不会被解析成
+     * {@link #payloadType()}，见 {@link EventContract}。
+     */
+    default @Nullable EventContract contract() {
+        return null;
     }
 }

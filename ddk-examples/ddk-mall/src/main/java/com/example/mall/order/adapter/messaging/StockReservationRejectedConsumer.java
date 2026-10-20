@@ -1,5 +1,6 @@
 package com.example.mall.order.adapter.messaging;
 
+import com.ddk.event.starter.consumer.EventContract;
 import com.ddk.event.starter.consumer.IntegrationEventConsumer;
 import com.ddk.event.starter.consumer.ReceivedEvent;
 import com.example.mall.order.adapter.messaging.payload.StockReservationRejectedPayload;
@@ -24,6 +25,11 @@ public class StockReservationRejectedConsumer implements IntegrationEventConsume
     @Override
     public String source() {
         return "mall-inventory-events:rejected";
+    }
+
+    @Override
+    public EventContract contract() {
+        return EventContract.of("inventory.stock-reservation-rejected", 1);
     }
 
     @Override

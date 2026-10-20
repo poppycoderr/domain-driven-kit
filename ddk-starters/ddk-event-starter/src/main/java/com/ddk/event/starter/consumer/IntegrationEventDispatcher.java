@@ -59,6 +59,11 @@ public class IntegrationEventDispatcher {
             if (consumer.source().isBlank() || consumer.group().isBlank()) {
                 throw new IllegalStateException(consumer.getClass().getName() + " must declare a group and a source");
             }
+            try {
+                consumer.contract();
+            } catch (IllegalArgumentException e) {
+                throw new IllegalStateException(consumer.getClass().getName() + " declares an invalid event contract: " + e.getMessage(), e);
+            }
             if (!consumer.idempotent()) {
                 continue;
             }
@@ -92,31 +97,57 @@ public class IntegrationEventDispatcher {
     }
 
     /**
-     * 分发给指定消费组里订阅了这个主题和标签的全部消费方。任何一个消费方失败都会抛出异常，由调用方决定是否重投；
+     * 分发给指定消费组里订阅了这个主题和标签、并且接受这个事件类型的全部消费方。任何一个消费方失败都会抛出异常，由调用方决定是否重投；
      * 重投时已经成功的消费方会再执行一次，这正是处理逻辑必须可重复执行的原因。
      *
-     * @return 处理了这条消息的消费方数量
+     * @return 处理了这条消息的消费方数量，不含因版本不符而跳过的
+     * @throws IllegalStateException 消费方的契约不接受这个版本，并且选择了拒绝
      */
     public int dispatch(String group, String topic, @Nullable String tag, Map<String, String> headers, String json) {
+        String type = headers.get(EVENT_TYPE_HEADER);
         List<IntegrationEventConsumer<?>> matching = consumers.stream()
-                .filter(consumer -> consumer.group().equals(group) && matches(consumer.source(), topic, tag))
+                .filter(consumer -> consumer.group().equals(group) && matches(consumer.source(), topic, tag) && acceptsType(consumer, type))
                 .toList();
         if (matching.isEmpty()) {
             return 0;
         }
         return observations.consume(group, topic, headers, () -> {
-            matching.forEach(consumer -> invoke(consumer, headers, json));
-            return matching.size();
+            int handled = 0;
+            for (IntegrationEventConsumer<?> consumer : matching) {
+                if (invoke(consumer, headers, json)) {
+                    handled++;
+                }
+            }
+            return handled;
         });
     }
 
-    private <T> void invoke(IntegrationEventConsumer<T> consumer, Map<String, String> headers, String json) {
+    private static boolean acceptsType(IntegrationEventConsumer<?> consumer, @Nullable String type) {
+        EventContract contract = consumer.contract();
+        return contract == null || contract.type().equals(type);
+    }
+
+    /**
+     * 版本检查在解析消息体之前：不认识的版本不能按消费方的类型解析。
+     */
+    private <T> boolean invoke(IntegrationEventConsumer<T> consumer, Map<String, String> headers, String json) {
         String eventId = headers.get(EVENT_ID_HEADER);
+        EventContract contract = consumer.contract();
+        if (contract != null && !contract.versions().contains(version(headers))) {
+            String version = headers.get(EVENT_VERSION_HEADER);
+            String problem = consumer.getClass().getName() + " accepts " + contract.type() + " versions " + contract.versions() + ", got "
+                    + (version == null ? "a message without " + EVENT_VERSION_HEADER : "version " + version);
+            if (contract.otherVersions() == EventContract.OtherVersions.REJECT) {
+                throw new IllegalStateException(problem);
+            }
+            log.warn("Skipped event [{}]: {}", eventId, problem);
+            return false;
+        }
         ReceivedEvent<T> event = new ReceivedEvent<>(eventId, headers.get(EVENT_TYPE_HEADER), version(headers),
                 jsonMapper.readValue(json, consumer.payloadType()));
         if (!consumer.idempotent() || idempotentConsumer == null) {
             consumer.handle(event);
-            return;
+            return true;
         }
         if (eventId == null || eventId.isBlank()) {
             throw new IllegalStateException(consumer.getClass().getName() + " is idempotent but the message has no " + EVENT_ID_HEADER
@@ -127,6 +158,7 @@ public class IntegrationEventDispatcher {
         if (!processed) {
             log.debug("Skipped duplicate event [{}] for {}", eventId, identity);
         }
+        return true;
     }
 
     static boolean matches(String source, String topic, @Nullable String tag) {

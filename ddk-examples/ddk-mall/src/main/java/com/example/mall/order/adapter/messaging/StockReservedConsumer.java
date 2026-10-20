@@ -1,5 +1,6 @@
 package com.example.mall.order.adapter.messaging;
 
+import com.ddk.event.starter.consumer.EventContract;
 import com.ddk.event.starter.consumer.IntegrationEventConsumer;
 import com.ddk.event.starter.consumer.ReceivedEvent;
 import com.example.mall.order.adapter.messaging.payload.StockReservedPayload;
@@ -24,6 +25,11 @@ public class StockReservedConsumer implements IntegrationEventConsumer<StockRese
     @Override
     public String source() {
         return "mall-inventory-events:reserved";
+    }
+
+    @Override
+    public EventContract contract() {
+        return EventContract.of("inventory.stock-reserved", 1);
     }
 
     @Override

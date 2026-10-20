@@ -1,5 +1,6 @@
 package com.example.mall.order.adapter.messaging;
 
+import com.ddk.event.starter.consumer.EventContract;
 import com.ddk.event.starter.consumer.IntegrationEventConsumer;
 import com.ddk.event.starter.consumer.ReceivedEvent;
 import com.example.mall.order.adapter.messaging.payload.PaymentCompletedPayload;
@@ -24,6 +25,11 @@ public class PaymentCompletedConsumer implements IntegrationEventConsumer<Paymen
     @Override
     public String source() {
         return "mall-payment-events:completed";
+    }
+
+    @Override
+    public EventContract contract() {
+        return EventContract.of("payment.completed", 1);
     }
 
     @Override
