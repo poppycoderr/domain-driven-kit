@@ -1,5 +1,6 @@
 package com.ddk.event.starter.consumer;
 
+import com.ddk.core.context.OperatorContext;
 import com.ddk.core.domain.IntegrationEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -41,6 +42,9 @@ class LocalEventDeliveryTest {
 
     @Autowired
     private InvoiceConsumer invoices;
+
+    @Autowired
+    private RefundConsumer refunds;
 
     @BeforeEach
     void reset() {
@@ -86,6 +90,60 @@ class LocalEventDeliveryTest {
 
         await().atMost(Duration.ofSeconds(5)).until(() -> invoices.received.stream().anyMatch(event -> "evt-7".equals(event.eventId())));
         assertThat(invoices.received).extracting(ReceivedEvent::eventId).containsExactly("evt-6", "evt-7");
+    }
+
+    @Test
+    @DisplayName("租户随事件数据投递：发布时线程上没有租户也不影响，消费方在事件的租户里处理")
+    void theTenantTravelsWithTheEvent() {
+        transaction.executeWithoutResult(status -> publisher.publishEvent(new ParcelReturned("evt-r1", 8L, "tenant-a")));
+
+        await().atMost(Duration.ofSeconds(5)).until(() -> !refunds.operators.isEmpty());
+        assertThat(refunds.operators).containsExactly("ddk-event/tenant-a");
+    }
+
+    @IntegrationEvent(value = "parcels:returned", id = "eventId", tenant = "tenantId")
+    record ParcelReturned(
+            String eventId,
+
+            Long parcelId,
+
+            String tenantId
+    ) {
+    }
+
+    static class RefundConsumer implements IntegrationEventConsumer<ParcelView> {
+
+        final List<String> operators = new CopyOnWriteArrayList<>();
+
+        @Override
+        public String group() {
+            return "refunds";
+        }
+
+        @Override
+        public String source() {
+            return "parcels:returned";
+        }
+
+        @Override
+        public Class<ParcelView> payloadType() {
+            return ParcelView.class;
+        }
+
+        @Override
+        public boolean idempotent() {
+            return true;
+        }
+
+        @Override
+        public boolean runInEventTenant() {
+            return true;
+        }
+
+        @Override
+        public void handle(ReceivedEvent<ParcelView> event) {
+            operators.add(OperatorContext.current().map(operator -> operator.id() + "/" + operator.tenantId()).orElse("none"));
+        }
     }
 
     @IntegrationEvent(value = "parcels:shipped", key = "parcelId", id = "eventId", type = "parcel.shipped", version = 3)
@@ -146,6 +204,11 @@ class LocalEventDeliveryTest {
         @Bean
         InvoiceConsumer invoiceConsumer() {
             return new InvoiceConsumer();
+        }
+
+        @Bean
+        RefundConsumer refundConsumer() {
+            return new RefundConsumer();
         }
     }
 }

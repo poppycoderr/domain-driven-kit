@@ -205,6 +205,7 @@ Every delivered integration event carries contract headers:
 | `ddk-event-type` | `type()`, defaults to the simple class name | Consumers dispatch on this stable name, not on the Java class, so moving or renaming the class does not break them. Put the old name in `type()` when renaming |
 | `ddk-event-version` | `version()`, defaults to `1` | Which shape of the payload this is |
 | `ddk-event-id` | `id()` accessor | Deduplication, see below |
+| `ddk-event-tenant` | `tenant()` accessor, omitted when not declared or `null` | The tenant the event belongs to, see [Tenants](#tenants) |
 
 Evolution rules:
 
@@ -240,11 +241,35 @@ A blank type, no versions, or a version below 1 fails at startup.
 
 At startup the starter scans the application's packages for `@IntegrationEvent` classes and fails fast when a declaration is wrong:
 
-- `key()` or `id()` does not name a no-argument accessor
+- `key()`, `id()` or `tenant()` does not name a no-argument accessor
 - `version()` is below 1 or the target is blank
 - two classes declare the same type and version
 
 Without this check a typo would surface only after commit, when delivery fails and the publication is left `FAILED`.
+
+## Tenants
+
+`OperatorContext` lives on a thread. Events are sent after the commit on another thread, and a failed one may be sent again after a restart, so the publisher's context cannot travel with them. The tenant has to be part of the event's own data, like its ID:
+
+```java
+@IntegrationEvent(value = "order-events:placed", id = "eventId", tenant = "tenantId")
+public record OrderPlacedMessage(String eventId, Long tenantId, Long orderId) {
+}
+```
+
+The value goes into the `ddk-event-tenant` header. On the consuming side, a consumer chooses to run in that tenant:
+
+```java
+@Override
+public boolean runInEventTenant() {
+    return true;
+}
+```
+
+- `handle` and the inbox registration then run as the system operator `ddk-event` (`IntegrationEventDispatcher.OPERATOR_ID`) in the event's tenant, through `OperatorContext.runAs`. The listener thread's previous context is restored afterwards.
+- A message without the header fails and is redelivered by the broker. It is never handled without a tenant.
+- Consumers that do not opt in do not read the header and run without an operator, as before. A tenant in a message is the publisher's claim, so switching identity on it is a decision the consumer makes for a source it trusts.
+- Event IDs should be unique across tenants, such as UUIDs. The inbox is keyed by consumer and event ID only.
 
 ## Idempotent consumers
 

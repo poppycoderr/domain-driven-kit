@@ -503,6 +503,8 @@
                                     <exclude>*.internal</exclude>
                                     <!-- 0.9：Projections 从类改为接口，实现移入 internal -->
                                     <exclude>com.ddk.projection.starter.Projections</exclude>
+                                    <!-- 0.9：注解新增带默认值的元素。JLS 13.5.7 规定它二进制和源码都兼容，japicmp 仍按接口新增抽象方法报告 -->
+                                    <exclude>com.ddk.core.domain.IntegrationEvent#tenant()</exclude>
                                 </excludes>
                             </parameter>
                         </configuration>
