@@ -293,7 +293,7 @@ handle(consumer, messageId, handler)            joins the caller's transaction, 
 
 - The insert and the handler's own writes share one transaction. A failed handler leaves the message unprocessed, so a redelivery runs it again.
 - The savepoint matters on PostgreSQL, which aborts the whole transaction after a failed statement. A duplicate rolls back only to the savepoint, and the caller's other writes still commit. A Testcontainers test verifies this.
-- `purgeOlderThan(Duration)` removes old records. Keep them longer than the broker's longest redelivery window.
+- `purgeOlderThan(Duration)` removes old records. Keep them longer than the broker's longest redelivery window. [Maintenance](#operations) can do this on a schedule.
 
 Enable it with `ddk.event.inbox.enabled=true`. It needs a `JdbcTemplate` and a transaction manager, and creates `ddk_processed_message` with `CREATE TABLE IF NOT EXISTS`, which works on MySQL, PostgreSQL and H2. On other databases, or when a migration tool owns the schema, create the table yourself and set `initialize-schema=false`:
 
@@ -305,6 +305,24 @@ CREATE TABLE ddk_processed_message (
     PRIMARY KEY (consumer, message_id)
 );
 ```
+
+## Operations
+
+A failed delivery stays in Spring Modulith's `event_publication` table, and completed ones stay there too with the default completion mode. The inbox keeps every processed message. None of this cleans itself up. With `ddk.event.maintenance.enabled=true`, a background thread does it through Modulith's and the inbox's own APIs, never by editing tables:
+
+```text
+every ddk.event.maintenance.interval (1m)
+  FailedEventPublications.resubmit(minAge = resubmit-min-age, batchSize = resubmit-batch-size)
+  CompletedEventPublications.deletePublicationsOlderThan(delete-completed-after)     0 keeps them
+  IdempotentConsumer.purgeOlderThan(inbox-retention)                               0 keeps them
+```
+
+- **Several instances.** Modulith does not claim a publication when it resubmits it, so two instances resubmitting at once send it twice. When the application has a ShedLock `LockProvider`, a round runs under the lock `ddk-event-maintenance`, so one instance at a time does it. `ddk-job-starter` provides one. Without a `LockProvider`, startup logs a warning: enable maintenance on one instance only, or rely on idempotent consumers.
+- **Stuck publications.** Only publications that Modulith marks `FAILED` are resubmitted. To have publications that hang in `PUBLISHED` or `PROCESSING` (for example after the process died mid-send) marked as failed, turn on Modulith's staleness check, for example `spring.modulith.events.staleness.processing=5m` and `spring.modulith.events.staleness.published=5m`.
+- **Replay window.** Resubmission and broker redelivery can bring a message back. `inbox-retention` must be longer than the longest time in which that can happen. Otherwise an idempotent consumer handles the message again after its record was purged. The default is 7 days.
+- Each step fails on its own. A broken step is logged, and the others and the next round still run.
+
+With Micrometer present, `ddk.event.publications{status}` reports how many publications are `published`, `processing`, `failed` or `resubmitted`. Completed ones are not counted. It is queried on scrape. Alert when `failed` stays above zero, or `published` keeps growing.
 
 ## Configuration
 
@@ -321,4 +339,11 @@ CREATE TABLE ddk_processed_message (
 | `ddk.event.rocketmq.consumer.orderly` | `true` | Orderly consumption; `false` consumes concurrently and redelivers failed messages individually |
 | `ddk.event.outside-transaction` | `fail` | What to do when an integration event is published outside a transaction: `fail` throws where it is published, `warn` logs, `ignore` stays silent |
 | `ddk.event.local-delivery.enabled` | `false` | Deliver integration events in-process to the consumers of the same application; development and tests only |
+| `ddk.event.maintenance.enabled` | `false` | Run the scheduled maintenance described in [Operations](#operations) |
+| `ddk.event.maintenance.interval` | `1m` | Time between two rounds |
+| `ddk.event.maintenance.resubmit-failed` | `true` | Resubmit failed publications |
+| `ddk.event.maintenance.resubmit-min-age` | `1m` | Only resubmit publications that failed at least this long ago |
+| `ddk.event.maintenance.resubmit-batch-size` | `100` | Publications resubmitted per round at most |
+| `ddk.event.maintenance.delete-completed-after` | `7d` | Delete completed publications older than this; `0` keeps them |
+| `ddk.event.maintenance.inbox-retention` | `7d` | Delete processed message records older than this; `0` keeps them. Longer than any redelivery or resubmission window |
 | `spring.modulith.events.*` | Spring Modulith | Registry schema, republishing on restart, completion mode, staleness |

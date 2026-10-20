@@ -42,6 +42,11 @@ public class DdkEventProperties {
     private LocalDelivery localDelivery = new LocalDelivery();
 
     /**
+     * 定时维护发布记录和已处理消息表。
+     */
+    private Maintenance maintenance = new Maintenance();
+
+    /**
      * 集成事件在事务之外发布时怎么办。这样的事件不会被投递：{@code fail} 在发布处抛出异常，{@code warn} 只记一条警告，
      * {@code ignore} 保持沉默。
      */
@@ -51,6 +56,59 @@ public class DdkEventProperties {
         FAIL,
         WARN,
         IGNORE
+    }
+
+    @Data
+    public static class Maintenance {
+
+        /**
+         * 是否定时维护：重投失败的发布、删除旧的已完成发布、清理旧的已处理消息。默认关闭。
+         * 有 ShedLock 的 {@code LockProvider}（例如引入了 ddk-job-starter）时同一时刻只有一个实例在维护；没有时每个实例都会做，
+         * 失败的发布可能被几个实例同时重投。
+         */
+        private boolean enabled = false;
+
+        /**
+         * 两轮维护之间的间隔。
+         */
+        private Duration interval = Duration.ofMinutes(1);
+
+        /**
+         * 是否重投失败的发布（Spring Modulith 标记为 FAILED 的，包括陈旧检测判定卡住的）。
+         */
+        private boolean resubmitFailed = true;
+
+        /**
+         * 只重投失败了至少这么久的发布，给正在进行的重试留出时间。
+         */
+        private Duration resubmitMinAge = Duration.ofMinutes(1);
+
+        /**
+         * 每轮最多重投多少条。
+         */
+        private int resubmitBatchSize = 100;
+
+        /**
+         * 已完成的发布保留多久，之后删除；为零时不删除。只在 {@code spring.modulith.events.completion-mode=update}（默认）时有记录可删。
+         */
+        private Duration deleteCompletedAfter = Duration.ofDays(7);
+
+        /**
+         * 已处理消息表的记录保留多久，之后删除；为零时不删除。要长于一条消息可能被再次投递的最长时间，包括这里的重投，
+         * 否则重投的消息会被当成新消息再处理一次。
+         */
+        private Duration inboxRetention = Duration.ofDays(7);
+
+        /**
+         * @throws IllegalStateException 间隔或最小年龄不为正、批量小于 1、保留期为负
+         */
+        public void validate() {
+            if (!interval.isPositive() || !resubmitMinAge.isPositive() || resubmitBatchSize < 1
+                    || deleteCompletedAfter.isNegative() || inboxRetention.isNegative()) {
+                throw new IllegalStateException("Invalid ddk.event.maintenance settings: interval and resubmit-min-age must be positive, "
+                        + "resubmit-batch-size at least 1, and the retention periods zero or positive");
+            }
+        }
     }
 
     @Data
