@@ -1,5 +1,6 @@
 package com.ddk.projection.starter;
 
+import com.ddk.core.context.OperatorContext;
 import com.ddk.projection.starter.internal.PendingRefreshes;
 import com.ddk.projection.starter.internal.RefreshWorker;
 import org.junit.jupiter.api.AfterEach;
@@ -132,7 +133,7 @@ class RefreshProtocolTest {
         paused.awaitCaptured();
         transaction.executeWithoutResult(status -> {
             jdbc.update("DELETE FROM t_source WHERE id = '1'");
-            pending.mark("catalog", "1");
+            pending.mark("catalog", "", "1");
         });
         clock.advance(LEASE.plusSeconds(1));
         fast.drain();
@@ -148,10 +149,10 @@ class RefreshProtocolTest {
     @Test
     @DisplayName("代次不复用：删除后重新插入的标记，旧句柄的确认与失败都碰不到它")
     void anOldHandleCannotTouchANewGeneration() {
-        pending.mark("catalog", "2");
+        pending.mark("catalog", "", "2");
         PendingRefreshes.Claim old = pending.claim(pending.due(10).getFirst(), LEASE).orElseThrow();
         jdbc.update("DELETE FROM protocol_pending WHERE entity_id = '2'");
-        pending.mark("catalog", "2");
+        pending.mark("catalog", "", "2");
         String fresh = jdbc.queryForObject("SELECT generation FROM protocol_pending WHERE entity_id = '2'", String.class);
 
         pending.failed(old, Duration.ofHours(1), "late failure");
@@ -174,7 +175,7 @@ class RefreshProtocolTest {
         RefreshWorker first = worker(this::copy);
         RefreshWorker second = worker(this::copy);
         jdbc.query("SELECT id FROM t_source", rs -> {
-            pending.mark("catalog", rs.getString(1));
+            pending.mark("catalog", "", rs.getString(1));
         });
 
         CountDownLatch go = new CountDownLatch(1);
@@ -235,7 +236,7 @@ class RefreshProtocolTest {
 
         assertThatThrownBy(() -> transaction.executeWithoutResult(status -> {
             jdbc.update("UPDATE t_source SET state = 'v9' WHERE id = '1'");
-            pending.mark("catalog", "1");
+            pending.mark("catalog", "", "1");
             throw new IllegalStateException("rejected");
         })).hasMessage("rejected");
         assertThat(pending.count("catalog")).isZero();
@@ -258,7 +259,7 @@ class RefreshProtocolTest {
     }
 
     @Test
-    @DisplayName("从 0.8 的表结构升级：追加列、为已有标记补上代次，旧标记照常处理；不允许自动升级时给出语句并启动失败")
+    @DisplayName("从 0.8 的表结构升级：复制重建，已有标记补上代次、算作没有租户，照常处理；升级后旧实例插入的标记也能处理；不允许自动升级时给出语句并启动失败")
     void upgradesATableFromTheOldStructure() {
         jdbc.execute("DROP TABLE protocol_pending");
         jdbc.execute("CREATE TABLE protocol_pending (projection VARCHAR(100) NOT NULL, entity_id VARCHAR(200) NOT NULL, version BIGINT NOT NULL, "
@@ -269,15 +270,98 @@ class RefreshProtocolTest {
 
         assertThatThrownBy(() -> pending.prepare(false))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("DDK 0.8 or earlier")
-                .hasMessageContaining("ADD COLUMN generation");
+                .hasMessageContaining("DDK 0.8 or an earlier 0.9 snapshot")
+                .hasMessageContaining("CREATE TABLE protocol_pending_upgrade AS SELECT");
 
         pending.prepare(true);
         pending.prepare(true);
         assertThat(jdbc.queryForObject("SELECT generation FROM protocol_pending", String.class)).isEqualTo("upgraded-3");
+        assertThat(jdbc.queryForObject("SELECT tenant_id FROM protocol_pending", String.class)).isEmpty();
         assertThatThrownBy(() -> jdbc.execute(pending.dueIndex())).as("the upgrade also adds the due index").isInstanceOf(DataAccessException.class);
+        jdbc.execute("CREATE TABLE protocol_pending_upgrade (x INT)");
+        jdbc.execute("DROP TABLE protocol_pending_upgrade");
+        pending.mark("catalog", "tenant-a", "1");
+        assertThat(pending.count("catalog")).as("the new primary key includes the tenant").isEqualTo(2);
+        jdbc.update("DELETE FROM protocol_pending WHERE tenant_id = 'tenant-a'");
+        jdbc.update("INSERT INTO protocol_pending (projection, entity_id, version, attempts, available_at) VALUES ('catalog', '2', 1, 0, ?)",
+                java.sql.Timestamp.from(clock.instant()));
+        jdbc.update("INSERT INTO t_source (id, state) VALUES ('2', 'v1')");
+
         drainUntilEmpty(worker(this::copy));
-        assertThat(view).containsEntry("1", "v1");
+        assertThat(view).as("a mark inserted by a 0.8 instance during a rolling upgrade is adopted").containsEntry("1", "v1").containsEntry("2", "v1");
+    }
+
+    @Test
+    @DisplayName("从 0.9 快照的表结构升级：保留已有的代次")
+    void upgradesASnapshotTableKeepingGenerations() {
+        jdbc.execute("DROP TABLE protocol_pending");
+        jdbc.execute("CREATE TABLE protocol_pending (projection VARCHAR(100) NOT NULL, entity_id VARCHAR(200) NOT NULL, version BIGINT NOT NULL, "
+                + "generation VARCHAR(36), claim_token VARCHAR(36), claimed_until TIMESTAMP, attempts INT NOT NULL, available_at TIMESTAMP NOT NULL, "
+                + "last_error VARCHAR(500), PRIMARY KEY (projection, entity_id))");
+        jdbc.update("INSERT INTO protocol_pending (projection, entity_id, version, generation, attempts, available_at) "
+                + "VALUES ('catalog', '1', 3, 'kept', 2, ?)", java.sql.Timestamp.from(clock.instant()));
+
+        pending.prepare(true);
+
+        assertThat(jdbc.queryForObject("SELECT generation FROM protocol_pending", String.class)).isEqualTo("kept");
+        assertThat(jdbc.queryForObject("SELECT attempts FROM protocol_pending", Integer.class)).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("同一个标识在两个租户下是两条标记，各自以系统操作者加自己的租户刷新；没有租户的不设置操作者；刷新后线程上不留操作者")
+    void eachMarkIsRefreshedInItsOwnTenant() {
+        pending.mark("catalog", "tenant-a", "1");
+        pending.mark("catalog", "tenant-b", "1");
+        pending.mark("catalog", "", "2");
+        assertThat(pending.count("catalog")).isEqualTo(3);
+
+        List<String> seen = new java.util.concurrent.CopyOnWriteArrayList<>();
+        drainUntilEmpty(worker(id -> seen.add(id + "@" + OperatorContext.current()
+                .map(operator -> operator.id() + "/" + operator.tenantId()).orElse("none"))));
+
+        assertThat(seen).containsExactlyInAnyOrder("1@ddk-projection/tenant-a", "1@ddk-projection/tenant-b", "2@none");
+        assertThat(OperatorContext.current()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("租户随标记持久化：换一个实例（重启或别的实例接手）照样以原来的租户刷新；失败重试时也是")
+    void theTenantSurvivesARestartAndRetries() {
+        pending.mark("catalog", "tenant-a", "1");
+        PendingRefreshes afterRestart = new PendingRefreshes(jdbc, new DataSourceTransactionManager(java.util.Objects.requireNonNull(jdbc.getDataSource())), "protocol_pending", clock);
+        java.util.concurrent.atomic.AtomicInteger calls = new java.util.concurrent.atomic.AtomicInteger();
+        List<String> tenants = new java.util.concurrent.CopyOnWriteArrayList<>();
+        Projection failingOnce = new Projection() {
+
+            @Override
+            public String name() {
+                return "catalog";
+            }
+
+            @Override
+            public void refresh(String id) {
+                tenants.add(OperatorContext.required().tenantId());
+                if (calls.incrementAndGet() == 1) {
+                    throw new IllegalStateException("source unavailable");
+                }
+            }
+        };
+        RefreshWorker worker = new RefreshWorker(List.of(failingOnce), afterRestart, 10, Duration.ofMinutes(1), Duration.ofMinutes(1),
+                Duration.ofHours(1), LEASE);
+
+        worker.drain();
+        assertThat(jdbc.queryForObject("SELECT last_error FROM protocol_pending", String.class)).contains("source unavailable");
+        clock.advance(Duration.ofMinutes(2));
+        worker.drain();
+
+        assertThat(tenants).containsExactly("tenant-a", "tenant-a");
+        assertThat(afterRestart.count("catalog")).isZero();
+        assertThat(OperatorContext.current()).isEmpty();
+    }
+
+    @Test
+    @DisplayName("租户标识超过 64 个字符时拒绝标记")
+    void rejectsOverlongTenants() {
+        assertThatThrownBy(() -> pending.mark("catalog", "t".repeat(65), "1")).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -302,7 +386,7 @@ class RefreshProtocolTest {
             if (jdbc.update("UPDATE t_source SET state = ? WHERE id = ?", state, id) == 0) {
                 jdbc.update("INSERT INTO t_source (id, state) VALUES (?, ?)", id, state);
             }
-            pending.mark("catalog", id);
+            pending.mark("catalog", "", id);
         });
     }
 

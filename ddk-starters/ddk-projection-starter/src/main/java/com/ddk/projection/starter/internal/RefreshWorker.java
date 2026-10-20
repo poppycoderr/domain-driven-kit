@@ -1,5 +1,7 @@
 package com.ddk.projection.starter.internal;
 
+import com.ddk.core.context.Operator;
+import com.ddk.core.context.OperatorContext;
 import com.ddk.projection.starter.Projection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,8 +27,16 @@ import java.util.stream.Collectors;
  * 多个实例共用同一张表。每条标记先领取再处理，同一时刻只有一个领取者；领取有租约，worker 停顿或宕机超过租约后别人可以接手。
  * 失去租约的 worker 恢复后仍可能把旧状态写进读模型，但它的确认会落空并重新标记这条数据，读模型随后收敛到最新状态，
  * 见 {@link PendingRefreshes}。
+ * <p>
+ * 有租户的标记以系统操作者 {@value #OPERATOR_ID} 加该租户的身份刷新，结束后恢复线程原来的上下文；租户取自标记本身，
+ * 不依赖发起变更的那个线程，重启或换实例接手时一样。没有租户的标记不设置操作者。
  */
 public class RefreshWorker implements SmartLifecycle {
+
+    /**
+     * 刷新时的操作者标识，会出现在审计字段里。
+     */
+    public static final String OPERATOR_ID = "ddk-projection";
 
     private static final Logger log = LoggerFactory.getLogger(RefreshWorker.class);
 
@@ -113,11 +123,15 @@ public class RefreshWorker implements SmartLifecycle {
             if (projection == null) {
                 throw new IllegalStateException("No projection named " + item.projection() + " in this application");
             }
-            projection.refresh(item.id());
+            if (item.tenant().isEmpty()) {
+                projection.refresh(item.id());
+            } else {
+                OperatorContext.runAs(new Operator(OPERATOR_ID, null, item.tenant()), () -> projection.refresh(item.id()));
+            }
         } catch (RuntimeException e) {
             Duration delay = backoff(item.attempts());
-            log.warn("Refreshing [{}] of projection [{}] failed (attempt {}), retrying in {}", item.id(), item.projection(),
-                    item.attempts() + 1, delay, e);
+            log.warn("Refreshing [{}] of projection [{}]{} failed (attempt {}), retrying in {}", item.id(), item.projection(),
+                    item.tenant().isEmpty() ? "" : " for tenant [" + item.tenant() + "]", item.attempts() + 1, delay, e);
             pending.failed(claim, delay, e.toString());
             return false;
         }

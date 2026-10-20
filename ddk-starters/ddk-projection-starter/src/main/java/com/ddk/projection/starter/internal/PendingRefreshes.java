@@ -36,6 +36,9 @@ import java.util.regex.Pattern;
  * 于是重新标记这条数据：之后一定还有一次刷新，它在这次写入之后才读源状态。读模型因此最终收敛到写模型，
  * 不会出现「读模型是旧的、表里却已经没有标记」。
  * <p>
+ * 标记按「读模型 + 租户 + 数据标识」区分：租户内唯一的标识在两个租户下是两条数据。租户随标记持久化，任何实例在任何时候接手都知道
+ * 该以哪个租户刷新；没有租户时为空字符串。
+ * <p>
  * {@code version} 列保留给 0.8 及更早的 worker：每次标记仍然加一，滚动升级期间旧 worker 的确认同样会落空。
  */
 public class PendingRefreshes {
@@ -46,13 +49,7 @@ public class PendingRefreshes {
 
     private static final int MAX_ERROR_LENGTH = 500;
 
-    /**
-     * 0.8 的表结构之后新增的列，以及升级时追加它们的语句。
-     */
-    private static final List<String[]> ADDED_COLUMNS = List.of(
-            new String[] {"generation", "VARCHAR(36)"},
-            new String[] {"claim_token", "VARCHAR(36)"},
-            new String[] {"claimed_until", "TIMESTAMP"});
+    private static final int MAX_TENANT_LENGTH = 64;
 
     private final JdbcTemplate jdbc;
 
@@ -80,32 +77,68 @@ public class PendingRefreshes {
      * 插入放在嵌套事务（保存点）里：两个事务同时标记同一条数据时后一个会撞上主键，只回滚到保存点再改成更新，
      * 不会让 PostgreSQL 这类数据库把整个外层事务标记为失败。
      */
-    public void mark(String projection, String id) {
-        if (touch(projection, id) > 0) {
+    /**
+     * @param tenant 数据所属的租户，没有租户时为空字符串
+     * @throws IllegalArgumentException 租户标识超过 64 个字符
+     */
+    public void mark(String projection, String tenant, String id) {
+        if (tenant.length() > MAX_TENANT_LENGTH) {
+            throw new IllegalArgumentException("Tenant id longer than " + MAX_TENANT_LENGTH + " characters: " + tenant);
+        }
+        if (touch(projection, tenant, id) > 0) {
             return;
         }
         try {
             nested.executeWithoutResult(status -> jdbc.update("INSERT INTO " + table
-                            + " (projection, entity_id, version, generation, attempts, available_at) VALUES (?, ?, 1, ?, 0, ?)",
-                    projection, id, newToken(), now()));
+                            + " (projection, tenant_id, entity_id, version, generation, attempts, available_at) VALUES (?, ?, ?, 1, ?, 0, ?)",
+                    projection, tenant, id, newToken(), now()));
         } catch (DuplicateKeyException e) {
-            touch(projection, id);
+            touch(projection, tenant, id);
         }
     }
 
-    private int touch(String projection, String id) {
+    private int touch(String projection, String tenant, String id) {
         return jdbc.update("UPDATE " + table + " SET version = version + 1, generation = ?, attempts = 0, available_at = ?, last_error = NULL "
-                + "WHERE projection = ? AND entity_id = ?", newToken(), now(), projection, id);
+                + "WHERE projection = ? AND tenant_id = ? AND entity_id = ?", newToken(), now(), projection, tenant, id);
     }
 
     /**
      * 已经到期、并且没有被别人领取（或领取的租约已过期）的标记，最早到期的在前。
+     * <p>
+     * 滚动升级期间还在运行的 0.8 实例插入的标记没有代次，这里给它补上一个，否则按代次领取永远领不到它。
      */
     public List<Pending> due(int limit) {
         Timestamp now = now();
-        return jdbc.query("SELECT projection, entity_id, generation, attempts FROM " + table
+        List<Row> due = jdbc.query("SELECT projection, tenant_id, entity_id, generation, attempts FROM " + table
                         + " WHERE available_at <= ? AND (claim_token IS NULL OR claimed_until < ?) ORDER BY available_at LIMIT " + limit,
-                (rs, row) -> new Pending(rs.getString(1), rs.getString(2), rs.getString(3), rs.getInt(4)), now, now);
+                (rs, row) -> new Row(rs.getString(1), rs.getString(2), rs.getString(3), rs.getString(4), rs.getInt(5)), now, now);
+        return due.stream().map(this::withGeneration).flatMap(Optional::stream).toList();
+    }
+
+    private Optional<Pending> withGeneration(Row row) {
+        String generation = row.generation();
+        if (generation == null) {
+            generation = newToken();
+            int adopted = jdbc.update("UPDATE " + table + " SET generation = ? "
+                    + "WHERE projection = ? AND tenant_id = ? AND entity_id = ? AND generation IS NULL", generation, row.projection(), row.tenant(), row.id());
+            if (adopted == 0) {
+                return Optional.empty();
+            }
+        }
+        return Optional.of(new Pending(row.projection(), row.tenant(), row.id(), generation, row.attempts()));
+    }
+
+    private record Row(
+            String projection,
+
+            String tenant,
+
+            String id,
+
+            @Nullable String generation,
+
+            int attempts
+    ) {
     }
 
     /**
@@ -115,8 +148,8 @@ public class PendingRefreshes {
         String token = newToken();
         Timestamp now = now();
         int claimed = jdbc.update("UPDATE " + table + " SET claim_token = ?, claimed_until = ? "
-                        + "WHERE projection = ? AND entity_id = ? AND generation = ? AND (claim_token IS NULL OR claimed_until < ?)",
-                token, Timestamp.from(clock.instant().plus(lease)), pending.projection(), pending.id(), pending.generation(), now);
+                        + "WHERE projection = ? AND tenant_id = ? AND entity_id = ? AND generation = ? AND (claim_token IS NULL OR claimed_until < ?)",
+                token, Timestamp.from(clock.instant().plus(lease)), pending.projection(), pending.tenant(), pending.id(), pending.generation(), now);
         return claimed > 0 ? Optional.of(new Claim(pending, token)) : Optional.empty();
     }
 
@@ -127,13 +160,14 @@ public class PendingRefreshes {
      */
     public boolean done(Claim claim) {
         Pending pending = claim.pending();
-        int deleted = jdbc.update("DELETE FROM " + table + " WHERE projection = ? AND entity_id = ? AND generation = ? AND claim_token = ?",
-                pending.projection(), pending.id(), pending.generation(), claim.token());
+        int deleted = jdbc.update("DELETE FROM " + table
+                        + " WHERE projection = ? AND tenant_id = ? AND entity_id = ? AND generation = ? AND claim_token = ?",
+                pending.projection(), pending.tenant(), pending.id(), pending.generation(), claim.token());
         if (deleted > 0) {
             return true;
         }
         release(claim);
-        mark(pending.projection(), pending.id());
+        mark(pending.projection(), pending.tenant(), pending.id());
         return false;
     }
 
@@ -144,16 +178,20 @@ public class PendingRefreshes {
         Pending pending = claim.pending();
         String message = error == null ? null : error.substring(0, Math.min(error.length(), MAX_ERROR_LENGTH));
         int updated = jdbc.update("UPDATE " + table + " SET attempts = attempts + 1, available_at = ?, last_error = ?, "
-                        + "claim_token = NULL, claimed_until = NULL WHERE projection = ? AND entity_id = ? AND generation = ? AND claim_token = ?",
-                Timestamp.from(clock.instant().plus(delay)), message, pending.projection(), pending.id(), pending.generation(), claim.token());
+                        + "claim_token = NULL, claimed_until = NULL "
+                        + "WHERE projection = ? AND tenant_id = ? AND entity_id = ? AND generation = ? AND claim_token = ?",
+                Timestamp.from(clock.instant().plus(delay)), message, pending.projection(), pending.tenant(), pending.id(), pending.generation(),
+                claim.token());
         if (updated == 0) {
             release(claim);
         }
     }
 
     private void release(Claim claim) {
-        jdbc.update("UPDATE " + table + " SET claim_token = NULL, claimed_until = NULL WHERE projection = ? AND entity_id = ? AND claim_token = ?",
-                claim.pending().projection(), claim.pending().id(), claim.token());
+        Pending pending = claim.pending();
+        jdbc.update("UPDATE " + table + " SET claim_token = NULL, claimed_until = NULL "
+                        + "WHERE projection = ? AND tenant_id = ? AND entity_id = ? AND claim_token = ?",
+                pending.projection(), pending.tenant(), pending.id(), claim.token());
     }
 
     public long count(String projection) {
@@ -162,11 +200,14 @@ public class PendingRefreshes {
     }
 
     /**
-     * 建表语句。{@code CREATE TABLE IF NOT EXISTS} 适用于 MySQL、PostgreSQL、H2；其他数据库请自行建表并关闭自动初始化。
+     * 建表语句。{@code tenant_id} 有默认值，滚动升级期间还没升级的旧实例插入标记时不会失败。
+     * <p>
+     * {@code CREATE TABLE IF NOT EXISTS} 适用于 MySQL、PostgreSQL、H2；其他数据库请自行建表并关闭自动初始化。
      */
     public String schema() {
         return "CREATE TABLE IF NOT EXISTS " + table + " ("
                 + "projection VARCHAR(100) NOT NULL, "
+                + "tenant_id VARCHAR(" + MAX_TENANT_LENGTH + ") DEFAULT '' NOT NULL, "
                 + "entity_id VARCHAR(200) NOT NULL, "
                 + "version BIGINT NOT NULL, "
                 + "generation VARCHAR(36), "
@@ -175,7 +216,7 @@ public class PendingRefreshes {
                 + "attempts INT NOT NULL, "
                 + "available_at TIMESTAMP NOT NULL, "
                 + "last_error VARCHAR(" + MAX_ERROR_LENGTH + "), "
-                + "PRIMARY KEY (projection, entity_id))";
+                + "PRIMARY KEY (projection, tenant_id, entity_id))";
     }
 
     /**
@@ -191,10 +232,12 @@ public class PendingRefreshes {
      * 把待刷新表准备到当前的结构。
      * <p>
      * 表不存在时建表和到期索引。表存在但没有到期索引时：{@code initialize} 为 true 就补上，为 false 只记录警告，它只影响清扫的效率。
-     * 表存在但缺少后来新增的列（从 0.8 升级）时：{@code initialize} 为 true 就追加这些列，并给已有的标记补上代次；
-     * 为 false 就启动失败，异常里给出需要执行的语句，交给迁移工具。只建不升级的话，旧表会在第一次领取时才报错。
+     * <p>
+     * 表是旧结构（没有 {@code tenant_id}：0.8 或更早的 0.9 快照）时，主键要变，各数据库改主键的语法不同，所以复制重建：
+     * 把旧表复制出来，按新结构重建，再把标记搬回去，已有的标记都算作没有租户。{@code initialize} 为 true 时直接执行；
+     * 为 false 就启动失败，异常里给出这些语句，交给迁移工具。
      *
-     * @throws IllegalStateException 表缺少列，并且不允许自动升级
+     * @throws IllegalStateException 表不存在或是旧结构，并且不允许自动初始化
      */
     public void prepare(boolean initialize) {
         Set<String> columns = existingColumns();
@@ -206,19 +249,34 @@ public class PendingRefreshes {
             jdbc.execute(dueIndex());
             return;
         }
-        prepareDueIndex(initialize);
-        List<String> upgrade = ADDED_COLUMNS.stream().filter(column -> !columns.contains(column[0]))
-                .map(column -> "ALTER TABLE " + table + " ADD COLUMN " + column[0] + " " + column[1]).toList();
-        if (upgrade.isEmpty()) {
+        if (!columns.contains("tenant_id")) {
+            List<String> upgrade = upgrade(columns);
+            if (!initialize) {
+                throw new IllegalStateException("Pending refresh table " + table + " has the structure of DDK 0.8 or an earlier 0.9 snapshot. "
+                        + "Upgrade it with: " + String.join("; ", upgrade));
+            }
+            log.info("Upgrading pending refresh table {} to the current structure", table);
+            upgrade.forEach(jdbc::execute);
             return;
         }
-        String backfill = "UPDATE " + table + " SET generation = CONCAT('upgraded-', version) WHERE generation IS NULL";
-        if (!initialize) {
-            throw new IllegalStateException("Pending refresh table " + table + " has the structure of DDK 0.8 or earlier. Upgrade it with: "
-                    + String.join("; ", upgrade) + "; " + backfill);
-        }
-        upgrade.forEach(jdbc::execute);
-        jdbc.update(backfill);
+        prepareDueIndex(initialize);
+    }
+
+    /**
+     * 复制重建。不用 {@code RENAME}：PostgreSQL 重命名表之后旧主键的索引名不变，新表建主键时会撞名。
+     * 领取信息不搬：升级时没有 worker 在处理。
+     */
+    private List<String> upgrade(Set<String> columns) {
+        String copy = table + "_upgrade";
+        String generation = columns.contains("generation") ? "COALESCE(generation, CONCAT('upgraded-', version))" : "CONCAT('upgraded-', version)";
+        return List.of(
+                "CREATE TABLE " + copy + " AS SELECT * FROM " + table,
+                "DROP TABLE " + table,
+                schema(),
+                dueIndex(),
+                "INSERT INTO " + table + " (projection, tenant_id, entity_id, version, generation, attempts, available_at, last_error) "
+                        + "SELECT projection, '', entity_id, version, " + generation + ", attempts, available_at, last_error FROM " + copy,
+                "DROP TABLE " + copy);
     }
 
     private void prepareDueIndex(boolean initialize) {
@@ -297,6 +355,8 @@ public class PendingRefreshes {
      */
     public record Pending(
             String projection,
+
+            String tenant,
 
             String id,
 

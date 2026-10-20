@@ -1,5 +1,7 @@
 package com.ddk.projection.starter.internal;
 
+import com.ddk.core.context.Operator;
+import com.ddk.core.context.OperatorContext;
 import com.ddk.core.domain.Identifier;
 import com.ddk.projection.starter.Projection;
 import com.ddk.projection.starter.Projections;
@@ -38,15 +40,16 @@ public class JdbcProjections implements Projections {
     @Override
     public void markDirty(String projection, Object id) {
         require(projection);
-        pending.mark(projection, text(id));
+        pending.mark(projection, tenant(), text(id));
         refreshSoon();
     }
 
     @Override
     public long rebuild(String projection) {
         AtomicLong marked = new AtomicLong();
+        String tenant = tenant();
         require(projection).forEachId(id -> {
-            pending.mark(projection, id);
+            pending.mark(projection, tenant, id);
             marked.incrementAndGet();
         });
         refreshSoon();
@@ -82,6 +85,10 @@ public class JdbcProjections implements Projections {
         } else {
             worker.wake();
         }
+    }
+
+    private static String tenant() {
+        return OperatorContext.current().map(Operator::tenantId).orElse("");
     }
 
     private static String text(Object id) {

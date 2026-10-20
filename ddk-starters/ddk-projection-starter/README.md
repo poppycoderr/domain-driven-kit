@@ -100,6 +100,15 @@ The read model can show the stale snapshot for a moment, until that extra refres
 
 Choose `lease-time` longer than a normal refresh. Too short is not wrong, only wasteful: a slow refresh is taken over and the entry is refreshed twice.
 
+## Tenants
+
+With `ddk-mybatis-starter`'s multi-tenancy on, every statement needs a tenant from `OperatorContext`, and the background worker has none of its own. The pending table therefore stores the tenant with each mark:
+
+- `markDirty` records the tenant of the current `OperatorContext`. The primary key is `(projection, tenant_id, entity_id)`, so an ID that is only unique within a tenant is two marks in two tenants.
+- The worker refreshes a mark with a tenant as the system operator `ddk-projection` (`RefreshWorker.OPERATOR_ID`) in that tenant, through `OperatorContext.runAs`, and restores the thread afterwards. The tenant comes from the row, so a restart or another instance taking over refreshes in the same tenant.
+- A mark without a tenant is refreshed without an operator, as before. In a multi-tenant application that means `refresh` fails at its first query and is retried with backoff, with the reason in `last_error`. The starter never guesses a tenant, and multi-tenancy is not relaxed to make a refresh pass.
+- `rebuild` enumerates IDs in the caller's context, so it rebuilds the caller's tenant. Call it once per tenant inside `OperatorContext.runAs` to rebuild all of them. `pending` counts all tenants.
+
 ## Rebuilding
 
 ```java
@@ -129,6 +138,7 @@ The starter is active when the application has at least one `Projection` bean, a
 ```sql
 CREATE TABLE ddk_projection_pending (
     projection    VARCHAR(100) NOT NULL,
+    tenant_id     VARCHAR(64)  DEFAULT '' NOT NULL,
     entity_id     VARCHAR(200) NOT NULL,
     version       BIGINT       NOT NULL,
     generation    VARCHAR(36),
@@ -137,7 +147,7 @@ CREATE TABLE ddk_projection_pending (
     attempts      INT          NOT NULL,
     available_at  TIMESTAMP    NOT NULL,
     last_error    VARCHAR(500),
-    PRIMARY KEY (projection, entity_id)
+    PRIMARY KEY (projection, tenant_id, entity_id)
 );
 CREATE INDEX ddk_projection_pending_due ON ddk_projection_pending (available_at);
 ```
@@ -146,23 +156,23 @@ The index serves the sweep, which picks due marks by `available_at`. When an exi
 
 ### Upgrading from 0.8
 
-0.8 created the table without `generation`, `claim_token` and `claimed_until`. At startup the starter checks the columns:
+0.8 created the table without `tenant_id`, `generation`, `claim_token` and `claimed_until`, and with a primary key that does not include the tenant. Changing a primary key is written differently in every database, so the starter copies the table instead, using statements that MySQL, PostgreSQL and H2 all accept:
 
-- With `initialize-schema=true` (the default) it adds the missing columns and the due index, and gives existing marks a generation.
-- With `initialize-schema=false` it fails and prints the statements to put into your migration:
+```sql
+CREATE TABLE ddk_projection_pending_upgrade AS SELECT * FROM ddk_projection_pending;
+DROP TABLE ddk_projection_pending;
+CREATE TABLE ddk_projection_pending (...);          -- the schema above
+CREATE INDEX ddk_projection_pending_due ON ddk_projection_pending (available_at);
+INSERT INTO ddk_projection_pending (projection, tenant_id, entity_id, version, generation, attempts, available_at, last_error)
+    SELECT projection, '', entity_id, version, CONCAT('upgraded-', version), attempts, available_at, last_error
+    FROM ddk_projection_pending_upgrade;
+DROP TABLE ddk_projection_pending_upgrade;
+```
 
-  ```sql
-  ALTER TABLE ddk_projection_pending ADD COLUMN generation VARCHAR(36);
-  ALTER TABLE ddk_projection_pending ADD COLUMN claim_token VARCHAR(36);
-  ALTER TABLE ddk_projection_pending ADD COLUMN claimed_until TIMESTAMP;
-  UPDATE ddk_projection_pending SET generation = CONCAT('upgraded-', version) WHERE generation IS NULL;
-  ```
+- With `initialize-schema=true` (the default) startup runs these statements. Existing marks keep their state and count as having no tenant.
+- With `initialize-schema=false` startup fails and prints the statements for your migration. It also fails when the table does not exist at all, instead of starting and failing on the first refresh.
 
-  Add the index from the schema above in the same migration.
-
-  It also fails when the table does not exist at all, instead of starting and failing on the first refresh.
-
-During a rolling upgrade, 0.8 workers still run the old protocol and can still leave a stale entry behind. Stop the old instances first, or rebuild the projection once the upgrade is complete.
+Upgrade with the old instances stopped. Marks that 0.8 instances write while the table is being copied are lost, and 0.8 workers run the old protocol, which can leave a stale entry behind. If old instances did run during the upgrade, rebuild the projection afterwards. The `tenant_id` default keeps their inserts from failing in the meantime.
 
 ## Where it does not fit
 

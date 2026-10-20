@@ -38,6 +38,12 @@
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- 和真实的租户拦截器组合测试：后台刷新恢复租户，取不到租户时失败 -->
+        <dependency>
+            <groupId>com.ddk</groupId>
+            <artifactId>ddk-mybatis-starter</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
