@@ -54,6 +54,8 @@ public class RefreshWorker implements SmartLifecycle {
 
     private final Duration leaseTime;
 
+    private final RefreshMetrics metrics;
+
     private final AtomicBoolean queued = new AtomicBoolean();
 
     private volatile ScheduledExecutorService executor = newExecutor();
@@ -62,7 +64,13 @@ public class RefreshWorker implements SmartLifecycle {
 
     public RefreshWorker(Collection<Projection> projections, PendingRefreshes pending, int batchSize, Duration sweepInterval,
             Duration retryDelay, Duration maxRetryDelay, Duration leaseTime) {
+        this(projections, pending, batchSize, sweepInterval, retryDelay, maxRetryDelay, leaseTime, RefreshMetrics.NONE);
+    }
+
+    public RefreshWorker(Collection<Projection> projections, PendingRefreshes pending, int batchSize, Duration sweepInterval,
+            Duration retryDelay, Duration maxRetryDelay, Duration leaseTime, RefreshMetrics metrics) {
         this.leaseTime = leaseTime;
+        this.metrics = metrics;
         this.projections = projections.stream().collect(Collectors.toMap(Projection::name, Function.identity(), (first, second) -> first));
         this.pending = pending;
         this.batchSize = batchSize;
@@ -119,6 +127,7 @@ public class RefreshWorker implements SmartLifecycle {
             return false;
         }
         Projection projection = projections.get(item.projection());
+        long start = System.nanoTime();
         try {
             if (projection == null) {
                 throw new IllegalStateException("No projection named " + item.projection() + " in this application");
@@ -133,12 +142,16 @@ public class RefreshWorker implements SmartLifecycle {
             log.warn("Refreshing [{}] of projection [{}]{} failed (attempt {}), retrying in {}", item.id(), item.projection(),
                     item.tenant().isEmpty() ? "" : " for tenant [" + item.tenant() + "]", item.attempts() + 1, delay, e);
             pending.failed(claim, delay, e.toString());
+            metrics.refreshed(item.projection(), RefreshMetrics.Outcome.FAILED, Duration.ofNanos(System.nanoTime() - start));
             return false;
         }
+        Duration took = Duration.ofNanos(System.nanoTime() - start);
         if (!pending.done(claim)) {
+            metrics.refreshed(item.projection(), RefreshMetrics.Outcome.REPEATED, took);
             log.debug("[{}] of projection [{}] changed or was taken over during the refresh; marked again", item.id(), item.projection());
             return false;
         }
+        metrics.refreshed(item.projection(), RefreshMetrics.Outcome.SUCCESS, took);
         return true;
     }
 
@@ -155,6 +168,9 @@ public class RefreshWorker implements SmartLifecycle {
     public void start() {
         if (executor.isShutdown()) {
             executor = newExecutor();
+        }
+        if (!running) {
+            metrics.bind(projections.keySet(), pending);
         }
         running = true;
         executor.scheduleWithFixedDelay(this::sweep, sweepInterval.toMillis(), sweepInterval.toMillis(), TimeUnit.MILLISECONDS);

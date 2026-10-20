@@ -3,8 +3,12 @@ package com.ddk.projection.starter.config;
 import com.ddk.projection.starter.Projection;
 import com.ddk.projection.starter.Projections;
 import com.ddk.projection.starter.internal.JdbcProjections;
+import com.ddk.projection.starter.internal.MicrometerRefreshMetrics;
 import com.ddk.projection.starter.internal.PendingRefreshes;
+import com.ddk.projection.starter.internal.RefreshMetrics;
 import com.ddk.projection.starter.internal.RefreshWorker;
+import io.micrometer.core.instrument.MeterRegistry;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -12,6 +16,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -44,9 +49,21 @@ public class DdkProjectionAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    RefreshWorker ddkRefreshWorker(List<Projection> projections, PendingRefreshes pending, DdkProjectionProperties properties) {
+    RefreshWorker ddkRefreshWorker(List<Projection> projections, PendingRefreshes pending, DdkProjectionProperties properties,
+            ObjectProvider<RefreshMetrics> metrics) {
         return new RefreshWorker(projections, pending, properties.getBatchSize(), properties.getSweepInterval(),
-                properties.getRetryDelay(), properties.getMaxRetryDelay(), properties.getLeaseTime());
+                properties.getRetryDelay(), properties.getMaxRetryDelay(), properties.getLeaseTime(), metrics.getIfAvailable(() -> RefreshMetrics.NONE));
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(MeterRegistry.class)
+    static class MetricsConfiguration {
+
+        @Bean
+        @ConditionalOnMissingBean
+        RefreshMetrics ddkRefreshMetrics(ObjectProvider<MeterRegistry> registry) {
+            return new MicrometerRefreshMetrics(registry);
+        }
     }
 
     @Bean

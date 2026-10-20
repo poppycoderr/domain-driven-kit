@@ -1,5 +1,7 @@
 package com.ddk.projection.starter;
 
+import java.util.List;
+
 /**
  * 读模型的入口：标记哪一条数据变了，以及重建整个读模型。
  * <p>
@@ -41,4 +43,20 @@ public interface Projections {
      * @throws IllegalArgumentException 没有这个名称的读模型
      */
     long pending(String projection);
+
+    /**
+     * 刷新失败、正在等待重试的标记，失败次数多的在前。一条标记一直失败不会挡住别的标记，只是按退避一直重试，
+     * 这里用来找到它们和失败原因。
+     *
+     * @throws IllegalArgumentException 没有这个名称的读模型
+     */
+    List<FailedRefresh> failures(String projection, int limit);
+
+    /**
+     * 让这个读模型里失败过的标记立即重试，例如修好了下游存储之后，不必等退避结束。
+     *
+     * @return 立即重试的标记数量
+     * @throws IllegalArgumentException 没有这个名称的读模型
+     */
+    int retryFailed(String projection);
 }

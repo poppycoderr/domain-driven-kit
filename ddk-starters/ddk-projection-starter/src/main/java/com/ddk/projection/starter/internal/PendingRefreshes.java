@@ -1,5 +1,6 @@
 package com.ddk.projection.starter.internal;
 
+import com.ddk.projection.starter.FailedRefresh;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -197,6 +198,43 @@ public class PendingRefreshes {
     public long count(String projection) {
         Long count = jdbc.queryForObject("SELECT COUNT(*) FROM " + table + " WHERE projection = ?", Long.class, projection);
         return count == null ? 0 : count;
+    }
+
+    /**
+     * 至少失败过一次、还在等待重试的标记数量。
+     */
+    public long failing(String projection) {
+        Long count = jdbc.queryForObject("SELECT COUNT(*) FROM " + table + " WHERE projection = ? AND attempts > 0", Long.class, projection);
+        return count == null ? 0 : count;
+    }
+
+    /**
+     * 已经到期的标记里等得最久的那条等了多久；没有到期的标记时为零。
+     */
+    public Duration oldestDueAge(String projection) {
+        Timestamp now = now();
+        Timestamp oldest = jdbc.queryForObject("SELECT MIN(available_at) FROM " + table + " WHERE projection = ? AND available_at <= ?",
+                Timestamp.class, projection, now);
+        return oldest == null ? Duration.ZERO : Duration.between(oldest.toInstant(), now.toInstant());
+    }
+
+    /**
+     * 失败过的标记，失败次数多的在前。
+     */
+    public List<FailedRefresh> failures(String projection, int limit) {
+        return jdbc.query("SELECT tenant_id, entity_id, attempts, last_error, available_at FROM " + table
+                        + " WHERE projection = ? AND attempts > 0 ORDER BY attempts DESC, available_at LIMIT " + Math.max(limit, 0),
+                (rs, row) -> new FailedRefresh(rs.getString(1), rs.getString(2), rs.getInt(3), rs.getString(4), rs.getTimestamp(5).toInstant()),
+                projection);
+    }
+
+    /**
+     * 让失败过的标记立即到期，不等退避结束。失败次数保留：再失败时退避从原来的位置继续。
+     *
+     * @return 受影响的标记数量
+     */
+    public int retryFailed(String projection) {
+        return jdbc.update("UPDATE " + table + " SET available_at = ? WHERE projection = ? AND attempts > 0", now(), projection);
     }
 
     /**
