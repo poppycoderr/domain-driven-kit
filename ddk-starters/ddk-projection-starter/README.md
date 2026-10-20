@@ -139,13 +139,16 @@ CREATE TABLE ddk_projection_pending (
     last_error    VARCHAR(500),
     PRIMARY KEY (projection, entity_id)
 );
+CREATE INDEX ddk_projection_pending_due ON ddk_projection_pending (available_at);
 ```
+
+The index serves the sweep, which picks due marks by `available_at`. When an existing table lacks it, startup adds it with `initialize-schema=true` and only logs a warning with the statement otherwise: a missing index slows the sweep down but changes nothing else. Its effect has not been benchmarked.
 
 ### Upgrading from 0.8
 
 0.8 created the table without `generation`, `claim_token` and `claimed_until`. At startup the starter checks the columns:
 
-- With `initialize-schema=true` (the default) it adds the missing columns and gives existing marks a generation.
+- With `initialize-schema=true` (the default) it adds the missing columns and the due index, and gives existing marks a generation.
 - With `initialize-schema=false` it fails and prints the statements to put into your migration:
 
   ```sql
@@ -154,6 +157,8 @@ CREATE TABLE ddk_projection_pending (
   ALTER TABLE ddk_projection_pending ADD COLUMN claimed_until TIMESTAMP;
   UPDATE ddk_projection_pending SET generation = CONCAT('upgraded-', version) WHERE generation IS NULL;
   ```
+
+  Add the index from the schema above in the same migration.
 
   It also fails when the table does not exist at all, instead of starting and failing on the first refresh.
 
