@@ -45,6 +45,12 @@ The server listens on `/mcp` over streamable HTTP.
 | No leaked internals | Any other exception returns `SYSTEM_ERROR: 服务器内部错误`; the original message and stack trace go to the log only |
 | Audit log | One line per call: `MCP tool [get_user] -> USER_NOT_FOUND in 3 ms`. Argument values are not logged |
 
+## Operator and tenant
+
+MCP calls arrive at `/mcp` as ordinary HTTP requests, so `ddk-web-starter`'s `OperatorContextFilter`, or your own filter, sets `OperatorContext` for them. With the default synchronous server and the streamable HTTP transport, the tool runs on the request thread and sees that operator, including the tenant, and the filter clears it when the request ends. `McpOperatorContextTest` pins this behavior. An asynchronous server (`spring.ai.mcp.server.type=ASYNC`) runs tools on other threads and does not get the context.
+
+The starter does not decide who may call which tool; see [Not covered](#not-covered).
+
 ## Configuration
 
 | Property | Default | Description |

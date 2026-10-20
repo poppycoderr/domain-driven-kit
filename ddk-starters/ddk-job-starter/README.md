@@ -37,6 +37,25 @@ public class OrderJobs {
 - The lock is stored through the application's Spring Data Redis connection (`spring.data.redis.*`). To keep it elsewhere, such as in the database, declare your own ShedLock `LockProvider` bean and it replaces the Redis one.
 - No `@EnableScheduling` or `@EnableSchedulerLock` is needed.
 
+## Tenants
+
+A scheduled job starts with no operator in `OperatorContext`. With `ddk-mybatis-starter`'s multi-tenancy on, its first query fails, and it should: the job has to say which tenant it works for. Do that in the job, one tenant at a time, as a system operator:
+
+```java
+@Scheduled(cron = "0 */5 * * * *")
+@SchedulerLock(name = "closeExpiredOrders")
+public void closeExpiredOrders() {
+    for (String tenant : tenants.activeTenantIds()) {          // your own source of tenants
+        OperatorContext.runAs(new Operator("job:closeExpiredOrders", null, tenant), orders::closeExpired);
+    }
+}
+```
+
+- `runAs` restores the scheduler thread afterwards, so one tenant never leaks into the next round or the next job.
+- Use an operator ID that names the job. It ends up in the audit fields of what the job writes.
+- Catch failures per tenant if one tenant's failure should not stop the others.
+- Do not turn off the tenant interceptor, or exempt the mapper, to make a job pass. That reads every tenant's data.
+
 ## How the lock behaves
 
 | Setting | Meaning |
