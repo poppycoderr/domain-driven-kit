@@ -1,6 +1,8 @@
 package com.ddk.projection.starter.internal;
 
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -20,6 +22,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 /**
@@ -36,6 +39,8 @@ import java.util.regex.Pattern;
  * {@code version} 列保留给 0.8 及更早的 worker：每次标记仍然加一，滚动升级期间旧 worker 的确认同样会落空。
  */
 public class PendingRefreshes {
+
+    private static final Logger log = LoggerFactory.getLogger(PendingRefreshes.class);
 
     private static final Pattern TABLE_NAME = Pattern.compile("[A-Za-z_][A-Za-z0-9_.]*");
 
@@ -174,9 +179,19 @@ public class PendingRefreshes {
     }
 
     /**
+     * 到期扫描用的索引：{@link #due} 按 {@code available_at} 过滤并排序，没有它时每次清扫都要扫全表再排序。
+     * 不用 {@code IF NOT EXISTS}，MySQL 不支持；是否已经存在由 {@link #prepare} 查元数据判断。
+     */
+    public String dueIndex() {
+        String name = table.substring(table.lastIndexOf('.') + 1);
+        return "CREATE INDEX " + name + "_due ON " + table + " (available_at)";
+    }
+
+    /**
      * 把待刷新表准备到当前的结构。
      * <p>
-     * 表不存在时建表。表存在但缺少后来新增的列（从 0.8 升级）时：{@code initialize} 为 true 就追加这些列，并给已有的标记补上代次；
+     * 表不存在时建表和到期索引。表存在但没有到期索引时：{@code initialize} 为 true 就补上，为 false 只记录警告，它只影响清扫的效率。
+     * 表存在但缺少后来新增的列（从 0.8 升级）时：{@code initialize} 为 true 就追加这些列，并给已有的标记补上代次；
      * 为 false 就启动失败，异常里给出需要执行的语句，交给迁移工具。只建不升级的话，旧表会在第一次领取时才报错。
      *
      * @throws IllegalStateException 表缺少列，并且不允许自动升级
@@ -185,11 +200,13 @@ public class PendingRefreshes {
         Set<String> columns = existingColumns();
         if (columns.isEmpty()) {
             if (!initialize) {
-                throw new IllegalStateException("Pending refresh table " + table + " does not exist. Create it with: " + schema());
+                throw new IllegalStateException("Pending refresh table " + table + " does not exist. Create it with: " + schema() + "; " + dueIndex());
             }
             jdbc.execute(schema());
+            jdbc.execute(dueIndex());
             return;
         }
+        prepareDueIndex(initialize);
         List<String> upgrade = ADDED_COLUMNS.stream().filter(column -> !columns.contains(column[0]))
                 .map(column -> "ALTER TABLE " + table + " ADD COLUMN " + column[0] + " " + column[1]).toList();
         if (upgrade.isEmpty()) {
@@ -204,30 +221,67 @@ public class PendingRefreshes {
         jdbc.update(backfill);
     }
 
+    private void prepareDueIndex(boolean initialize) {
+        if (leadingIndexColumns().contains("available_at")) {
+            return;
+        }
+        if (initialize) {
+            jdbc.execute(dueIndex());
+        } else {
+            log.warn("Pending refresh table {} has no index on available_at, so every sweep scans the whole table. Add it with: {}",
+                    table, dueIndex());
+        }
+    }
+
     private Set<String> existingColumns() {
-        Set<String> columns = jdbc.execute((ConnectionCallback<Set<String>>) connection -> {
+        return inTable(metaData -> metaData::getColumns, "COLUMN_NAME", rs -> true);
+    }
+
+    /**
+     * 各个索引的第一列。
+     */
+    private Set<String> leadingIndexColumns() {
+        return inTable(metaData -> (catalog, schema, table, ignored) -> metaData.getIndexInfo(catalog, schema, table, false, true),
+                "COLUMN_NAME", rs -> rs.getShort("ORDINAL_POSITION") == 1);
+    }
+
+    /**
+     * 按表名原样、大写、小写依次查元数据：不同数据库对未加引号的标识符大小写处理不同。
+     */
+    private Set<String> inTable(Function<DatabaseMetaData, MetaDataQuery> query, String column, RowFilter filter) {
+        Set<String> values = jdbc.execute((ConnectionCallback<Set<String>>) connection -> {
             DatabaseMetaData metaData = connection.getMetaData();
             String schema = table.contains(".") ? table.substring(0, table.indexOf('.')) : null;
             String name = table.contains(".") ? table.substring(table.indexOf('.') + 1) : table;
             for (String candidate : new String[] {name, name.toUpperCase(Locale.ROOT), name.toLowerCase(Locale.ROOT)}) {
-                Set<String> found = columns(metaData, schema, candidate);
+                Set<String> found = new LinkedHashSet<>();
+                try (ResultSet rs = query.apply(metaData).run(null, schema, candidate, null)) {
+                    while (rs.next()) {
+                        String value = rs.getString(column);
+                        if (value != null && filter.test(rs)) {
+                            found.add(value.toLowerCase(Locale.ROOT));
+                        }
+                    }
+                }
                 if (!found.isEmpty()) {
                     return found;
                 }
             }
             return Set.of();
         });
-        return columns == null ? Set.of() : columns;
+        return values == null ? Set.of() : values;
     }
 
-    private static Set<String> columns(DatabaseMetaData metaData, @Nullable String schema, String table) throws SQLException {
-        Set<String> found = new LinkedHashSet<>();
-        try (ResultSet rs = metaData.getColumns(null, schema, table, null)) {
-            while (rs.next()) {
-                found.add(rs.getString("COLUMN_NAME").toLowerCase(Locale.ROOT));
-            }
-        }
-        return found;
+    @FunctionalInterface
+    private interface MetaDataQuery {
+
+        ResultSet run(@Nullable String catalog, @Nullable String schema, String table, @Nullable String pattern) throws SQLException;
+    }
+
+    @FunctionalInterface
+    private interface RowFilter {
+
+        boolean test(ResultSet rs) throws SQLException;
     }
 
     private Timestamp now() {

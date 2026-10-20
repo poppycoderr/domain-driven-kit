@@ -6,6 +6,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
@@ -274,8 +275,26 @@ class RefreshProtocolTest {
         pending.prepare(true);
         pending.prepare(true);
         assertThat(jdbc.queryForObject("SELECT generation FROM protocol_pending", String.class)).isEqualTo("upgraded-3");
+        assertThatThrownBy(() -> jdbc.execute(pending.dueIndex())).as("the upgrade also adds the due index").isInstanceOf(DataAccessException.class);
         drainUntilEmpty(worker(this::copy));
         assertThat(view).containsEntry("1", "v1");
+    }
+
+    @Test
+    @DisplayName("新建的表带到期索引；已有的表缺索引时，允许初始化就补上，不允许只记录警告、照常启动")
+    void theDueScanHasAnIndex() {
+        assertThatThrownBy(() -> jdbc.execute(pending.dueIndex())).as("created with the table").isInstanceOf(DataAccessException.class);
+
+        jdbc.execute("DROP TABLE protocol_pending");
+        jdbc.execute(pending.schema());
+        pending.prepare(false);
+        jdbc.execute(pending.dueIndex());
+
+        jdbc.execute("DROP TABLE protocol_pending");
+        jdbc.execute(pending.schema());
+        pending.prepare(true);
+        pending.prepare(true);
+        assertThatThrownBy(() -> jdbc.execute(pending.dueIndex())).as("added at startup").isInstanceOf(DataAccessException.class);
     }
 
     private void change(String id, String state) {
