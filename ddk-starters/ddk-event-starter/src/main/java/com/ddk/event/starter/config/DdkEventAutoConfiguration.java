@@ -4,12 +4,19 @@ import com.ddk.core.domain.DomainEventPublisher;
 import com.ddk.core.domain.IntegrationEvent;
 import com.ddk.core.jackson.IdentifierJacksonModule;
 import com.ddk.event.starter.inbox.IdempotentConsumer;
+import com.ddk.event.starter.internal.EventMaintenance;
 import com.ddk.event.starter.internal.IntegrationEventContractVerifier;
 import com.ddk.event.starter.internal.GuardedMulticasterPostProcessor;
 import com.ddk.event.starter.internal.IntegrationEventRouting;
+import com.ddk.event.starter.internal.MaintenanceLock;
+import com.ddk.event.starter.internal.PublicationMetrics;
+import com.ddk.event.starter.internal.ShedLockMaintenanceLock;
 import com.ddk.event.starter.internal.TransactionalPublicationGuard;
 import com.ddk.event.starter.internal.SpringDomainEventPublisher;
+import io.micrometer.core.instrument.MeterRegistry;
+import net.javacrumbs.shedlock.core.LockProvider;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackages;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -22,7 +29,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.modulith.events.CompletedEventPublications;
 import org.springframework.modulith.events.EventExternalizationConfiguration;
+import org.springframework.modulith.events.FailedEventPublications;
+import org.springframework.modulith.events.core.EventPublicationRepository;
 import org.springframework.transaction.PlatformTransactionManager;
 import tools.jackson.databind.JacksonModule;
 
@@ -112,6 +122,44 @@ public class DdkEventAutoConfiguration {
                 jdbc.execute(consumer.schema());
             }
             return consumer;
+        }
+    }
+
+    /**
+     * 定时维护发布记录和已处理消息表，默认关闭。
+     */
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnProperty(prefix = DdkEventProperties.PREFIX + ".maintenance", name = "enabled", havingValue = "true")
+    static class MaintenanceConfiguration {
+
+        @Bean
+        @ConditionalOnMissingBean
+        EventMaintenance ddkEventMaintenance(ObjectProvider<FailedEventPublications> failed, ObjectProvider<CompletedEventPublications> completed,
+                ObjectProvider<IdempotentConsumer> inbox, DdkEventProperties properties, ObjectProvider<MaintenanceLock> lock) {
+            return new EventMaintenance(failed.getIfAvailable(), completed.getIfAvailable(), inbox.getIfAvailable(), properties.getMaintenance(),
+                    lock.getIfAvailable(() -> MaintenanceLock.NONE));
+        }
+
+        @Configuration(proxyBeanMethods = false)
+        @ConditionalOnClass(LockProvider.class)
+        static class ShedLockConfiguration {
+
+            @Bean
+            @ConditionalOnMissingBean
+            MaintenanceLock ddkEventMaintenanceLock(ObjectProvider<LockProvider> providers, DdkEventProperties properties) {
+                return new ShedLockMaintenanceLock(providers, properties.getMaintenance().getInterval());
+            }
+        }
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass({MeterRegistry.class, EventPublicationRepository.class})
+    static class PublicationMetricsConfiguration {
+
+        @Bean
+        @ConditionalOnMissingBean
+        PublicationMetrics ddkPublicationMetrics(ObjectProvider<MeterRegistry> registry, ObjectProvider<EventPublicationRepository> repository) {
+            return new PublicationMetrics(registry, repository);
         }
     }
 

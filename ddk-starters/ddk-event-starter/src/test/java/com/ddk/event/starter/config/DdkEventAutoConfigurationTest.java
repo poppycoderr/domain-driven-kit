@@ -8,6 +8,9 @@ import com.ddk.core.domain.Identifier;
 import com.ddk.core.jackson.IdentifierJacksonModule;
 import com.ddk.event.starter.internal.SpringDomainEventPublisher;
 import org.junit.jupiter.api.DisplayName;
+import com.ddk.event.starter.internal.EventMaintenance;
+import com.ddk.event.starter.internal.MaintenanceLock;
+import net.javacrumbs.shedlock.core.LockProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.jackson.autoconfigure.JacksonAutoConfiguration;
@@ -164,5 +167,19 @@ class DdkEventAutoConfigurationTest {
             assertThat(mapper.writeValueAsString(OrderId.of(9L))).isEqualTo("9");
             assertThat(mapper.readValue("9", OrderId.class)).isEqualTo(OrderId.of(9L));
         });
+    }
+
+    @Test
+    void maintenanceIsOffByDefaultAndUsesShedLockWhenALockProviderExists() {
+        runner.run(context -> assertThat(context).doesNotHaveBean(EventMaintenance.class));
+        runner.withPropertyValues("ddk.event.maintenance.enabled=true").run(context -> {
+            assertThat(context).hasSingleBean(EventMaintenance.class);
+            assertThat(context.getBean(MaintenanceLock.class).distributed()).isFalse();
+        });
+        runner.withPropertyValues("ddk.event.maintenance.enabled=true")
+                .withBean(LockProvider.class, () -> configuration -> java.util.Optional.empty())
+                .run(context -> assertThat(context.getBean(MaintenanceLock.class).distributed()).isTrue());
+        runner.withPropertyValues("ddk.event.maintenance.enabled=true", "ddk.event.maintenance.resubmit-batch-size=0")
+                .run(context -> assertThat(context).hasFailed());
     }
 }
