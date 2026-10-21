@@ -95,7 +95,7 @@ DDK has one version number, but its modules are not equally proven. Each one has
 **Goal: someone outside this repository can use DDK and move between versions without reading its source.**
 
 - [ ] Clean-room build: a project outside the repository with an empty local Maven repository, using only the installer and the BOM; both archetypes generated and verified
-- [ ] Upgrade rehearsal: a 0.8 project upgraded to 0.9 with nothing but the upgrade guide
+- [x] Upgrade rehearsal: a 0.8 project upgraded to 0.9 with nothing but the upgrade guide; the gaps it found are fixed in the guide
 - [ ] Review the public API and each starter's transitive dependencies: what is required, what is optional, what leaks into applications
 - [ ] Distribution: decide Maven coordinates (`io.github.poppycoderr`), signing and provenance, so publishing to a standard Maven repository becomes a decision rather than a project. No longer waits for stars: friction in adoption is what prevents feedback
 - [ ] CI split into stages that are easier to read (unit and wiring, real middleware, generated projects, API compatibility) without letting required tests skip silently; check that the BOM and the parent pom agree on versions
