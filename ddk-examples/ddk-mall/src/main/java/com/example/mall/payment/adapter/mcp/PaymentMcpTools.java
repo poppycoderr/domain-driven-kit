@@ -3,6 +3,7 @@ package com.example.mall.payment.adapter.mcp;
 import com.example.mall.payment.application.response.PaymentResponse;
 import com.example.mall.payment.application.service.PaymentService;
 import jakarta.validation.constraints.Positive;
+import com.example.mall.platform.CustomerAccess;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.mcp.annotation.McpTool;
 import org.springframework.ai.mcp.annotation.McpToolParam;
@@ -17,11 +18,14 @@ public class PaymentMcpTools {
 
     private final PaymentService paymentService;
 
+    private final CustomerAccess customerAccess;
+
     @McpTool(name = "get_payment", description = "Get the payment of a customer's order: amount, deadline, channel trade number. "
             + "Status is PENDING, PAID, CLOSED (never paid) or REFUNDED (paid, then the order was cancelled).")
     public PaymentResponse get(
             @McpToolParam(description = "Customer ID") @Positive long customerId,
             @McpToolParam(description = "Order ID") @Positive long orderId) {
+        customerAccess.actFor(customerId);
         return paymentService.get(customerId, orderId);
     }
 }

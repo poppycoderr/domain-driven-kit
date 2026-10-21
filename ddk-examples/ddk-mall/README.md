@@ -49,7 +49,7 @@ mvn -pl ddk-examples/ddk-mall spring-boot:run -Dspring-boot.run.profiles=compose
 
 ## 冒烟命令
 
-示例不做登录认证，顾客身份放在请求头 `X-Customer-Id` 里。
+默认 profile 是开发模式：不做登录认证，顾客身份放在请求头 `X-Customer-Id` 里，谁都可以伪造。要求登录的版本见下面的「认证与授权」。
 
 ```bash
 # 下单：只传 SKU 和数量，名称与单价取自商品目录。返回的状态是 PENDING_STOCK
@@ -205,7 +205,26 @@ sum by (cache, result) (ddk_cache_access_total)
 claude mcp add --transport http ddk-mall http://localhost:8080/mcp
 ```
 
-工具和接口调用同一个应用服务，业务规则只有一份：agent 用别的顾客 ID 查订单同样得到 `ORDER_NOT_FOUND`。只开放了查询和取消；发起支付、补货这类操作没有做成工具。示例没有做认证，真实项目里 `/mcp` 要和其他接口一样用 Spring Security 保护。
+工具和接口调用同一个应用服务，业务规则只有一份：agent 用别的顾客 ID 查订单同样得到 `ORDER_NOT_FOUND`。只开放了查询和取消；发起支付、补货这类操作没有做成工具。开发模式下 `customerId` 就是参数本身；`secure` profile 下它必须是登录的顾客本人，客服可以代任何顾客，见下一节。
+
+## 认证与授权
+
+`secure` profile 要求登录，身份来自认证结果，请求头 `X-Customer-Id` 被忽略：
+
+```bash
+mvn -pl ddk-examples/ddk-mall spring-boot:run -Dspring-boot.run.profiles=secure
+curl -s -u 7:example_password localhost:8080/orders/page -X POST -H 'Content-Type: application/json' -d '{}'
+```
+
+| 谁 | 能做什么 |
+|---|---|
+| 未登录 | 健康检查、接口文档；其他请求返回 401 |
+| 顾客（用户名是顾客 ID） | 自己的订单和支付、查库存；MCP 工具只能查、取消自己的订单 |
+| 客服（`support`） | 读模型重建、库存变更和预占查询、actuator；MCP 工具里可以代任何顾客操作 |
+
+- 规则写在 `MallSecurity` 里：URL 按角色授权，MCP 工具的 `customerId` 参数由 `CustomerAccess` 检查，冒充别的顾客得到 `ACTING_FOR_OTHER_CUSTOMER`。应用服务没有改：「别人的订单当不存在」的规则在两种模式下都生效。
+- 用户目录只是演示（HTTP Basic，口令都是 `example_password`）。真实项目里换成 OAuth2 资源服务器或企业的身份提供方：只要认证结果的用户名是顾客 ID、角色对得上，`CustomerIdentity` 和其余代码不用改。DDK 不提供认证，只消费认证结果（`OperatorResolver`）。
+- `SecureProfileTest` 覆盖了未认证、错误口令、冒充请求头、越权读取和取消、顾客调用管理操作、MCP 参数冒充。
 
 ## 上下文怎么协作
 
@@ -252,7 +271,7 @@ sequenceDiagram
 
 - **支付渠道是模拟的。** 它的账本在内存里，重启就没了。换成真实渠道时，`PaymentChannel` 的三个操作都要对应渠道的接口：扣款和退款以支付单标识作为商户单号（渠道据此去重），查询按商户单号查扣款结果；渠道的异步通知可以和对账任务走同一段结算逻辑。查询不到确定结果时抛异常，留给下一轮对账。
 - **对账的节奏。** `mall.payment.reconcile-after`（默认 2 分钟）要长于一次扣款的正常耗时，`mall.payment.reconcile-interval`（默认 1 分钟）决定多久发现一次遗漏。
-- **没有认证。** 顾客身份来自请求头 `X-Customer-Id`，MCP 工具的 `customerId` 是普通参数，都不是可信的身份，见上面的 MCP 一节。
+- **认证是演示级的。** 默认 profile 完全不认证；`secure` profile 用内存里的演示用户，要换成真正的身份提供方，见「认证与授权」。
 
 ## 结构
 
