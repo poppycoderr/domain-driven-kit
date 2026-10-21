@@ -15,6 +15,33 @@ public interface PaymentChannel {
     void refund(Payment payment);
 
     /**
+     * 按支付单标识向渠道查询扣款结果，用于对账：本地没有记下结果时（扣款之后进程崩溃、保存失败），以渠道为准。
+     * 查询不到确定结果时抛出异常，调用方下次再查。
+     */
+    Lookup query(Payment payment);
+
+    /**
+     * 查询结果。
+     *
+     * @param charged 渠道是否扣过这笔款（退款不影响它）
+     * @param tradeNo 渠道流水号，扣过款时才有
+     */
+    record Lookup(
+            boolean charged,
+
+            String tradeNo
+    ) {
+
+        public static Lookup charged(String tradeNo) {
+            return new Lookup(true, tradeNo);
+        }
+
+        public static Lookup notCharged() {
+            return new Lookup(false, null);
+        }
+    }
+
+    /**
      * 扣款结果。
      *
      * @param approved 是否成功

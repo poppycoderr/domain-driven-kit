@@ -21,7 +21,7 @@ public class PaymentEntityConverter implements ObjectMapper<PaymentPO, Payment> 
     public Payment map(PaymentPO source) {
         return Payment.restore(PaymentId.of(source.getId()), source.getOrderId(), source.getCustomerId(), source.getAmount(),
                 PaymentStatus.valueOf(source.getStatus()), source.getExpiresAt(), source.getChannelTradeNo(), source.getPaidAt(),
-                source.getVersion());
+                source.getChargeRequestedAt(), source.getVersion());
     }
 
     @Override
