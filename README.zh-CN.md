@@ -135,7 +135,7 @@ mvn -B install
 
 ## 模块
 
-DDK 由个人维护，目前处于 0.x 阶段：次版本可能包含破坏性变更，每一项都记录在 [CHANGELOG](./CHANGELOG.md) 里。暂时通过 GitHub Release 发布，不发布到 Maven Central。
+DDK 由个人维护，目前处于 0.x 阶段：次版本可能包含破坏性变更，每一项都记录在 [CHANGELOG](./CHANGELOG.md) 里，需要做的事见[升级指南](https://poppycoder.netlify.app/ddk/upgrade)。暂时通过 GitHub Release 发布，不发布到 Maven Central。
 
 | 模块 | 当前能力 | 状态 |
 |---|---|---|
@@ -285,6 +285,7 @@ com.ddk.core
 - [快速开始](https://poppycoder.netlify.app/ddk/quickstart)
 - [领域模型基类](https://poppycoder.netlify.app/ddk/core/domain-model)
 - [分层约定与架构守卫](https://poppycoder.netlify.app/ddk/conventions)
+- [升级指南](https://poppycoder.netlify.app/ddk/upgrade)
 - [开发与重构计划](https://poppycoder.netlify.app/ddk/contributing)
 
 ## 贡献
