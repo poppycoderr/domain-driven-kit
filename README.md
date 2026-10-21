@@ -78,7 +78,7 @@ curl -fsSL https://raw.githubusercontent.com/poppycoderr/domain-driven-kit/main/
 cd order-service && mvn verify
 ```
 
-The script builds the newest release by default and prints the version and commit it used. Use `--layers 3` for the three-layer skeleton, `DDK_REF=v0.8.0` for a specific release, or `DDK_REF=main` for the development snapshot. A later run reuses an install only when it is the same ref, at the same commit, with its Maven artifacts still present. Run `ddk.sh help` for all options.
+The script builds the newest release by default and prints the version and commit it used. Use `--layers 3` for the three-layer skeleton, `DDK_REF=v0.9.0` for a specific release, or `DDK_REF=main` for the development snapshot. A later run reuses an install only when it is the same ref, at the same commit, with its Maven artifacts still present. Run `ddk.sh help` for all options.
 
 To build DDK by hand instead:
 
@@ -105,7 +105,7 @@ Use in another project. Import the BOM first, then drop the versions:
         <dependency>
             <groupId>com.ddk</groupId>
             <artifactId>ddk-dependencies</artifactId>
-            <version>0.9.0-SNAPSHOT</version>
+            <version>0.9.0</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -272,9 +272,10 @@ Released so far:
 7. **v0.7 Fail where the mistake is made**: events published outside a transaction and locks taken inside one are rejected on the spot; job locks without Redis
 8. **v0.8 The query side**: read models refreshed from the write model and rebuildable, row-level data scope
 
+9. **v0.9 Reliability and the production path**: converging projections, safe idempotency, stable consumer identities, tenants in background work, event and projection operations, an [upgrade guide](https://poppycoder.netlify.app/ddk/upgrade)
+
 Next:
 
-9. **v0.9 Reliability and the production path** (merged, release pending): converging projections, safe idempotency, stable consumer identities, tenants in background work, event and projection operations, an [upgrade guide](https://poppycoder.netlify.app/ddk/upgrade)
 10. **Adoption and upgrades**: a clean-room build outside this repository, an upgrade rehearsal, a review of the public API and dependencies, distribution
 11. **v1.0 Freeze**: only what has been verified, with a support matrix
 
