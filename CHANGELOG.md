@@ -12,6 +12,10 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-10-21
+
+Reliability and the production path. Projections converge when refreshes overlap, `@Idempotent` releases only its own registration, idempotent event consumers have a stable identity, and the four-layer rule keeps application services off infrastructure. Background work carries its tenant: projection marks, integration events, `@Async` tasks. Projections and event publications get operations: failure lists, retries, metrics and scheduled maintenance. `ddk-mall` recovers lost payments and has a `secure` profile. Upgrading from 0.8 takes a few steps, all listed in the [upgrade guide](https://poppycoder.netlify.app/ddk/upgrade).
+
 ### Breaking
 
 - `LAYERED_ARCHITECTURE_RULE` no longer lets application services reference infrastructure classes. The four-layer documentation always said that infrastructure only implements domain ports; the rule now agrees, as the three-layer rule already did. Depend on the domain port instead. Wiring that has to name an implementation goes into a `@Configuration` class outside the layers, which both layering rules now exempt
