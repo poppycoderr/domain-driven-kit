@@ -135,7 +135,7 @@ See the full guide: [Quick Start](https://poppycoder.netlify.app/ddk/quickstart)
 
 ## Modules
 
-DDK is maintained by one person and is in its 0.x series: a minor release may contain breaking changes, each listed in the [changelog](./CHANGELOG.md). Releases are published on GitHub rather than Maven Central for now.
+DDK is maintained by one person and is in its 0.x series: a minor release may contain breaking changes, each listed in the [changelog](./CHANGELOG.md), with the steps to take in the [upgrade guide](https://poppycoder.netlify.app/ddk/upgrade). Releases are published on GitHub rather than Maven Central for now.
 
 | Module | Capability | Status |
 |---|---|---|
@@ -285,6 +285,7 @@ See [ROADMAP.md](./ROADMAP.md) for the full plan.
 - [Quick Start](https://poppycoder.netlify.app/ddk/quickstart)
 - [Domain Model Primitives](https://poppycoder.netlify.app/ddk/core/domain-model)
 - [Layering and Architecture Guard](https://poppycoder.netlify.app/ddk/conventions)
+- [Upgrade Guide](https://poppycoder.netlify.app/ddk/upgrade)
 - [Development and Refactoring Plan](https://poppycoder.netlify.app/ddk/contributing)
 
 ## Contributing
