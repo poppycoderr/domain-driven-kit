@@ -56,12 +56,6 @@
             <artifactId>mapstruct</artifactId>
         </dependency>
 
-        <!-- Hutool Core (按需引入，不再用 hutool-all) -->
-        <dependency>
-            <groupId>cn.hutool</groupId>
-            <artifactId>hutool-core</artifactId>
-        </dependency>
-
         <!-- SLF4J for logging -->
         <dependency>
             <groupId>org.slf4j</groupId>

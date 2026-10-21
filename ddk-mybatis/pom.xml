@@ -19,6 +19,12 @@
             <artifactId>ddk-core</artifactId>
         </dependency>
 
+        <!-- 查询条件解析用到的字符串、反射、集合工具 -->
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-core</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-spring-boot4-starter</artifactId>
