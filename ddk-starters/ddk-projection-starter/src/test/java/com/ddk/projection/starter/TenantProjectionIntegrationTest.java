@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.ddk.core.context.Operator;
 import com.ddk.core.context.OperatorContext;
-import com.ddk.mybatis.starter.config.MybatisPlusAutoConfiguration;
+import com.ddk.mybatis.starter.config.DdkMybatisAutoConfiguration;
 import com.ddk.projection.starter.config.DdkProjectionAutoConfiguration;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
@@ -173,7 +173,7 @@ class TenantProjectionIntegrationTest {
             DataSourceInitializationAutoConfiguration.class,
             JdbcTemplateAutoConfiguration.class,
             DataSourceTransactionManagerAutoConfiguration.class,
-            MybatisPlusAutoConfiguration.class,
+            DdkMybatisAutoConfiguration.class,
             com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration.class,
             DdkProjectionAutoConfiguration.class
     })

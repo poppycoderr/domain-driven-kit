@@ -506,6 +506,13 @@
                                 <excludes>
                                     <!-- internal 包不属于公开 API -->
                                     <exclude>*.internal</exclude>
+                                    <!-- 0.10：自动配置改名为 Ddk 前缀，@Bean 方法改为包级可见 -->
+                                    <exclude>com.ddk.mybatis.starter.config.MybatisPlusAutoConfiguration</exclude>
+                                    <exclude>com.ddk.web.config.WebAutoConfiguration</exclude>
+                                    <exclude>com.ddk.web.config.WebOpenApiAutoConfiguration</exclude>
+                                    <exclude>com.ddk.cache.starter.config.DdkCacheAutoConfiguration</exclude>
+                                    <exclude>com.ddk.event.starter.config.DdkEventAutoConfiguration</exclude>
+                                    <exclude>com.ddk.redis.starter.config.DdkRedisAutoConfiguration</exclude>
                                 </excludes>
                             </parameter>
                         </configuration>

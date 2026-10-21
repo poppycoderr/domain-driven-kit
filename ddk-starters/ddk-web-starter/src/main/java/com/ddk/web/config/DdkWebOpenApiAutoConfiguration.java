@@ -30,7 +30,7 @@ import java.util.List;
 @ConditionalOnClass({GlobalOpenApiCustomizer.class, OpenAPI.class})
 @ConditionalOnProperty(prefix = "ddk.web", name = "openapi", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(DdkWebProperties.class)
-public class WebOpenApiAutoConfiguration {
+public class DdkWebOpenApiAutoConfiguration {
 
     /**
      * 错误码在第一次生成文档时才扫描，不拖慢启动。

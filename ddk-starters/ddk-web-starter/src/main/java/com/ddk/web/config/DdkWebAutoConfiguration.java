@@ -32,12 +32,12 @@ import tools.jackson.databind.ser.std.ToStringSerializer;
 @AutoConfiguration(before = {JacksonAutoConfiguration.class, WebMvcAutoConfiguration.class})
 @ConditionalOnWebApplication(type = ConditionalOnWebApplication.Type.SERVLET)
 @EnableConfigurationProperties(DdkWebProperties.class)
-public class WebAutoConfiguration {
+public class DdkWebAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = DdkWebProperties.PREFIX, name = "exception-handler", matchIfMissing = true)
-    public BaseExceptionHandler baseExceptionHandler() {
+    BaseExceptionHandler baseExceptionHandler() {
         return new BaseExceptionHandler();
     }
 
@@ -50,7 +50,7 @@ public class WebAutoConfiguration {
      */
     @Bean
     @ConditionalOnProperty(prefix = DdkWebProperties.PREFIX, name = "jackson", matchIfMissing = true)
-    public JsonMapperBuilderCustomizer ddkJacksonCustomizer(DdkWebProperties properties) {
+    JsonMapperBuilderCustomizer ddkJacksonCustomizer(DdkWebProperties properties) {
         return builder -> {
             // 时间序列化成 ISO-8601 字符串，而不是时间戳数组
             builder.disable(DateTimeFeature.WRITE_DATES_AS_TIMESTAMPS)
@@ -71,7 +71,7 @@ public class WebAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = DdkWebProperties.PREFIX, name = "jackson", matchIfMissing = true)
-    public IdentifierJacksonModule identifierJacksonModule() {
+    IdentifierJacksonModule identifierJacksonModule() {
         return new IdentifierJacksonModule();
     }
 
@@ -85,7 +85,7 @@ public class WebAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(name = "ddkCorsConfigurer")
     @ConditionalOnProperty(prefix = DdkWebProperties.PREFIX + ".cors", name = "enabled", havingValue = "true")
-    public WebMvcConfigurer ddkCorsConfigurer(DdkWebProperties properties) {
+    WebMvcConfigurer ddkCorsConfigurer(DdkWebProperties properties) {
         DdkWebProperties.Cors cors = properties.getCors();
 
         if (cors.isAllowCredentials() && cors.getAllowedOrigins().contains("*")) {
@@ -118,7 +118,7 @@ public class WebAutoConfiguration {
     @Bean
     @ConditionalOnBean(OperatorResolver.class)
     @ConditionalOnMissingBean
-    public OperatorContextFilter ddkOperatorContextFilter(OperatorResolver resolver) {
+    OperatorContextFilter ddkOperatorContextFilter(OperatorResolver resolver) {
         return new OperatorContextFilter(resolver);
     }
 }

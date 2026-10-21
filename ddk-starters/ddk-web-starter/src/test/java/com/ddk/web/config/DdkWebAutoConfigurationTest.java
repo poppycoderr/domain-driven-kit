@@ -19,10 +19,10 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DisplayName("Web starter 自动装配")
-class WebAutoConfigurationTest {
+class DdkWebAutoConfigurationTest {
 
     private final WebApplicationContextRunner runner = new WebApplicationContextRunner()
-            .withConfiguration(AutoConfigurations.of(WebAutoConfiguration.class));
+            .withConfiguration(AutoConfigurations.of(DdkWebAutoConfiguration.class));
 
     @Test
     @DisplayName("默认注册异常处理器与 Jackson customizer")

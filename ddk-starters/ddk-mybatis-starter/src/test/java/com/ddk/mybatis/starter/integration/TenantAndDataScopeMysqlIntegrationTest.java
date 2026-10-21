@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.ddk.core.context.DataScope;
 import com.ddk.core.context.Operator;
 import com.ddk.core.context.OperatorContext;
-import com.ddk.mybatis.starter.config.MybatisPlusAutoConfiguration;
+import com.ddk.mybatis.starter.config.DdkMybatisAutoConfiguration;
 import com.ddk.mybatis.starter.datascope.DataScopeResolver;
 import com.ddk.test.containers.DdkContainers;
 import org.apache.ibatis.annotations.Mapper;
@@ -175,7 +175,7 @@ class TenantAndDataScopeMysqlIntegrationTest {
             DataSourceAutoConfiguration.class,
             DataSourceInitializationAutoConfiguration.class,
             JdbcTemplateAutoConfiguration.class,
-            MybatisPlusAutoConfiguration.class,
+            DdkMybatisAutoConfiguration.class,
             com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration.class,
     })
     static class TestApp {

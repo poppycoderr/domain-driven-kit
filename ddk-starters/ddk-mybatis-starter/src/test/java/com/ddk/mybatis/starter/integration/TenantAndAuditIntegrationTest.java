@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.ddk.core.context.Operator;
 import com.ddk.core.context.OperatorContext;
-import com.ddk.mybatis.starter.config.MybatisPlusAutoConfiguration;
+import com.ddk.mybatis.starter.config.DdkMybatisAutoConfiguration;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 import org.junit.jupiter.api.BeforeEach;
@@ -174,7 +174,7 @@ class TenantAndAuditIntegrationTest {
             DataSourceAutoConfiguration.class,
             DataSourceInitializationAutoConfiguration.class,
             JdbcTemplateAutoConfiguration.class,
-            MybatisPlusAutoConfiguration.class,
+            DdkMybatisAutoConfiguration.class,
             com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration.class,
     })
     static class TestApp {

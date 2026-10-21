@@ -3,7 +3,7 @@ package com.ddk.web.openapi;
 import com.ddk.core.exception.BusinessException;
 import com.ddk.core.exception.ErrorCode;
 import com.ddk.core.response.ApiResponse;
-import com.ddk.web.config.WebOpenApiAutoConfiguration;
+import com.ddk.web.config.DdkWebOpenApiAutoConfiguration;
 import com.ddk.web.internal.ErrorContractOpenApiCustomizer;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.media.Schema;
@@ -101,7 +101,7 @@ class WebOpenApiIntegrationTest {
     @DisplayName("ddk.web.openapi=false 时不注册")
     void canBeDisabled() {
         WebApplicationContextRunner runner = new WebApplicationContextRunner()
-                .withConfiguration(AutoConfigurations.of(WebOpenApiAutoConfiguration.class));
+                .withConfiguration(AutoConfigurations.of(DdkWebOpenApiAutoConfiguration.class));
 
         runner.run(ctx -> assertThat(ctx).hasSingleBean(GlobalOpenApiCustomizer.class));
         runner.withPropertyValues("ddk.web.openapi=false").run(ctx -> assertThat(ctx).doesNotHaveBean(GlobalOpenApiCustomizer.class));

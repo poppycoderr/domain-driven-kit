@@ -46,7 +46,7 @@ public class DdkRedisAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(name = VALUE_SERIALIZER_BEAN_NAME)
-    public RedisSerializer<Object> ddkRedisValueSerializer(DdkRedisProperties properties, BeanFactory beanFactory) {
+    RedisSerializer<Object> ddkRedisValueSerializer(DdkRedisProperties properties, BeanFactory beanFactory) {
         List<String> trusted = new ArrayList<>(properties.getTrustedPackages());
         if (AutoConfigurationPackages.has(beanFactory)) {
             trusted.addAll(AutoConfigurationPackages.get(beanFactory));
@@ -61,7 +61,7 @@ public class DdkRedisAutoConfiguration {
     @Bean
     @Lazy
     @ConditionalOnMissingBean(name = "redisTemplate")
-    public RedisTemplate<String, Object> redisTemplate(
+    RedisTemplate<String, Object> redisTemplate(
             RedisConnectionFactory connectionFactory,
             @Qualifier(VALUE_SERIALIZER_BEAN_NAME) RedisSerializer<Object> valueSerializer) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();

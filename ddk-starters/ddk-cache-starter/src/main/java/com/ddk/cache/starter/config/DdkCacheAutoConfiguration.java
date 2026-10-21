@@ -73,7 +73,7 @@ public class DdkCacheAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(CacheManager.class)
-    public DdkCacheManager cacheManager(DdkCacheProperties properties,
+    DdkCacheManager cacheManager(DdkCacheProperties properties,
                                         ObjectProvider<RedisConnectionFactory> connectionFactory,
                                         @Qualifier(DdkRedisAutoConfiguration.VALUE_SERIALIZER_BEAN_NAME)
                                         ObjectProvider<RedisSerializer<Object>> valueSerializer,
