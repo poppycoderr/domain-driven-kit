@@ -5,6 +5,7 @@ import com.example.mall.order.application.response.OrderResponse;
 import com.example.mall.order.application.response.OrderSummaryResponse;
 import com.example.mall.order.application.service.OrderSearchService;
 import com.example.mall.order.application.service.OrderService;
+import com.example.mall.platform.CustomerAccess;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
@@ -19,7 +20,8 @@ import java.util.List;
 /**
  * 订单用例的 MCP 工具，面向客服场景：替顾客搜订单、查订单、取消订单。
  * <p>
- * 和 {@code OrderController} 同属适配层，调用同一个应用服务。区别只在顾客身份的来源：接口从请求头取，工具由 agent 作为参数传入，
+ * 和 {@code OrderController} 同属适配层，调用同一个应用服务。区别只在顾客身份的来源：接口取自当前请求的操作者，工具由 agent 作为参数传入。
+ * 参数不是可信的身份，所以先经 {@link CustomerAccess} 检查（secure profile 下只能是登录的顾客本人或客服），
  * 应用服务里「顾客只能操作自己的订单」的规则照样生效。
  */
 @Component
@@ -30,11 +32,14 @@ public class OrderMcpTools {
 
     private final OrderSearchService orderSearchService;
 
+    private final CustomerAccess customerAccess;
+
     @McpTool(name = "get_order", description = "Get one order of a customer: status, amount, lines, payment deadline and cancel reason. "
             + "Status is PENDING_STOCK, PENDING_PAYMENT, PAID or CANCELLED.")
     public OrderResponse get(
             @McpToolParam(description = "Customer ID") @Positive long customerId,
             @McpToolParam(description = "Order ID") @Positive long orderId) {
+        customerAccess.actFor(customerId);
         return orderService.get(customerId, orderId);
     }
 
@@ -45,6 +50,7 @@ public class OrderMcpTools {
             @McpToolParam(description = "Part of a product name; omit to list all", required = false) @Nullable String keyword,
             @McpToolParam(description = "PENDING_STOCK, PENDING_PAYMENT, PAID or CANCELLED; omit for any", required = false)
             @Nullable String status) {
+        customerAccess.actFor(customerId);
         OrderSearchQuery query = new OrderSearchQuery();
         query.setKeyword(keyword);
         query.setStatus(status);
@@ -58,6 +64,7 @@ public class OrderMcpTools {
             @McpToolParam(description = "Customer ID") @Positive long customerId,
             @McpToolParam(description = "Order ID") @Positive long orderId,
             @McpToolParam(description = "Why the order is cancelled, up to 200 characters") @NotBlank @Size(max = 200) String reason) {
+        customerAccess.actFor(customerId);
         return orderService.cancel(customerId, orderId, reason);
     }
 }

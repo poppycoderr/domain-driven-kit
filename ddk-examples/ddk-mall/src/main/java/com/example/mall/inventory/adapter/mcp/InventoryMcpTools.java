@@ -3,6 +3,7 @@ package com.example.mall.inventory.adapter.mcp;
 import com.example.mall.inventory.application.response.ReservationResponse;
 import com.example.mall.inventory.application.response.StockResponse;
 import com.example.mall.inventory.application.service.InventoryService;
+import com.example.mall.platform.CustomerAccess;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,8 @@ public class InventoryMcpTools {
 
     private final InventoryService inventoryService;
 
+    private final CustomerAccess customerAccess;
+
     @McpTool(name = "get_stock", description = "Get the stock of a SKU: on hand, reserved by open orders, and available for sale.")
     public StockResponse stock(@McpToolParam(description = "SKU ID, for example SKU-KEYBOARD") @NotBlank String skuId) {
         return inventoryService.get(skuId);
@@ -29,6 +32,7 @@ public class InventoryMcpTools {
     @McpTool(name = "get_order_reservations", description = "List the stock an order holds, one entry per SKU. "
             + "Status is RESERVED (held), CONFIRMED (deducted after payment) or RELEASED (given back after cancellation).")
     public List<ReservationResponse> reservations(@McpToolParam(description = "Order ID") @Positive long orderId) {
+        customerAccess.requireSupport();
         return inventoryService.reservationsOf(orderId);
     }
 }

@@ -1,0 +1,5 @@
+# 开启认证与授权：mvn -pl ddk-examples/ddk-mall spring-boot:run -Dspring-boot.run.profiles=secure
+# 用户目录只是演示，见 MallSecurity：用户名是顾客 ID 的是顾客，support 是客服
+mall:
+  security:
+    demo-password: example_password
