@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 560" width="1120" height="560"
      role="img" aria-labelledby="ttl dsc" style="max-width:100%;height:auto">
   <title id="ttl">DDK roadmap</title>
-  <desc id="dsc">The foundation, 0.1–0.4 (Spring Boot 4 baseline, AI collaboration, reliable events and middleware) and 0.5–0.8 (multi-tenancy and the reference app) are released; 0.9 (reliability and the production path) awaits release; then adoption and upgrades, then the 1.0 freeze; looking good and being useful is ongoing.</desc>
+  <desc id="dsc">The foundation, 0.1–0.4 (Spring Boot 4 baseline, AI collaboration, reliable events and middleware), 0.5–0.8 (multi-tenancy and the reference app) and 0.9 (reliability and the production path) are released; adoption and upgrades come next, then the 1.0 freeze; looking good and being useful is ongoing.</desc>
   <defs>
     <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path class="mk" d="M0 0 L10 5 L0 10 z"/>
@@ -70,9 +70,9 @@
 </style>
   <rect class="bg" width="1120" height="560" rx="18"/>
   <text class="title" x="56" y="60">Roadmap</text>
-  <text class="sub" x="56" y="87">0.8.0 is out. 0.9 brings the reliability fixes from the review and awaits release; then adoption, then the 1.0 freeze.</text>
+  <text class="sub" x="56" y="87">0.9.0 is out with the reliability fixes from the review; adoption comes next, then the 1.0 freeze.</text>
   <path class="rail" d="M132.5 176 L987.5 176"/>
-  <path d="M132.5 176 L645.5 176" stroke="#14B8A6" stroke-width="2" fill="none"/>
+  <path d="M132.5 176 L816.5 176" stroke="#14B8A6" stroke-width="2" fill="none"/>
   <rect x="56" y="200" width="153" height="232" rx="12" class="card"/>
   <circle cx="132.5" cy="176" r="7" fill="#14B8A6"/>
   <circle cx="132.5" cy="176" r="11" fill="none" stroke="#14B8A6" stroke-opacity=".35" stroke-width="2"/>
@@ -116,13 +116,13 @@
   <circle cx="420" cy="392" r="2.5" fill="#94A3B8"/>
   <text class="txt-xs" x="430" y="396">Tenancy · scopes</text>
   <rect x="569" y="200" width="153" height="232" rx="12" class="card"/>
-  <circle cx="645.5" cy="176" r="7" fill="#3B82F6"/>
-  <circle cx="645.5" cy="176" r="11" fill="none" stroke="#3B82F6" stroke-opacity=".35" stroke-width="2"/>
+  <circle cx="645.5" cy="176" r="7" fill="#14B8A6"/>
+  <circle cx="645.5" cy="176" r="11" fill="none" stroke="#14B8A6" stroke-opacity=".35" stroke-width="2"/>
   <path class="hair" d="M645.5 187 L645.5 200"/>
   <text class="kicker" x="587" y="234">0.9</text>
   <text class="lbl-sm" x="587" y="262">Reliability</text>
-  <rect x="587" y="276" width="66" height="24" rx="7" class="blue"/>
-  <text class="txt-xs" x="597" y="293">Pending</text>
+  <rect x="587" y="276" width="66" height="24" rx="7" class="teal"/>
+  <text class="txt-xs" x="597" y="293">Released</text>
   <circle cx="591" cy="324" r="2.5" fill="#94A3B8"/>
   <text class="txt-xs" x="601" y="328">Projection races</text>
   <circle cx="591" cy="358" r="2.5" fill="#94A3B8"/>
@@ -130,13 +130,13 @@
   <circle cx="591" cy="392" r="2.5" fill="#94A3B8"/>
   <text class="txt-xs" x="601" y="396">Ops and payments</text>
   <rect x="740" y="200" width="153" height="232" rx="12" class="card"/>
-  <circle cx="816.5" cy="176" r="7" fill="#94A3B8"/>
-  <circle cx="816.5" cy="176" r="11" fill="none" stroke="#94A3B8" stroke-opacity=".35" stroke-width="2"/>
+  <circle cx="816.5" cy="176" r="7" fill="#3B82F6"/>
+  <circle cx="816.5" cy="176" r="11" fill="none" stroke="#3B82F6" stroke-opacity=".35" stroke-width="2"/>
   <path class="hair" d="M816.5 187 L816.5 200"/>
   <text class="kicker" x="758" y="234">R3</text>
   <text class="lbl-sm" x="758" y="262">Adoption</text>
-  <rect x="758" y="276" width="66" height="24" rx="7" class="slate"/>
-  <text class="txt-xs" x="768" y="293">Next</text>
+  <rect x="758" y="276" width="66" height="24" rx="7" class="blue"/>
+  <text class="txt-xs" x="768" y="293">Active</text>
   <circle cx="762" cy="324" r="2.5" fill="#94A3B8"/>
   <text class="txt-xs" x="772" y="328">Clean-room build</text>
   <circle cx="762" cy="358" r="2.5" fill="#94A3B8"/>

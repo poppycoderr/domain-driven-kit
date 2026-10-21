@@ -78,7 +78,7 @@ curl -fsSL https://raw.githubusercontent.com/poppycoderr/domain-driven-kit/main/
 cd order-service && mvn verify
 ```
 
-脚本默认构建最新的发布版本，并输出实际使用的版本号和提交。加 `--layers 3` 生成三层骨架，`DDK_REF=v0.8.0` 指定某个发布版本，`DDK_REF=main` 使用开发中的快照。之后再运行时，只有 ref 相同、提交相同、Maven 产物仍在，才会复用已有的安装。`ddk.sh help` 查看全部选项。
+脚本默认构建最新的发布版本，并输出实际使用的版本号和提交。加 `--layers 3` 生成三层骨架，`DDK_REF=v0.9.0` 指定某个发布版本，`DDK_REF=main` 使用开发中的快照。之后再运行时，只有 ref 相同、提交相同、Maven 产物仍在，才会复用已有的安装。`ddk.sh help` 查看全部选项。
 
 手动构建 DDK：
 
@@ -105,7 +105,7 @@ mvn -B install
         <dependency>
             <groupId>com.ddk</groupId>
             <artifactId>ddk-dependencies</artifactId>
-            <version>0.9.0-SNAPSHOT</version>
+            <version>0.9.0</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -272,9 +272,10 @@ com.ddk.core
 7. **v0.7 在出错的地方报错**：事务之外发布的事件、事务里面加的锁当场拒绝；定时任务的锁不再依赖 Redis
 8. **v0.8 查询侧**：从写模型刷新、可重建的读模型，行级数据权限
 
+9. **v0.9 可靠性与生产路径**：投影收敛、安全的防重复提交、稳定的消费方身份、后台工作的租户、事件与投影的运维、[升级指南](https://poppycoder.netlify.app/ddk/upgrade)
+
 接下来：
 
-9. **v0.9 可靠性与生产路径**（已合并，待发布）：投影收敛、安全的防重复提交、稳定的消费方身份、后台工作的租户、事件与投影的运维、[升级指南](https://poppycoder.netlify.app/ddk/upgrade)
 10. **可采用与可升级**：仓库之外的干净环境构建、升级演练、公开 API 与依赖审查、分发准备
 11. **v1.0 冻结**：只冻结经过验证的部分，配一张支持矩阵
 

@@ -221,7 +221,8 @@ The first release: the DDD foundation on a Spring Boot 4.1 baseline.
 Starter implementation classes live in `com.ddk.<starter>.starter.internal` packages and are not public API: `CacheInvalidationListener`, `CacheInvalidationMessage`, `RedisCacheInvalidationPublisher`, `MicrometerCacheMetrics`, `JitteredTtlFunction`, `SpringDomainEventPublisher` and `TraceIdResponseFilter`. Generated projects check this with `DDK_INTERNALS_MUST_NOT_BE_USED`.
 - The springdoc dependency from `ddk-web-starter`; add it in the application when API docs are needed
 
-[Unreleased]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.5.0...v0.6.0

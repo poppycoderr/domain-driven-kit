@@ -82,9 +82,9 @@ DDK has one version number, but its modules are not equally proven. Each one has
 | Archetypes (three and four layers) | Verified | Generated projects are built and tested in CI | |
 | `ddk-mall` | Verified, as a reference | MySQL, Redis, RocketMQ, Elasticsearch | Simulated payment channel; demo users in the `secure` profile |
 
-## Next release: 0.9
+## Latest release: 0.9
 
-0.9 carries the fixes and production-path work from the October 2026 review. All of it is merged; the release is pending.
+[0.9.0](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v0.9.0), released on 2026-10-21, carries the fixes and production-path work from the October 2026 review.
 
 - **Reliability**: projections converge when refreshes overlap; `@Idempotent` releases only its own registration; idempotent event consumers have a stable identity; the four-layer rule keeps application services off infrastructure; the installer installs the version that was asked for
 - **Production path**: tenants carried by projection marks and integration events, system operators for background work; projection and event operations (failure lists, retries, metrics, scheduled maintenance); event contracts by type and version; payment recovery and a `secure` profile in `ddk-mall`
@@ -136,6 +136,7 @@ No order and no dates. An item moves into a release when there is a concrete nee
 | 0.6 | `ddk-mall` reference application, event consumers, traces across messages |
 | 0.7 | Fail-fast checks for locks and events inside or outside transactions, in-process job locks |
 | 0.8 | Projections, row-level data scope |
+| 0.9 | Reliability fixes from the October 2026 review, tenants in background work, projection and event operations, payment recovery and a secure profile in `ddk-mall`, an upgrade guide |
 
 ## Non-goals
 
