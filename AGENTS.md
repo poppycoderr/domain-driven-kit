@@ -36,7 +36,7 @@ Integration tests for the cache starter use Testcontainers and need a running Do
 ## Conventions
 
 - **Starter contract**: configuration under `ddk.*`, risky features off by default, `@ConditionalOnMissingBean` so user beans win, `ApplicationContextRunner` tests, Testcontainers for real middleware
-- **Public vs internal**: implementation classes that only auto-configuration instantiates go in `com.ddk.<name>.starter.internal`; types users inject, extend, implement or configure stay public
+- **Public vs internal**: implementation classes that only auto-configuration instantiates go in `com.ddk.<name>.starter.internal`; types users inject, extend, implement or configure stay public. Auto-configuration classes are named `Ddk*AutoConfiguration` and their `@Bean` methods are package-private. The web starter keeps its older `com.ddk.web.*` packages, because applications already import `OperatorResolver` and `BaseExceptionHandler` from them
 - **Java layering in examples and archetypes**: `*Request` / `*Response` in their own files with `static from(...)`; rich domain model with no public setters; explicit `@PathVariable("id")` and `@RequestParam(value = "...")`
 - **Diagrams**: the Chinese SVGs in `assets/diagrams` are the source; regenerate English variants with `python3 scripts/translate-diagrams.py assets/diagrams`
 - **Changelog**: add user-visible changes to the `[Unreleased]` section of `CHANGELOG.md`

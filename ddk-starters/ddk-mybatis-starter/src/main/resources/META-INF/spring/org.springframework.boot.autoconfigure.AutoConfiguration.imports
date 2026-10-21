@@ -1,1 +1,1 @@
-com.ddk.mybatis.starter.config.MybatisPlusAutoConfiguration
+com.ddk.mybatis.starter.config.DdkMybatisAutoConfiguration

@@ -55,7 +55,7 @@ public class DdkEventAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public DomainEventPublisher domainEventPublisher(ApplicationEventPublisher delegate) {
+    DomainEventPublisher domainEventPublisher(ApplicationEventPublisher delegate) {
         return new SpringDomainEventPublisher(delegate);
     }
 

@@ -58,7 +58,7 @@ class OperatorContextFilterTest {
     @DisplayName("没有声明 OperatorResolver 时不注册过滤器")
     void noFilterWithoutResolver() {
         new WebApplicationContextRunner()
-                .withConfiguration(AutoConfigurations.of(com.ddk.web.config.WebAutoConfiguration.class))
+                .withConfiguration(AutoConfigurations.of(com.ddk.web.config.DdkWebAutoConfiguration.class))
                 .run(context -> assertThat(context).doesNotHaveBean(OperatorContextFilter.class));
     }
 

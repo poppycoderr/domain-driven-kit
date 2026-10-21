@@ -20,10 +20,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("MyBatis starter 自动装配")
-class MybatisPlusAutoConfigurationTest {
+class DdkMybatisAutoConfigurationTest {
 
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
-            .withConfiguration(AutoConfigurations.of(MybatisPlusAutoConfiguration.class));
+            .withConfiguration(AutoConfigurations.of(DdkMybatisAutoConfiguration.class));
 
     record Source(String name) {
     }

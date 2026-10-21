@@ -1,2 +1,2 @@
-com.ddk.web.config.WebAutoConfiguration
-com.ddk.web.config.WebOpenApiAutoConfiguration
+com.ddk.web.config.DdkWebAutoConfiguration
+com.ddk.web.config.DdkWebOpenApiAutoConfiguration

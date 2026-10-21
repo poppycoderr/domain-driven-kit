@@ -35,7 +35,7 @@ class MybatisPlusDefaultsTest {
     private static final ObjectProvider<DataScopeResolver> NO_DATA_SCOPE_RESOLVER =
             new StaticListableBeanFactory().getBeanProvider(DataScopeResolver.class);
 
-    private final MybatisPlusAutoConfiguration configuration = new MybatisPlusAutoConfiguration();
+    private final DdkMybatisAutoConfiguration configuration = new DdkMybatisAutoConfiguration();
 
     private final MetaObjectHandler handler = configuration.metaObjectHandler();
 

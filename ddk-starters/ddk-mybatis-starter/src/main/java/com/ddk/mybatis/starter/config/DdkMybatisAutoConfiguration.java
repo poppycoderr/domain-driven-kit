@@ -36,7 +36,7 @@ import org.springframework.context.annotation.Bean;
 @AutoConfiguration
 @ConditionalOnClass(MybatisPlusInterceptor.class)
 @EnableConfigurationProperties(DdkMybatisProperties.class)
-public class MybatisPlusAutoConfiguration {
+public class DdkMybatisAutoConfiguration {
 
     /**
      * 注册映射器注册表。
@@ -47,7 +47,7 @@ public class MybatisPlusAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public MapperProvider mapperProvider(ApplicationContext context) {
+    MapperProvider mapperProvider(ApplicationContext context) {
         return new MapperProvider(context);
     }
 
@@ -62,7 +62,7 @@ public class MybatisPlusAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public IdentifierGenerator idGenerator(DdkMybatisProperties properties) {
+    IdentifierGenerator idGenerator(DdkMybatisProperties properties) {
         Long workerId = properties.getWorkerId();
         Long datacenterId = properties.getDatacenterId();
         if (workerId == null || datacenterId == null) {
@@ -84,7 +84,7 @@ public class MybatisPlusAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public MybatisPlusInterceptor mybatisPlusInterceptor(DdkMybatisProperties properties,
+    MybatisPlusInterceptor mybatisPlusInterceptor(DdkMybatisProperties properties,
                                                          ObjectProvider<DataScopeResolver> dataScopeResolver) {
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
         // 租户条件要最先加：后面的乐观锁、分页都应当作用在已经带上租户条件的 SQL 上
@@ -123,7 +123,7 @@ public class MybatisPlusAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public MetaObjectHandler metaObjectHandler() {
+    MetaObjectHandler metaObjectHandler() {
         return new AuditMetaObjectHandler();
     }
 }
