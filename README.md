@@ -274,8 +274,9 @@ Released so far:
 
 Next:
 
-9. **More integrations**: Elasticsearch as a read-model store, Nacos, Sentinel, object storage
-10. **v1.0 Production ready**: native images, a frozen public API
+9. **v0.9 Reliability and the production path** (merged, release pending): converging projections, safe idempotency, stable consumer identities, tenants in background work, event and projection operations, an [upgrade guide](https://poppycoder.netlify.app/ddk/upgrade)
+10. **Adoption and upgrades**: a clean-room build outside this repository, an upgrade rehearsal, a review of the public API and dependencies, distribution
+11. **v1.0 Freeze**: only what has been verified, with a support matrix
 
 See [ROADMAP.md](./ROADMAP.md) for the full plan.
 

@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 560" width="1120" height="560"
      role="img" aria-labelledby="ttl dsc" style="max-width:100%;height:auto">
   <title id="ttl">DDK 演进路线</title>
-  <desc id="dsc">基础层与 v0.1（Spring Boot 4、首个 GitHub Release）已完成；v0.2 AI 协作进行中，v0.3 可靠领域事件，v0.4 中间件集成，v1.0 生产就绪；好看又好用贯穿始终。</desc>
+  <desc id="dsc">基础层、0.1–0.4（Spring Boot 4 基线、AI 协作、可靠事件与中间件）、0.5–0.8（多租户与参考应用）已发布；0.9 可靠性与生产路径待发布；之后是可采用与可升级，再冻结 1.0；好看又好用贯穿始终。</desc>
   <defs>
     <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path class="mk" d="M0 0 L10 5 L0 10 z"/>
@@ -70,9 +70,9 @@
 </style>
   <rect class="bg" width="1120" height="560" rx="18"/>
   <text class="title" x="56" y="60">演进路线</text>
-  <text class="sub" x="56" y="87">v0.1.0 已发布：Spring Boot 4 基线。当前进行 AI 协作，随后是可靠事件与中间件集成。</text>
+  <text class="sub" x="56" y="87">0.8.0 已发布。0.9 完成了评审提出的可靠性修复与生产路径，待发布；之后是可采用与可升级，再冻结 1.0。</text>
   <path class="rail" d="M132.5 176 L987.5 176"/>
-  <path d="M132.5 176 L474.5 176" stroke="#14B8A6" stroke-width="2" fill="none"/>
+  <path d="M132.5 176 L645.5 176" stroke="#14B8A6" stroke-width="2" fill="none"/>
   <rect x="56" y="200" width="153" height="232" rx="12" class="card"/>
   <circle cx="132.5" cy="176" r="7" fill="#14B8A6"/>
   <circle cx="132.5" cy="176" r="11" fill="none" stroke="#14B8A6" stroke-opacity=".35" stroke-width="2"/>
@@ -84,81 +84,81 @@
   <circle cx="78" cy="324" r="2.5" fill="#94A3B8"/>
   <text class="txt-xs" x="88" y="328">领域模型与仓储</text>
   <circle cx="78" cy="358" r="2.5" fill="#94A3B8"/>
-  <text class="txt-xs" x="88" y="362">9 个 starter</text>
+  <text class="txt-xs" x="88" y="362">13 个 starter</text>
   <circle cx="78" cy="392" r="2.5" fill="#94A3B8"/>
   <text class="txt-xs" x="88" y="396">archetype 与示例</text>
   <rect x="227" y="200" width="153" height="232" rx="12" class="card"/>
   <circle cx="303.5" cy="176" r="7" fill="#14B8A6"/>
   <circle cx="303.5" cy="176" r="11" fill="none" stroke="#14B8A6" stroke-opacity=".35" stroke-width="2"/>
   <path class="hair" d="M303.5 187 L303.5 200"/>
-  <text class="kicker" x="245" y="234">V0.1</text>
-  <text class="lbl-sm" x="245" y="262">现代基线</text>
+  <text class="kicker" x="245" y="234">0.1–0.4</text>
+  <text class="lbl-sm" x="245" y="262">基线与集成</text>
   <rect x="245" y="276" width="56" height="24" rx="7" class="teal"/>
-  <text class="txt-xs" x="255" y="293">已完成</text>
+  <text class="txt-xs" x="255" y="293">已发布</text>
   <circle cx="249" cy="324" r="2.5" fill="#94A3B8"/>
-  <text class="txt-xs" x="259" y="328">Spring Boot 4.1</text>
+  <text class="txt-xs" x="259" y="328">Spring Boot 4</text>
   <circle cx="249" cy="358" r="2.5" fill="#94A3B8"/>
-  <text class="txt-xs" x="259" y="362">JSpecify 空安全</text>
+  <text class="txt-xs" x="259" y="362">AI 协作 · MCP</text>
   <circle cx="249" cy="392" r="2.5" fill="#94A3B8"/>
-  <text class="txt-xs" x="259" y="396">首个 GitHub Release</text>
+  <text class="txt-xs" x="259" y="396">Outbox · 中间件</text>
   <rect x="398" y="200" width="153" height="232" rx="12" class="card"/>
-  <circle cx="474.5" cy="176" r="7" fill="#3B82F6"/>
-  <circle cx="474.5" cy="176" r="11" fill="none" stroke="#3B82F6" stroke-opacity=".35" stroke-width="2"/>
+  <circle cx="474.5" cy="176" r="7" fill="#14B8A6"/>
+  <circle cx="474.5" cy="176" r="11" fill="none" stroke="#14B8A6" stroke-opacity=".35" stroke-width="2"/>
   <path class="hair" d="M474.5 187 L474.5 200"/>
-  <text class="kicker" x="416" y="234">V0.2</text>
-  <text class="lbl-sm" x="416" y="262">AI 协作</text>
-  <rect x="416" y="276" width="56" height="24" rx="7" class="blue"/>
-  <text class="txt-xs" x="426" y="293">进行中</text>
+  <text class="kicker" x="416" y="234">0.5–0.8</text>
+  <text class="lbl-sm" x="416" y="262">参考应用</text>
+  <rect x="416" y="276" width="56" height="24" rx="7" class="teal"/>
+  <text class="txt-xs" x="426" y="293">已发布</text>
   <circle cx="420" cy="324" r="2.5" fill="#94A3B8"/>
-  <text class="txt-xs" x="430" y="328">AGENTS.md · Skills</text>
+  <text class="txt-xs" x="430" y="328">ddk-mall 三个上下文</text>
   <circle cx="420" cy="358" r="2.5" fill="#94A3B8"/>
-  <text class="txt-xs" x="430" y="362">代理可读的违规报告</text>
+  <text class="txt-xs" x="430" y="362">读模型投影</text>
   <circle cx="420" cy="392" r="2.5" fill="#94A3B8"/>
-  <text class="txt-xs" x="430" y="396">MCP starter</text>
+  <text class="txt-xs" x="430" y="396">多租户 · 数据权限</text>
   <rect x="569" y="200" width="153" height="232" rx="12" class="card"/>
-  <circle cx="645.5" cy="176" r="7" fill="#94A3B8"/>
-  <circle cx="645.5" cy="176" r="11" fill="none" stroke="#94A3B8" stroke-opacity=".35" stroke-width="2"/>
+  <circle cx="645.5" cy="176" r="7" fill="#3B82F6"/>
+  <circle cx="645.5" cy="176" r="11" fill="none" stroke="#3B82F6" stroke-opacity=".35" stroke-width="2"/>
   <path class="hair" d="M645.5 187 L645.5 200"/>
-  <text class="kicker" x="587" y="234">V0.3</text>
-  <text class="lbl-sm" x="587" y="262">可靠领域事件</text>
-  <rect x="587" y="276" width="56" height="24" rx="7" class="slate"/>
-  <text class="txt-xs" x="597" y="293">规划中</text>
+  <text class="kicker" x="587" y="234">0.9</text>
+  <text class="lbl-sm" x="587" y="262">可靠性</text>
+  <rect x="587" y="276" width="56" height="24" rx="7" class="blue"/>
+  <text class="txt-xs" x="597" y="293">待发布</text>
   <circle cx="591" cy="324" r="2.5" fill="#94A3B8"/>
-  <text class="txt-xs" x="601" y="328">事务性 Outbox</text>
+  <text class="txt-xs" x="601" y="328">投影并发收敛</text>
   <circle cx="591" cy="358" r="2.5" fill="#94A3B8"/>
-  <text class="txt-xs" x="601" y="362">RocketMQ · Kafka</text>
+  <text class="txt-xs" x="601" y="362">后台任务的租户</text>
   <circle cx="591" cy="392" r="2.5" fill="#94A3B8"/>
-  <text class="txt-xs" x="601" y="396">幂等消费</text>
+  <text class="txt-xs" x="601" y="396">事件运维 · 支付对账</text>
   <rect x="740" y="200" width="153" height="232" rx="12" class="card"/>
   <circle cx="816.5" cy="176" r="7" fill="#94A3B8"/>
   <circle cx="816.5" cy="176" r="11" fill="none" stroke="#94A3B8" stroke-opacity=".35" stroke-width="2"/>
   <path class="hair" d="M816.5 187 L816.5 200"/>
-  <text class="kicker" x="758" y="234">V0.4</text>
-  <text class="lbl-sm" x="758" y="262">中间件集成</text>
+  <text class="kicker" x="758" y="234">R3</text>
+  <text class="lbl-sm" x="758" y="262">可采用与可升级</text>
   <rect x="758" y="276" width="56" height="24" rx="7" class="slate"/>
-  <text class="txt-xs" x="768" y="293">规划中</text>
+  <text class="txt-xs" x="768" y="293">下一步</text>
   <circle cx="762" cy="324" r="2.5" fill="#94A3B8"/>
-  <text class="txt-xs" x="772" y="328">Redisson 聚合锁</text>
+  <text class="txt-xs" x="772" y="328">干净环境构建</text>
   <circle cx="762" cy="358" r="2.5" fill="#94A3B8"/>
-  <text class="txt-xs" x="772" y="362">XXL-Job · Flyway</text>
+  <text class="txt-xs" x="772" y="362">升级演练</text>
   <circle cx="762" cy="392" r="2.5" fill="#94A3B8"/>
-  <text class="txt-xs" x="772" y="396">ES 事件读模型</text>
+  <text class="txt-xs" x="772" y="396">API 与依赖审查</text>
   <rect x="911" y="200" width="153" height="232" rx="12" class="card"/>
   <circle cx="987.5" cy="176" r="7" fill="#94A3B8"/>
   <circle cx="987.5" cy="176" r="11" fill="none" stroke="#94A3B8" stroke-opacity=".35" stroke-width="2"/>
   <path class="hair" d="M987.5 187 L987.5 200"/>
-  <text class="kicker" x="929" y="234">V1.0</text>
-  <text class="lbl-sm" x="929" y="262">生产就绪</text>
+  <text class="kicker" x="929" y="234">1.0</text>
+  <text class="lbl-sm" x="929" y="262">冻结</text>
   <rect x="929" y="276" width="56" height="24" rx="7" class="slate"/>
   <text class="txt-xs" x="939" y="293">规划中</text>
   <circle cx="933" cy="324" r="2.5" fill="#94A3B8"/>
-  <text class="txt-xs" x="943" y="328">ddk-mall 参考应用</text>
+  <text class="txt-xs" x="943" y="328">公开 API 冻结</text>
   <circle cx="933" cy="358" r="2.5" fill="#94A3B8"/>
-  <text class="txt-xs" x="943" y="362">原生镜像 · 虚拟线程</text>
+  <text class="txt-xs" x="943" y="362">支持矩阵</text>
   <circle cx="933" cy="392" r="2.5" fill="#94A3B8"/>
-  <text class="txt-xs" x="943" y="396">公开 API 冻结</text>
+  <text class="txt-xs" x="943" y="396">按模块原生镜像</text>
   <rect x="56" y="456" width="1008" height="56" rx="12" class="group"/>
   <text class="kicker" x="80" y="489">贯穿始终</text>
-  <text class="txt" x="168" y="489">README 首屏动图 · 一行命令创建项目 · 在线项目生成器 · 与 COLA / Spring Modulith 对比 · 每次发布配一篇设计文章</text>
+  <text class="txt" x="168" y="489">README 首屏动图 · 每个 starter 的 30 秒上手 · 常见错误的清晰提示 · 每次发布配一篇设计文章 · 中英文文档同步</text>
   <text class="txt-xs" x="1064" y="538" text-anchor="end">详见 ROADMAP.zh-CN.md</text>
 </svg>
