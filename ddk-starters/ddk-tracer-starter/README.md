@@ -46,7 +46,7 @@ Browsers can only read the header if CORS exposes it, e.g. `ddk.web.cors.exposed
 
 ## Traces across threads and messages
 
-Without help, work that moves to another thread starts a new trace. The starter registers a `ContextPropagatingTaskDecorator`, which Spring Boot applies to the task executors it creates, so `@Async` methods stay on the caller's trace.
+Without help, work that moves to another thread starts a new trace. The starter registers a `ContextPropagatingTaskDecorator`, which Spring Boot applies to the task executors it creates, so `@Async` methods stay on the caller's trace. The same decorator carries the caller's `OperatorContext`, tenant included, because `ddk-core` registers a context accessor for it. Threads and pools the application creates itself are not decorated; wrap their tasks with `OperatorContext.wrap`.
 
 This is also what keeps integration events on the trace. `ddk-event-starter` delivers events on the task executor after the transaction commits, writes the trace context into the message headers, and picks it up again on the consuming side:
 
