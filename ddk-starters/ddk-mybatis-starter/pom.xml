@@ -19,6 +19,12 @@
             <artifactId>ddk-mybatis</artifactId>
         </dependency>
 
+        <!-- 默认的雪花算法 ID 生成器 -->
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-core</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-jsqlparser</artifactId>

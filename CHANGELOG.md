@@ -12,6 +12,10 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ## [Unreleased]
 
+### Changed
+
+- `ddk-core` no longer brings Hutool in transitively; it never used it. `ddk-mybatis` and `ddk-mybatis-starter`, which do, declare `hutool-core` themselves. An application that uses Hutool directly and got it only through `ddk-core` declares it itself
+
 ## [0.9.0] - 2026-10-21
 
 Reliability and the production path. Projections converge when refreshes overlap, `@Idempotent` releases only its own registration, idempotent event consumers have a stable identity, and the four-layer rule keeps application services off infrastructure. Background work carries its tenant: projection marks, integration events, `@Async` tasks. Projections and event publications get operations: failure lists, retries, metrics and scheduled maintenance. `ddk-mall` recovers lost payments and has a `secure` profile. Upgrading from 0.8 takes a few steps, all listed in the [upgrade guide](https://poppycoder.netlify.app/ddk/upgrade).
