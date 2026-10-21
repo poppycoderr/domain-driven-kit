@@ -6,7 +6,7 @@
   <img src="./assets/diagrams/ddk-roadmap.svg" alt="DDK roadmap" />
 </p>
 
-这份路线图回答三个问题：DDK 要成为什么、接下来按什么顺序做、怎样让它既好看又好用。每个里程碑都要能独立发布、独立演示，已完成的部分必须有测试兜底。
+这份路线图分四部分：**现在支持什么**、各部分验证到什么程度；**下一个版本包含什么**；**之后做什么**；以及没有顺序和日期的**候选池**。已发布版本做了什么，概要见[历史](#历史)，完整内容见 [CHANGELOG](./CHANGELOG.md)。
 
 ## 定位
 
@@ -39,7 +39,7 @@
 |---|---|
 | `RedisUtil` 逐个方法转发 `RedisTemplate` | 以聚合 ID 为粒度的 `@AggregateLock`，锁失败映射成业务异常 |
 | 给 RocketMQ 再包一层 `send()` | 领域事件经 Outbox 可靠投递到 RocketMQ / Kafka，消费端自带幂等 |
-| 把 Elasticsearch 客户端注册成 Bean | 由领域事件驱动的读模型投影，重放可恢复 |
+| 把 Elasticsearch 客户端注册成 Bean | 提交后从写模型刷新、可以随时重建的读模型 |
 | 再封装一遍 XXL-Job 注解 | 定时任务只调用应用服务，被架构规则约束，不直接碰仓储 |
 
 每个 starter 在合并前都要满足同一份 **Starter 契约**：
@@ -50,132 +50,92 @@
 - 文档站有独立页面：能做什么、不适用的场景、已知问题
 - 至少被一个示例或 archetype 使用
 
-## 已完成：基础层
+## 支持状态
 
-原 Phase 1–5 已全部完成，是后续里程碑的起点：
+DDK 只有一个版本号，但各模块经受的验证并不一样。每个模块属于下面一个级别：
 
-- **工程基线**：真实 BOM、CI、Spotless、按模块的 JaCoCo 门槛（行 ≥ 70%、分支 ≥ 50%），213 个测试
-- **领域模型**：`Identifier`、`ValueObject`、`Entity`、`AggregateRoot`、`DomainEvent`、`Specification`，领域层零框架依赖并由测试保证
-- **映射与仓储**：映射器缺失或重复在启动期失败，通用仓储支持乐观锁，H2 集成测试
-- **Starter 规范化**：Web、MyBatis、Redis、两级缓存、多数据源、链路追踪、Seata、领域事件、ArchGuard 共 9 个 starter（v0.2 新增 MCP，共 10 个），统一 `ddk.*` 配置
-- **骨架与示例**：三层 / 四层 Maven archetype（带生成项目集成测试），可运行的用户注册示例
+| 级别 | 含义 |
+|---|---|
+| **已验证** | 每次改动都在 CI 里对真实的数据库或中间件跑集成测试 |
+| **进程内验证** | 在 JVM 内端到端测试（MockMvc、MCP 客户端、H2）；没有外部系统可测，或者外部部分只做过手工验证 |
+| **仅装配** | 只有自动配置和单元测试，没有对真实系统验证运行时行为 |
+| **仅开发** | 只用于本地运行和测试，不能用于生产 |
 
-## v0.1 · 现代基线与首次发布
-
-**目标：别人能在 5 分钟内用上 DDK。** 暂不发布 Maven Central，先把「克隆 → 一条命令安装 → 生成项目」这条路径做顺。
-
-平台升级（Spring Boot 3.4 已于 2025 年 12 月结束开源维护，这是最高优先级）：
-
-- [x] 升级到 Spring Boot 4.1 / Spring Framework 7，适配 Jackson 3 与 Jakarta EE 11
-- [x] MyBatis-Plus 切换到 `mybatis-plus-spring-boot4-starter`
-- [x] 评估 Seata 对 Boot 4 的支持：Seata 2.6 自动配置只引用 Boot 4 仍保留的 API，DDK 装配测试通过，暂留主线；Seata 运行时尚未在 Boot 4 下验证
-- [x] Java 基线保持 21，CI 增加 Java 25 矩阵
-- [x] 公开 API 标注 JSpecify 空安全注解，由 NullAway 在编译期检查
-- [x] 链路追踪 starter 改为基于 `spring-boot-starter-opentelemetry`，不再引入整个 actuator，只保留 traceId 响应头等 DDK 特有能力
-- [x] 不引入额外的重试库：DDK 目前没有重试需求，今后需要重试或并发限制时使用 Spring Framework 7 自带的 `@Retryable` / `@ConcurrencyLimit`
-
-发布就绪：
-
-- [x] 版本号改为 `0.1.0`，写明 0.x 期间的兼容策略：次版本号可以有破坏性变更，但必须写进发布说明
-- [x] 梳理公开包与内部包，内部实现放进 `internal` 包并由 ArchUnit 约束
-- [x] 公开 API 的 Javadoc，发布时附带 Javadoc 与源码包
-- [x] `CHANGELOG.md`，GitHub Release 的发布说明从中提取
-- [x] 打 tag 时由 CI 创建 GitHub Release：发布说明、源码包与各模块 jar
-- [x] 提供一条命令完成本地安装与项目生成的脚本，README 快速开始按这条路径编写
-
-## v0.2 · AI 协作
-
-**目标：DDK 生成的项目，交给 Claude Code / Codex 也写不乱。** 这是 DDK 最容易被看见的差异点。
-
-代理护栏：
-
-- [x] archetype 生成 `AGENTS.md` 与 `CLAUDE.md`：分层职责、命名约定、禁止事项、提交前必须通过的命令
-- [x] 生成的项目自带 Claude Code Skills：新增聚合、用例、领域事件（四层）或业务功能（三层）；Codex 等代理通过 `AGENTS.md` 获得同样的约定
-- [x] ArchGuard 输出机器可读的违规报告（哪条规则、哪个类、怎么改），代理可以据此自我修正
-- [x] 文档站增加「用 AI 编码代理开发 DDK 项目」专题
-- [x] 专题附一段真实的代理协作记录：Claude Code 子代理在生成的项目里新增聚合、用例和事件，附 `mvn verify` 输出与一份真实的 ArchGuard 报告
-
-AI 能力（基于 Spring AI 2.0）：
-
-- [x] ~~`ddk-ai-starter`~~ 不做：`ChatClient` 配置、结构化输出（`.entity(...)`）、Token 用量指标（`gen_ai_client_token_usage_total`）Spring AI 2.0 都已内置，再封装一层违反集成原则
-- [x] `ddk-mcp-starter`：默认 streamable HTTP、工具参数 Bean Validation、业务异常转为带错误码的工具错误、隐藏未预期异常细节、审计日志；`MCP_TOOLS_MUST_RESIDE_IN_ADAPTER` 规则让工具只能经由应用服务访问领域。鉴权交给 Spring Security
-- [x] 示例：用户示例通过 MCP 暴露注册、查询、禁用用例，并有 MCP 客户端端到端测试
-
-## v0.3 · 可靠领域事件
-
-**目标：领域事件从「进程内通知」升级为「可靠的集成事件」。**
-
-- [x] 事务性 Outbox：复用 Spring Modulith 的 JDBC 事件发布记录，与 MyBatis-Plus 同事务登记、提交后投递，失败记录停在 `FAILED` 可重新提交；领域层用纯 JDK 的 `@IntegrationEvent` 声明
-- [x] 投递适配：Kafka、RabbitMQ（AMQP）、JMS、Spring Messaging 由 Modulith 外发模块提供
-- [x] RocketMQ 投递适配：Modulith 没有对应模块，事件 starter 基于 `rocketmq-client` 自行注册外发监听器，同一 key 落在同一队列保证顺序，并用 Testcontainers 在真实 broker 上测试
-- [x] 消费端幂等：`IdempotentConsumer` 按（消费者，消息 ID）登记已处理消息，保存点隔离重复；消息 ID 来自事件自带标识（`ddk-event-id` 消息头）
-- [x] 与 Spring Modulith 事件发布注册表互通，不重复实现；应用自己声明外发配置时 DDK 让位
-- [x] 事件契约：稳定的类型名与版本号随消息头发出，写明演进规则，启动期校验声明
-
-## v0.4 · 中间件与类库集成
-
-**目标：覆盖国内主流技术栈里最常用的中间件，全部遵守集成原则与 Starter 契约。**
-
-| 分类 | 集成 | 领域语义 | 优先级 |
+| 模块 | 级别 | 验证环境 | 已知限制 |
 |---|---|---|---|
-| 并发控制 | Redisson | 已在 `ddk-concurrency-starter` 完成：`@AggregateLock`、`@Idempotent` 防重复提交、按用户 / 租户的 `@RateLimit` | 高 |
-| 定时任务 | ShedLock | 已完成：`ddk-job-starter` 让 `@Scheduled` 任务同一时刻只在一个实例上执行，`SCHEDULED_JOBS_MUST_RESIDE_IN_ADAPTER` 规则让任务只能调用应用服务。不做 XXL-Job starter：它是 GPL-3.0，DDK（Apache-2.0）不链接它；以后可以集成许可证兼容的调度平台 | 高 |
-| 数据库演进 | Flyway | 已完成：archetype 自带基线迁移脚本，示例改用迁移脚本而不是 `schema.sql`，代理约定要求每次表结构变化新增一个迁移 | 高 |
-| 接口文档 | springdoc-openapi | 已在 Web starter 完成：每个接口补上 400 / 409 / 500 错误响应，错误码汇总成清单；`ApiResponse<T>` 由 springdoc 按泛型展开 | 高 |
-| 读模型 | JDBC 待刷新表；Elasticsearch | 已完成：`ddk-projection-starter` 在事务里标记变更的数据，提交后从写模型刷新读模型，失败重试，可按需重建。`ddk-mall` 的订单搜索在同一个端口后面可以在关系库和 Elasticsearch 之间切换。未完成：Elasticsearch 专用的辅助（索引管理、重建时切换别名） | 中 |
-| 横切能力 | MyBatis-Plus 插件 | 已完成：`OperatorContext`、审计字段（`createBy` / `updateBy`）、取不到租户就拒绝执行的多租户、按组和按创建人的行级数据权限。逻辑删除用 MyBatis-Plus 自带的 `@TableLogic` 即可，不需要 DDK 的代码 | 中 |
-| 配置与注册 | Nacos | 配置刷新对 `ddk.*` 属性生效，保持 starter 可选依赖。等待上游，见下 | 中 |
-| 流量治理 | Sentinel | 应用服务级别的熔断与降级，降级结果映射为业务错误码。等待上游，见下 | 低 |
-| 对象存储 | S3 兼容（MinIO / OSS） | 以值对象表示文件引用，领域层不接触 SDK | 低 |
+| `ddk-core` | 已验证 | 纯 Java；领域纯度由 ArchUnit 检查 | |
+| `ddk-mybatis` | 已验证 | H2；经 `ddk-mybatis-starter` 和 `ddk-mall` 覆盖 MySQL 8.4 | |
+| `ddk-test` | 已验证 | MySQL、Redis、RocketMQ、Elasticsearch 的 Testcontainers 预设 | |
+| Web starter | 进程内验证 | MockMvc | |
+| MyBatis starter（审计、多租户、数据权限） | 已验证 | H2、MySQL 8.4 | |
+| Redis starter | 已验证 | Redis，经缓存 starter 的集成测试 | |
+| Cache starter | 已验证 | Redis | |
+| Concurrency starter | 已验证 | Redis | 防重复提交按 TTL 窗口生效，不是恰好一次 |
+| Job starter | 已验证 | Redis 锁；进程内锁 | |
+| Event starter | 已验证 | H2、PostgreSQL 17、RocketMQ、Spring Modulith 的 JDBC 发布记录 | Kafka、AMQP、JMS 走 Modulith 自己的模块，DDK 没有测试；进程内转发仅开发 |
+| Projection starter | 已验证 | H2、MySQL 8.4、PostgreSQL 17；Elasticsearch 经 `ddk-mall` | 没有 Elasticsearch 专用的辅助功能 |
+| MCP starter | 进程内验证 | 真实 MCP 客户端，streamable HTTP | 只支持同步 server；授权由应用负责 |
+| ArchGuard starter | 已验证 | 每条规则都有 ArchUnit 正反例 | |
+| Tracer starter | 进程内验证 | 跨 HTTP 和消息的链路上下文 | 导出到追踪后端只做过手工验证 |
+| DB starter（多数据源） | 仅装配 | H2 | 发件箱、去重表、待刷新表只有和业务事务用同一个数据源时才是原子的 |
+| Seata starter | 仅装配 | | Seata 的运行时没有在 Spring Boot 4 上验证 |
+| Archetype（三层、四层） | 已验证 | 生成的项目在 CI 里构建和测试 | |
+| `ddk-mall` | 已验证，作为参考实现 | MySQL、Redis、RocketMQ、Elasticsearch | 支付渠道是模拟的；`secure` profile 用演示用户 |
 
-测试工具：
+## 下一个版本：0.9
 
-- [x] `ddk-test`：聚合断言（产生了哪些事件、不变量是否成立）、Testcontainers 预置（MySQL、Redis、RocketMQ）
+0.9 收录 2026 年 10 月评审提出的修复和生产路径工作，已经全部合并，等待发布。
 
-**Nacos 和 Sentinel 在等 Spring Cloud。** 两者都经由 Spring Cloud Alibaba 接入，它跟随 Spring Cloud，Spring Cloud 又跟随 Spring Boot。2026-10-12 在 Maven Central 上核对的情况：
+- **可靠性**：投影在刷新重叠时也能收敛；`@Idempotent` 只释放自己的登记；去重的事件消费方有稳定身份；四层规则不再允许应用服务直接引用基础设施；安装脚本装的是指定的版本
+- **生产路径**：投影标记和集成事件携带租户，后台工作以系统操作者身份执行；投影和事件的运维（失败列表、立即重试、指标、定时维护）；按类型和版本声明的事件契约；`ddk-mall` 的支付对账和 `secure` profile
+- **升级**：CI 用 japicmp 对比上一个发布版本的公开 API；破坏性变更和迁移步骤汇总在[升级指南](https://poppycoder.netlify.app/ddk/upgrade)
 
-| 产品线 | 最新版本 | 面向的版本 |
-|---|---|---|
-| Spring Cloud | 2025.1.3（正式版）、2026.0.0-M1（里程碑版） | 2025.1.x 面向 Spring Boot 4.0 |
-| Spring Cloud Alibaba | 2025.1.0.0 | Spring Cloud 2025.1、Spring Boot 4.0 |
-| DDK | | Spring Boot 4.1 |
+## 0.9 之后：可采用与可升级
 
-面向 Spring Boot 4.1 的 Spring Cloud 还没有正式版，现在为这两者做 DDK starter 等于建在一个不受支持的组合上。等 Spring Cloud 2026.0 和对应的 Spring Cloud Alibaba 发布之后再做这两行。
+**目标：仓库之外的人不读源码，也能用上 DDK、在版本之间升级。**
 
-## v1.0 · 生产就绪
+- [ ] 干净环境构建：在仓库之外、本地 Maven 仓库为空的项目里，只靠安装脚本和 BOM，生成并验证两种 archetype
+- [ ] 升级演练：一个 0.8 项目只看升级指南升级到 0.9
+- [ ] 审查公开 API 和每个 starter 的传递依赖：哪些必需、哪些可选、哪些会泄漏到应用里
+- [ ] 分发准备：定下 Maven 坐标（`io.github.poppycoderr`）、签名和来源证明，让发布到标准 Maven 仓库变成一个决定，而不是一个项目。不再以 star 数为前提：采用门槛高本身就妨碍了反馈
+- [ ] CI 分成更易读的阶段（单元与装配、真实中间件、生成项目、API 兼容），但不能让必需的测试悄悄不跑；检查 BOM 和父 pom 的版本一致
 
-**目标：可以放心用在生产项目里。**
+## 1.0：冻结
 
-- [x] `ddk-mall` 参考应用：订单、库存、支付三个限界上下文的模块化单体，覆盖 Outbox、RocketMQ、幂等消费、缓存、分布式锁、定时任务、接口文档和 MCP 工具；`docker compose --profile observability up` 带上链路与指标。未包含：独立的读模型、预置的 Grafana 面板
-- [ ] 所有 starter 提供 GraalVM 原生镜像 `RuntimeHints`，示例能构建原生镜像
-- [ ] 虚拟线程下的行为验证（锁、ThreadLocal 上下文传播）
-- [ ] 公开 API 冻结，此后遵守语义化版本
-- [ ] 发布到 Maven Central：等 star 与使用反馈明显增长后再做。届时可使用 GitHub 账号对应的 `io.github.poppycoderr` 命名空间，不依赖自有域名
-- [ ] 文档站中英双语
+**目标：只冻结经过验证的部分。**
 
-## 贯穿始终：好看又好用
+- [ ] 冻结经过验证的核心 API 和上面的支持矩阵，此后严格遵守语义化版本
+- [ ] 虚拟线程上的上下文语义：操作者、链路、加锁顺序、取消、线程池复用，而不只是「能启动」
+- [ ] GraalVM 按模块声明支持，从一个最小示例开始，不要求所有 starter 一起支持
+- [ ] 写清已知限制、回滚路径和维护责任
 
-Star 来自两件事：**第一屏就让人看懂价值**，**五分钟内真的跑起来**。这部分不放在某个里程碑里，而是每次发布都要推进。
+## 候选池
 
-好看：
+没有顺序，也没有日期。有了具体需要，才把一项放进某个版本。
 
-- [x] README 首屏：一句话价值主张、徽章（CI、最新 Release、License）、25 秒动画演示「生成项目 → 违反分层 → 测试报错 → 修复」，内容取自真实运行
-- [x] 与 COLA、Spring Modulith、jMolecules 的对比表，讲清各自适合的场景，而不是贬低别人
-- [x] 仓库社交预览图、GitHub Topics（`ddd`、`spring-boot`、`archunit`、`mybatis-plus`、`ai-agents` 等）
-- [ ] 架构图保持统一视觉，并提供深色模式
+| 候选 | 说明 |
+|---|---|
+| Nacos（配置）与 Sentinel（流量控制） | 两者都经由 Spring Cloud Alibaba，它跟随 Spring Cloud，Spring Cloud 又跟随 Spring Boot。2026-10-12 查到还没有面向 Spring Boot 4.1 的 Spring Cloud 正式版。开始做时重新核对上游兼容范围，并做组合测试 |
+| S3 兼容的对象存储 | 文件引用作为值对象，领域层不接触 SDK |
+| 投影的 Elasticsearch 辅助功能 | 索引管理、重建时切换别名 |
+| 一行命令创建项目、在线项目生成器 | `jbang ddk@poppycoderr new my-app`，类似 Spring Initializr 的页面；等安装脚本的版本选择稳定之后 |
+| `ddk-mall` 的预置 Grafana 看板 | 基于投影、事件和缓存的指标 |
+| 每个 starter 页面的 30 秒上手、常见错误的清晰提示 | 文档工作 |
+| 社区 | Issue 和 PR 模板、`good first issue` 标签、Discussions、每次发布配一篇设计文章 |
 
-好用：
+## 历史
 
-- [ ] 一行命令创建项目：`jbang ddk@poppycoderr new my-app`，支持选择三层 / 四层与需要的 starter
-- [ ] 文档站上的在线项目生成器，类似 Spring Initializr
-- [ ] 每个 starter 的文档页都有「30 秒上手」代码片段
-- [ ] 常见错误有明确报错信息，并在文档里给出排查方法
-
-社区：
-
-- [ ] Issue / PR 模板、`good first issue` 标签、GitHub Discussions
-- [ ] 每个版本发布配一篇 codesphere 文章，讲清楚设计取舍
-- [ ] 英文 README 与中文 README 同步维护，面向国际社区同时推广
+| 版本 | 主题 |
+|---|---|
+| 基础层 | 领域模型基类、通用仓储、统一在 `ddk.*` 下的 starter、archetype、带覆盖率门槛的 CI |
+| 0.1 | Spring Boot 4.1 基线、JSpecify 空安全、首个 GitHub Release 和安装脚本 |
+| 0.2 | AI 协作：`AGENTS.md`、Claude Code Skills、代理可读的 ArchGuard 报告、MCP starter |
+| 0.3 | 可靠领域事件：经 Spring Modulith 的发件箱、RocketMQ 投递、幂等消费、事件契约 |
+| 0.4 | 中间件：基于 Redisson 的聚合锁、防重复提交和限流，ShedLock 定时任务，archetype 里的 Flyway，错误契约文档，`ddk-test` |
+| 0.5 | `OperatorContext`、审计字段、取不到租户就失败的多租户 |
+| 0.6 | `ddk-mall` 参考应用、事件消费方、跨消息的链路 |
+| 0.7 | 锁和事件在事务内外用错时直接报错，进程内的任务锁 |
+| 0.8 | 读模型投影、行级数据权限 |
 
 ## 明确不做
 

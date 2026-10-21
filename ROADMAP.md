@@ -6,7 +6,7 @@
   <img src="./assets/diagrams/ddk-roadmap.en.svg" alt="DDK roadmap" />
 </p>
 
-This roadmap answers three questions: what DDK should become, in which order the work happens, and how the project stays both good-looking and genuinely useful. Every milestone must be releasable and demoable on its own, and everything marked done is backed by tests.
+This roadmap has four parts: **what is supported today** and how well each part is verified, **what the next release contains**, **what comes after it**, and a **pool of candidates** without order or dates. What earlier releases delivered is summarized under [History](#history) and listed in full in the [changelog](./CHANGELOG.md).
 
 ## Positioning
 
@@ -39,7 +39,7 @@ Middleware integration is the fastest way to turn a toolkit into a kitchen sink.
 |---|---|
 | A `RedisUtil` that forwards every `RedisTemplate` method | `@AggregateLock` keyed by aggregate ID, with lock failures mapped to business errors |
 | Another `send()` wrapper around RocketMQ | Domain events delivered reliably through an outbox to RocketMQ / Kafka, with idempotent consumers |
-| Registering the Elasticsearch client as a bean | Read-model projections driven by domain events, rebuildable by replay |
+| Registering the Elasticsearch client as a bean | Read models refreshed from the write model after commit, rebuildable on demand |
 | Re-wrapping XXL-Job annotations | Scheduled jobs that only call application services, enforced by architecture rules |
 
 Every starter must meet the same **starter contract** before it is merged:
@@ -50,132 +50,92 @@ Every starter must meet the same **starter contract** before it is merged:
 - A dedicated docs page: what it does, where it does not fit, known issues
 - Used by at least one example or archetype
 
-## Done: the foundation
+## Support status
 
-Former Phases 1–5 are complete and form the starting point:
+DDK has one version number, but its modules are not equally proven. Each one has one of these levels:
 
-- **Engineering baseline**: a real BOM, CI, Spotless, per-module JaCoCo minimums (70% lines, 50% branches), 213 tests
-- **Domain model**: `Identifier`, `ValueObject`, `Entity`, `AggregateRoot`, `DomainEvent`, `Specification`, with a framework-free domain layer enforced by tests
-- **Mapping and repositories**: missing or duplicate mappers fail at startup, the generic repository supports optimistic locking, H2 integration tests
-- **Starter normalization**: nine starters (Web, MyBatis, Redis, two-level cache, multiple data sources, tracing, Seata, domain events, ArchGuard) under a unified `ddk.*` configuration, ten with MCP in v0.2
-- **Archetypes and examples**: three- and four-layer Maven archetypes with generated-project integration tests, plus a runnable user registration example
+| Level | Meaning |
+|---|---|
+| **Verified** | Integration tests against the real database or middleware run in CI on every change |
+| **In-process verified** | Tested end to end inside the JVM (MockMvc, an MCP client, H2); there is no external system to test against, or the external part is checked by hand |
+| **Wiring only** | Auto-configuration and unit tests; the runtime behavior against the real system is not exercised |
+| **Development only** | Meant for local runs and tests, never for production |
 
-## v0.1 · Modern baseline and first release
-
-**Goal: anyone can use DDK within five minutes.** Maven Central is deferred; first make "clone → one install command → generate a project" smooth.
-
-Platform upgrade (Spring Boot 3.4 left OSS support in December 2025, so this comes first):
-
-- [x] Upgrade to Spring Boot 4.1 / Spring Framework 7, adapting to Jackson 3 and Jakarta EE 11
-- [x] Switch MyBatis-Plus to `mybatis-plus-spring-boot4-starter`
-- [x] Assess Seata's Boot 4 support: Seata 2.6 auto-configuration only references Boot APIs still present in 4, and DDK's wiring tests pass, so the starter stays; Seata's runtime is not yet verified on Boot 4
-- [x] Keep Java 21 as the baseline and add Java 25 to the CI matrix
-- [x] Annotate public APIs with JSpecify nullness annotations, checked by NullAway at compile time
-- [x] Build the tracer starter on `spring-boot-starter-opentelemetry` instead of the whole actuator, keeping only DDK-specific features such as the trace ID response header
-- [x] No extra retry library: DDK has no retry needs today, and future retries or concurrency limits use Spring Framework 7's built-in `@Retryable` / `@ConcurrencyLimit`
-
-Release readiness:
-
-- [x] Version `0.1.0`, with a documented 0.x policy: minor versions may break, and every break is in the release notes
-- [x] Separate public and internal packages, with internals under `internal` and guarded by ArchUnit
-- [x] Javadoc for public APIs, with Javadoc and sources jars attached to releases
-- [x] `CHANGELOG.md`, with GitHub release notes taken from it
-- [x] CI creates a GitHub Release on tag: release notes, source archive and module jars
-- [x] One script that installs DDK locally and generates a project, with the README quick start written around it
-
-## v0.2 · AI collaboration
-
-**Goal: a DDK-generated project stays clean when Claude Code or Codex writes the code.** This is DDK's most visible differentiator.
-
-Agent guardrails:
-
-- [x] Archetypes generate `AGENTS.md` and `CLAUDE.md`: layer responsibilities, naming, prohibitions, and the commands that must pass before committing
-- [x] Claude Code Skills in generated projects: add an aggregate, a use case, a domain event (four layers) or a feature (three layers); `AGENTS.md` covers Codex and other agents
-- [x] ArchGuard emits machine-readable violations (which rule, which class, how to fix) that agents can use to self-correct
-- [x] A docs topic on developing DDK projects with AI coding agents
-- [x] A real agent session record for that topic: a Claude Code subagent adds an aggregate, a use case and an event to a generated project, with its `mvn verify` output and a real ArchGuard report
-
-AI capabilities (on Spring AI 2.0):
-
-- [x] ~~`ddk-ai-starter`~~ dropped: `ChatClient` configuration, structured output (`.entity(...)`) and token usage metrics (`gen_ai_client_token_usage_total`) are built into Spring AI 2.0, so wrapping them would break the integration principles
-- [x] `ddk-mcp-starter`: streamable HTTP by default, Bean Validation on tool arguments, business exceptions as tool errors with error codes, hidden internals for unexpected exceptions, audit log; `MCP_TOOLS_MUST_RESIDE_IN_ADAPTER` keeps tools behind application services. Authorization is left to Spring Security
-- [x] Example: the user example exposes register, get and disable as MCP tools, with end-to-end tests through an MCP client
-
-## v0.3 · Reliable domain events
-
-**Goal: domain events grow from in-process notifications into reliable integration events.**
-
-- [x] Transactional outbox: reuse Spring Modulith's JDBC event publication registry, recorded in the MyBatis-Plus transaction and delivered after commit, with failed records kept as `FAILED` for resubmission; the domain layer declares events with the plain-JDK `@IntegrationEvent`
-- [x] Delivery adapters: Kafka, RabbitMQ (AMQP), JMS and Spring Messaging through Modulith's externalization modules
-- [x] RocketMQ delivery adapter: Modulith has no module for it, so the event starter registers its own externalization listener on `rocketmq-client`, with per-key queue ordering and a Testcontainers test against a real broker
-- [x] Idempotent consumers: `IdempotentConsumer` registers processed (consumer, message ID) pairs behind a savepoint; the message ID is the event's own identifier, sent as the `ddk-event-id` header
-- [x] Interoperate with the Spring Modulith event publication registry rather than duplicating it; DDK backs off when the application declares its own externalization configuration
-- [x] Event contracts: a stable type name and version in message headers, documented evolution rules, and startup verification of declarations
-
-## v0.4 · Middleware and library integrations
-
-**Goal: cover the most common middleware in the mainstream stack, all following the integration principles and the starter contract.**
-
-| Area | Integration | Domain semantics | Priority |
+| Module | Level | Verified against | Known limits |
 |---|---|---|---|
-| Concurrency control | Redisson | Done in `ddk-concurrency-starter`: `@AggregateLock`, `@Idempotent` duplicate-submit protection, `@RateLimit` per user or tenant | High |
-| Scheduling | ShedLock | Done: `ddk-job-starter` runs a `@Scheduled` job on one instance at a time, and `SCHEDULED_JOBS_MUST_RESIDE_IN_ADAPTER` makes jobs call application services only. No XXL-Job starter: it is GPL-3.0, which DDK (Apache-2.0) does not link against; a scheduling platform with a compatible license may be integrated later | High |
-| Schema migration | Flyway | Done: archetypes ship a baseline migration, the example uses migrations instead of `schema.sql`, and agent rules require a new migration per schema change | High |
-| API docs | springdoc-openapi | Done in the web starter: 400 / 409 / 500 error responses on every operation and a catalogue of error codes; springdoc already expands `ApiResponse<T>` by its generic type | High |
-| Read models | JDBC pending table; Elasticsearch | Done: `ddk-projection-starter` marks changed entries in the transaction, refreshes the read model from the write model after commit, retries failures and rebuilds on demand. `ddk-mall` switches its order search between a relational table and Elasticsearch behind one port. Open: Elasticsearch-specific helpers (index management, alias switch on rebuild) | Medium |
-| Cross-cutting | MyBatis-Plus plugins | Done: `OperatorContext`, audit fields (`createBy` / `updateBy`) and multi-tenancy that fails closed without a tenant, and row-level data scope by group and by creator. Soft delete is MyBatis-Plus's own `@TableLogic` and needs no DDK code | Medium |
-| Config and discovery | Nacos | Refreshable `ddk.*` properties, kept as an optional dependency. Waiting on upstream, see below | Medium |
-| Traffic control | Sentinel | Circuit breaking at the application-service level, with fallbacks mapped to error codes. Waiting on upstream, see below | Low |
-| Object storage | S3-compatible (MinIO / OSS) | File references as value objects; the domain never touches the SDK | Low |
+| `ddk-core` | Verified | Pure Java; domain purity checked by ArchUnit | |
+| `ddk-mybatis` | Verified | H2; MySQL 8.4 through `ddk-mybatis-starter` and `ddk-mall` | |
+| `ddk-test` | Verified | Testcontainers presets for MySQL, Redis, RocketMQ, Elasticsearch | |
+| Web starter | In-process verified | MockMvc | |
+| MyBatis starter (audit, tenancy, data scope) | Verified | H2, MySQL 8.4 | |
+| Redis starter | Verified | Redis, through the cache starter's integration tests | |
+| Cache starter | Verified | Redis | |
+| Concurrency starter | Verified | Redis | Idempotency is per TTL window, not exactly-once |
+| Job starter | Verified | Redis lock; in-process lock | |
+| Event starter | Verified | H2, PostgreSQL 17, RocketMQ, Spring Modulith JDBC registry | Kafka, AMQP and JMS go through Modulith's own modules and are not tested by DDK; local delivery is development only |
+| Projection starter | Verified | H2, MySQL 8.4, PostgreSQL 17; Elasticsearch through `ddk-mall` | No Elasticsearch-specific helpers |
+| MCP starter | In-process verified | A real MCP client over streamable HTTP | Synchronous server only; authorization is the application's |
+| ArchGuard starter | Verified | ArchUnit fixtures for every rule | |
+| Tracer starter | In-process verified | Trace context across HTTP and messages | Export to a tracing backend is checked by hand only |
+| DB starter (several data sources) | Wiring only | H2 | Outbox, inbox and pending tables are atomic only with the data source of the business transaction |
+| Seata starter | Wiring only | | Seata's runtime is not verified on Spring Boot 4 |
+| Archetypes (three and four layers) | Verified | Generated projects are built and tested in CI | |
+| `ddk-mall` | Verified, as a reference | MySQL, Redis, RocketMQ, Elasticsearch | Simulated payment channel; demo users in the `secure` profile |
 
-Testing:
+## Next release: 0.9
 
-- [x] `ddk-test`: aggregate assertions (which events were raised, whether invariants hold) and Testcontainers presets (MySQL, Redis, RocketMQ)
+0.9 carries the fixes and production-path work from the October 2026 review. All of it is merged; the release is pending.
 
-**Nacos and Sentinel wait for Spring Cloud.** Both come through Spring Cloud Alibaba, which follows Spring Cloud, which follows Spring Boot. As checked on Maven Central on 2026-10-12:
+- **Reliability**: projections converge when refreshes overlap; `@Idempotent` releases only its own registration; idempotent event consumers have a stable identity; the four-layer rule keeps application services off infrastructure; the installer installs the version that was asked for
+- **Production path**: tenants carried by projection marks and integration events, system operators for background work; projection and event operations (failure lists, retries, metrics, scheduled maintenance); event contracts by type and version; payment recovery and a `secure` profile in `ddk-mall`
+- **Upgrading**: CI compares the public API with the last release (japicmp), and breaking changes and migrations are collected in the [upgrade guide](https://poppycoder.netlify.app/ddk/upgrade)
 
-| Line | Latest | Built for |
-|---|---|---|
-| Spring Cloud | 2025.1.3 (GA), 2026.0.0-M1 (milestone) | 2025.1.x targets Spring Boot 4.0 |
-| Spring Cloud Alibaba | 2025.1.0.0 | Spring Cloud 2025.1, Spring Boot 4.0 |
-| DDK | | Spring Boot 4.1 |
+## After 0.9: adoption and upgrades
 
-There is no GA Spring Cloud release for Spring Boot 4.1 yet, so a DDK starter for either would sit on an unsupported combination. These two rows are picked up again when Spring Cloud 2026.0 and a matching Spring Cloud Alibaba are released.
+**Goal: someone outside this repository can use DDK and move between versions without reading its source.**
 
-## v1.0 · Production ready
+- [ ] Clean-room build: a project outside the repository with an empty local Maven repository, using only the installer and the BOM; both archetypes generated and verified
+- [ ] Upgrade rehearsal: a 0.8 project upgraded to 0.9 with nothing but the upgrade guide
+- [ ] Review the public API and each starter's transitive dependencies: what is required, what is optional, what leaks into applications
+- [ ] Distribution: decide Maven coordinates (`io.github.poppycoderr`), signing and provenance, so publishing to a standard Maven repository becomes a decision rather than a project. No longer waits for stars: friction in adoption is what prevents feedback
+- [ ] CI split into stages that are easier to read (unit and wiring, real middleware, generated projects, API compatibility) without letting required tests skip silently; check that the BOM and the parent pom agree on versions
 
-**Goal: safe to use in production projects.**
+## 1.0: freeze
 
-- [x] `ddk-mall` reference application: order, inventory and payment bounded contexts in one modular monolith, covering the outbox, RocketMQ, idempotent consumers, caching, distributed locks, a scheduled job, API docs and MCP tools; `docker compose --profile observability up` adds traces and metrics. Not included: a separate read model and preset Grafana dashboards
-- [ ] GraalVM `RuntimeHints` for every starter, with a native image build of the example
-- [ ] Verified behavior on virtual threads (locks, ThreadLocal context propagation)
-- [ ] Public API freeze, strict semantic versioning from here on
-- [ ] Publish to Maven Central once stars and usage feedback grow noticeably, using the GitHub-backed `io.github.poppycoderr` namespace so no owned domain is needed
-- [ ] Bilingual documentation site
+**Goal: freeze only what has been verified.**
 
-## Ongoing: good-looking and useful
+- [ ] Freeze the verified core API and the support matrix above; strict semantic versioning from then on
+- [ ] Context semantics on virtual threads: operator, trace, lock ordering, cancellation and pool reuse, not only "it starts"
+- [ ] GraalVM support declared per module, starting with a minimal example, instead of all starters at once
+- [ ] Known limits, rollback paths and maintenance responsibility written down
 
-Stars come from two things: **the first screen explains the value**, and **it actually runs within five minutes**. This track is not tied to one milestone; every release moves it forward.
+## Candidate pool
 
-Good-looking:
+No order and no dates. An item moves into a release when there is a concrete need for it.
 
-- [x] README first screen: a one-line value proposition, badges (CI, latest release, license), and a 25-second animation of "generate project → break layering → test fails → fix" built from a real run
-- [x] A comparison with COLA, Spring Modulith and jMolecules that explains where each fits, without disparaging anyone
-- [x] A social preview image and GitHub topics (`ddd`, `spring-boot`, `archunit`, `mybatis-plus`, `ai-agents` and more)
-- [ ] Diagrams in one visual system, with dark mode
+| Candidate | Notes |
+|---|---|
+| Nacos (configuration) and Sentinel (traffic control) | Both come through Spring Cloud Alibaba, which follows Spring Cloud, which follows Spring Boot. On 2026-10-12 there was no GA Spring Cloud release for Spring Boot 4.1. Check the upstream compatibility range again when starting, and test the combination |
+| S3-compatible object storage | File references as value objects; the domain never touches the SDK |
+| Elasticsearch helpers for projections | Index management and alias switching on rebuild |
+| One-command project creation and an online generator | `jbang ddk@poppycoderr new my-app`, a Spring Initializr-like page; after the installer's version selection has settled |
+| Preset Grafana dashboards for `ddk-mall` | On top of the projection, event and cache metrics |
+| A 30-second start on every starter's page, clearer errors for common mistakes | Documentation work |
+| Community | Issue and PR templates, `good first issue` labels, Discussions, a design article per release |
 
-Useful:
+## History
 
-- [ ] One command to start a project: `jbang ddk@poppycoderr new my-app`, choosing three or four layers and the starters needed
-- [ ] An online project generator on the docs site, similar to Spring Initializr
-- [ ] A 30-second getting-started snippet on every starter's docs page
-- [ ] Clear error messages for common mistakes, with troubleshooting in the docs
-
-Community:
-
-- [ ] Issue and PR templates, `good first issue` labels, GitHub Discussions
-- [ ] A codesphere article explaining the design trade-offs of every release
-- [ ] English and Chinese READMEs maintained in sync, promoted to both communities
+| Release | Theme |
+|---|---|
+| Foundation | Domain model primitives, generic repository, starters under `ddk.*`, archetypes, CI with coverage gates |
+| 0.1 | Spring Boot 4.1 baseline, JSpecify nullness, first GitHub Release and the installer |
+| 0.2 | AI collaboration: `AGENTS.md`, Claude Code Skills, machine-readable ArchGuard reports, the MCP starter |
+| 0.3 | Reliable domain events: outbox through Spring Modulith, RocketMQ delivery, idempotent consumers, event contracts |
+| 0.4 | Middleware: aggregate locks, idempotency and rate limits on Redisson, ShedLock jobs, Flyway in archetypes, documented error contracts, `ddk-test` |
+| 0.5 | `OperatorContext`, audit fields, multi-tenancy that fails closed |
+| 0.6 | `ddk-mall` reference application, event consumers, traces across messages |
+| 0.7 | Fail-fast checks for locks and events inside or outside transactions, in-process job locks |
+| 0.8 | Projections, row-level data scope |
 
 ## Non-goals
 
