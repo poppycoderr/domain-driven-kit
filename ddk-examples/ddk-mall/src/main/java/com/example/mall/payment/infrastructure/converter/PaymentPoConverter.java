@@ -26,6 +26,7 @@ public class PaymentPoConverter implements ObjectMapper<Payment, PaymentPO> {
         po.setExpiresAt(source.expiresAt());
         po.setChannelTradeNo(source.channelTradeNo());
         po.setPaidAt(source.paidAt());
+        po.setChargeRequestedAt(source.chargeRequestedAt());
         po.setVersion(source.version());
         return po;
     }

@@ -76,6 +76,50 @@ class PaymentTest {
     }
 
     @Test
+    void aChargeRequestedInTimeIsRecordedEvenIfSettlementComesAfterTheDeadline() {
+        Payment payment = pending("399.00");
+        payment.requestCharge(IN_TIME);
+        assertThat(payment.awaitsReconciliation()).isTrue();
+
+        payment.complete("SIM-1", DEADLINE.plusSeconds(600));
+
+        assertThat(payment.status()).isEqualTo(PaymentStatus.PAID);
+        assertThat(payment.awaitsReconciliation()).isFalse();
+        assertThatRejected(() -> pending("399.00").requestCharge(DEADLINE)).withCode(PaymentError.PAYMENT_EXPIRED);
+    }
+
+    @Test
+    void aPaymentClosedWhileItWasBeingChargedCanBeRefundedButOneNeverChargedCannot() {
+        Payment charged = pending("399.00");
+        charged.requestCharge(IN_TIME);
+        assertThat(charged.close()).isTrue();
+        assertThat(charged.awaitsReconciliation()).as("the channel may have taken the money").isTrue();
+        charged.markRefunded();
+        assertThat(charged.status()).isEqualTo(PaymentStatus.REFUNDED);
+        assertThat(charged.awaitsReconciliation()).isFalse();
+
+        Payment declined = pending("399.00");
+        declined.requestCharge(IN_TIME);
+        declined.chargeNotFound();
+        assertThat(declined.awaitsReconciliation()).isFalse();
+        assertThat(declined.close()).isTrue();
+        assertThatRejected(declined::markRefunded).withCode(PaymentError.PAYMENT_NOT_REFUNDABLE);
+    }
+
+    @Test
+    void theSimulatedChannelKeepsALedgerThatCanBeQueried() {
+        PaymentChannel channel = new SimulatedPaymentChannel(new BigDecimal("1000"));
+        Payment payment = pending("399.00");
+
+        assertThat(channel.query(payment).charged()).isFalse();
+        String tradeNo = channel.charge(payment).tradeNo();
+        assertThat(channel.query(payment)).isEqualTo(PaymentChannel.Lookup.charged(tradeNo));
+        channel.refund(payment);
+        channel.refund(payment);
+        assertThat(channel.query(payment).charged()).as("a refund does not undo the charge record").isTrue();
+    }
+
+    @Test
     void theSimulatedChannelAnswersTheSameForTheSamePaymentAndDeclinesLargeAmounts() {
         PaymentChannel channel = new SimulatedPaymentChannel(new BigDecimal("1000"));
 

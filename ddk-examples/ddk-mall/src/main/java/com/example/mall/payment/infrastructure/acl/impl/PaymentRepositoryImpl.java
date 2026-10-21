@@ -5,10 +5,13 @@ import com.ddk.mybatis.repository.GenericRepositoryImpl;
 import com.example.mall.payment.domain.acl.PaymentRepository;
 import com.example.mall.payment.domain.model.Payment;
 import com.example.mall.payment.domain.model.PaymentId;
+import com.example.mall.payment.domain.model.PaymentStatus;
 import com.example.mall.payment.infrastructure.orm.mapper.PaymentMapper;
 import com.example.mall.payment.infrastructure.orm.po.PaymentPO;
 import org.springframework.stereotype.Repository;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -21,5 +24,16 @@ public class PaymentRepositoryImpl extends GenericRepositoryImpl<Payment, Paymen
     public Optional<Payment> findByOrder(Long orderId) {
         return Optional.ofNullable(getBaseMapper().selectOne(Wrappers.lambdaQuery(PaymentPO.class).eq(PaymentPO::getOrderId, orderId)))
                 .map(toEntity()::map);
+    }
+
+    @Override
+    public List<Payment> findAwaitingReconciliation(Instant requestedBefore, int limit) {
+        return getBaseMapper().selectList(Wrappers.lambdaQuery(PaymentPO.class)
+                        .in(PaymentPO::getStatus, PaymentStatus.PENDING.name(), PaymentStatus.CLOSED.name())
+                        .isNotNull(PaymentPO::getChargeRequestedAt)
+                        .lt(PaymentPO::getChargeRequestedAt, requestedBefore)
+                        .orderByAsc(PaymentPO::getChargeRequestedAt)
+                        .last("LIMIT " + limit))
+                .stream().map(toEntity()::map).toList();
     }
 }
