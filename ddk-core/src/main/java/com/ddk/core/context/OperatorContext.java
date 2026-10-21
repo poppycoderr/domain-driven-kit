@@ -12,7 +12,9 @@ import java.util.function.Supplier;
  * 优先用 {@link #runAs(Operator, Runnable)} / {@link #callAs(Operator, Supplier)}：它们在结束时恢复之前的值，
  * 线程被线程池复用时不会把上一次的操作者带给下一次请求。
  * <p>
- * 值保存在线程上，不会自动带到别的线程。把任务交给线程池或 {@code @Async} 时，用 {@link #wrap(Runnable)} 把当前的操作者带过去。
+ * 值保存在线程上。类路径上有 Micrometer 的 {@code context-propagation} 时，DDK 为它注册了上下文访问器，Spring 的
+ * {@code ContextPropagatingTaskDecorator}（{@code ddk-tracer-starter} 会注册一个）在切换线程时把当前的操作者一起带过去，
+ * 所以 {@code @Async} 方法和 Spring Boot 创建的任务线程池里也能拿到它。自己创建的线程或线程池不经过装饰器，用 {@link #wrap(Runnable)}。
  */
 public final class OperatorContext {
 
