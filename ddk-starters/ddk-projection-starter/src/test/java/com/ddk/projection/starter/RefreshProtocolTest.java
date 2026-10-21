@@ -66,6 +66,7 @@ class RefreshProtocolTest {
         DataSourceTransactionManager transactionManager = new DataSourceTransactionManager(dataSource);
         transaction = new TransactionTemplate(transactionManager);
         clock = new MutableClock(Instant.parse("2030-01-01T00:00:00Z"));
+        jdbc.execute("DROP TABLE IF EXISTS protocol_pending_upgrade");
         jdbc.execute("DROP TABLE IF EXISTS protocol_pending");
         jdbc.execute("DROP TABLE IF EXISTS t_source");
         jdbc.execute("CREATE TABLE t_source (id VARCHAR(50) PRIMARY KEY, state VARCHAR(50) NOT NULL)");
@@ -289,6 +290,88 @@ class RefreshProtocolTest {
 
         drainUntilEmpty(worker(this::copy));
         assertThat(view).as("a mark inserted by a 0.8 instance during a rolling upgrade is adopted").containsEntry("1", "v1").containsEntry("2", "v1");
+    }
+
+    @Test
+    @DisplayName("升级停在复制之后、删除旧表之前：旧表是完整的，副本作废，从头再升级；之后写进旧表的标记也保留")
+    void anUpgradeInterruptedAfterTheCopyStartsOver() {
+        oldTable("1", "2");
+        jdbc.execute("CREATE TABLE protocol_pending_upgrade AS SELECT * FROM protocol_pending");
+        jdbc.update("DELETE FROM protocol_pending WHERE entity_id = '1'");
+        jdbc.update("INSERT INTO protocol_pending (projection, entity_id, version, attempts, available_at) VALUES ('catalog', '3', 1, 0, ?)",
+                java.sql.Timestamp.from(clock.instant()));
+
+        pending.prepare(true);
+
+        assertThat(markedIds()).containsExactly("2", "3");
+        assertCopyIsGone();
+    }
+
+    @Test
+    @DisplayName("升级停在删除旧表之后：建新表，把副本里的标记搬回来")
+    void anUpgradeInterruptedAfterTheDropRestoresTheMarks() {
+        oldTable("1", "2");
+        jdbc.execute("CREATE TABLE protocol_pending_upgrade AS SELECT * FROM protocol_pending");
+        jdbc.execute("DROP TABLE protocol_pending");
+
+        pending.prepare(true);
+
+        assertThat(markedIds()).containsExactly("1", "2");
+        assertThat(jdbc.queryForObject("SELECT generation FROM protocol_pending WHERE entity_id = '1'", String.class)).isEqualTo("upgraded-3");
+        assertThatThrownBy(() -> jdbc.execute(pending.dueIndex())).as("the due index exists").isInstanceOf(DataAccessException.class);
+        assertCopyIsGone();
+    }
+
+    @Test
+    @DisplayName("升级停在搬回标记的中途：只补新表里还没有的，不重复；再启动一次什么都不变")
+    void anUpgradeInterruptedWhileRestoringFinishesWithoutDuplicates() {
+        oldTable("1", "2");
+        jdbc.execute("CREATE TABLE protocol_pending_upgrade AS SELECT * FROM protocol_pending");
+        jdbc.execute("DROP TABLE protocol_pending");
+        jdbc.execute(pending.schema());
+        jdbc.update("INSERT INTO protocol_pending (projection, tenant_id, entity_id, version, generation, attempts, available_at) "
+                + "VALUES ('catalog', '', '1', 3, 'upgraded-3', 0, ?)", java.sql.Timestamp.from(clock.instant()));
+
+        pending.prepare(true);
+        pending.prepare(true);
+
+        assertThat(markedIds()).containsExactly("1", "2");
+        assertCopyIsGone();
+        drainUntilEmpty(worker(this::copy));
+    }
+
+    @Test
+    @DisplayName("不允许自动初始化时，没做完的升级让启动失败，并给出收尾的语句")
+    void anInterruptedUpgradeFailsWithoutInitialization() {
+        oldTable("1");
+        jdbc.execute("CREATE TABLE protocol_pending_upgrade AS SELECT * FROM protocol_pending");
+        jdbc.execute("DROP TABLE protocol_pending");
+
+        assertThatThrownBy(() -> pending.prepare(false))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("interrupted upgrade")
+                .hasMessageContaining("FROM protocol_pending_upgrade c WHERE NOT EXISTS");
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM protocol_pending_upgrade", Integer.class)).as("nothing touched").isEqualTo(1);
+        jdbc.execute("DROP TABLE protocol_pending_upgrade");
+    }
+
+    private void oldTable(String... ids) {
+        jdbc.execute("DROP TABLE protocol_pending");
+        jdbc.execute("CREATE TABLE protocol_pending (projection VARCHAR(100) NOT NULL, entity_id VARCHAR(200) NOT NULL, version BIGINT NOT NULL, "
+                + "attempts INT NOT NULL, available_at TIMESTAMP NOT NULL, last_error VARCHAR(500), PRIMARY KEY (projection, entity_id))");
+        for (String id : ids) {
+            jdbc.update("INSERT INTO protocol_pending (projection, entity_id, version, attempts, available_at) VALUES ('catalog', ?, 3, 0, ?)",
+                    id, java.sql.Timestamp.from(clock.instant()));
+        }
+    }
+
+    private List<String> markedIds() {
+        return jdbc.queryForList("SELECT entity_id FROM protocol_pending ORDER BY entity_id", String.class);
+    }
+
+    private void assertCopyIsGone() {
+        jdbc.execute("CREATE TABLE protocol_pending_upgrade (x INT)");
+        jdbc.execute("DROP TABLE protocol_pending_upgrade");
     }
 
     @Test

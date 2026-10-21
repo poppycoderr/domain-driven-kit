@@ -193,6 +193,7 @@ DROP TABLE ddk_projection_pending_upgrade;
 
 - With `initialize-schema=true` (the default) startup runs these statements. Existing marks keep their state and count as having no tenant.
 - With `initialize-schema=false` startup fails and prints the statements for your migration. It also fails when the table does not exist at all, instead of starting and failing on the first refresh.
+- The copy is not atomic: MySQL commits each DDL statement on its own. If the upgrade stops halfway, `ddk_projection_pending_upgrade` is left behind, and the next start finishes the job instead of starting with an empty table. If the old table is still intact, it discards the copy and starts over. Otherwise it creates the new table and moves back the marks it does not have yet. With `initialize-schema=false` it fails and prints those statements instead.
 
 Upgrade with the old instances stopped. Marks that 0.8 instances write while the table is being copied are lost, and 0.8 workers run the old protocol, which can leave a stale entry behind. If old instances did run during the upgrade, rebuild the projection afterwards. The `tenant_id` default keeps their inserts from failing in the meantime.
 

@@ -17,6 +17,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -274,11 +275,19 @@ public class PendingRefreshes {
      * 表是旧结构（没有 {@code tenant_id}：0.8 或更早的 0.9 快照）时，主键要变，各数据库改主键的语法不同，所以复制重建：
      * 把旧表复制出来，按新结构重建，再把标记搬回去，已有的标记都算作没有租户。{@code initialize} 为 true 时直接执行；
      * 为 false 就启动失败，异常里给出这些语句，交给迁移工具。
+     * <p>
+     * 复制重建不是原子的（MySQL 的 DDL 会隐式提交），中途停下会留下副本表。启动时先检查副本，有就把上一次升级做完，
+     * 而不是建一张空表、让副本里的标记无人处理。
      *
-     * @throws IllegalStateException 表不存在或是旧结构，并且不允许自动初始化
+     * @throws IllegalStateException 表不存在、是旧结构或者有没做完的升级，并且不允许自动初始化
      */
     public void prepare(boolean initialize) {
-        Set<String> columns = existingColumns();
+        Set<String> columns = columnsOf(table);
+        Set<String> copyColumns = columnsOf(copyTable());
+        if (!copyColumns.isEmpty()) {
+            resumeUpgrade(columns, copyColumns, initialize);
+            return;
+        }
         if (columns.isEmpty()) {
             if (!initialize) {
                 throw new IllegalStateException("Pending refresh table " + table + " does not exist. Create it with: " + schema() + "; " + dueIndex());
@@ -305,16 +314,59 @@ public class PendingRefreshes {
      * 领取信息不搬：升级时没有 worker 在处理。
      */
     private List<String> upgrade(Set<String> columns) {
-        String copy = table + "_upgrade";
-        String generation = columns.contains("generation") ? "COALESCE(generation, CONCAT('upgraded-', version))" : "CONCAT('upgraded-', version)";
+        String copy = copyTable();
         return List.of(
                 "CREATE TABLE " + copy + " AS SELECT * FROM " + table,
                 "DROP TABLE " + table,
                 schema(),
                 dueIndex(),
-                "INSERT INTO " + table + " (projection, tenant_id, entity_id, version, generation, attempts, available_at, last_error) "
-                        + "SELECT projection, '', entity_id, version, " + generation + ", attempts, available_at, last_error FROM " + copy,
+                restore(columns),
                 "DROP TABLE " + copy);
+    }
+
+    /**
+     * 上一次复制重建在中途停下，留下了副本表：
+     * <ul>
+     *     <li>旧表还在（停在删除旧表之前）：旧表是完整的，副本作废，从头再升级一次；</li>
+     *     <li>旧表已经删了，或者新表已经建好（停在搬回标记之前或者搬到一半）：建好新表，把新表里还没有的标记从副本搬回来，再删掉副本。</li>
+     * </ul>
+     * 两种情况重复执行都安全。
+     */
+    private void resumeUpgrade(Set<String> columns, Set<String> copyColumns, boolean initialize) {
+        List<String> statements = new ArrayList<>();
+        if (!columns.isEmpty() && !columns.contains("tenant_id")) {
+            statements.add("DROP TABLE " + copyTable());
+            statements.addAll(upgrade(columns));
+        } else {
+            statements.add(schema());
+            if (columns.isEmpty() || !leadingIndexColumns().contains("available_at")) {
+                statements.add(dueIndex());
+            }
+            statements.add(restore(copyColumns));
+            statements.add("DROP TABLE " + copyTable());
+        }
+        if (!initialize) {
+            throw new IllegalStateException("An interrupted upgrade of pending refresh table " + table + " left " + copyTable()
+                    + " behind. Finish it with: " + String.join("; ", statements));
+        }
+        log.warn("Finishing the interrupted upgrade of pending refresh table {} from {}", table, copyTable());
+        statements.forEach(jdbc::execute);
+    }
+
+    /**
+     * 把副本里的标记搬进新表，跳过新表里已经有的，所以可以重复执行。副本是 0.8 结构时没有租户和代次，补上空租户和一个代次。
+     */
+    private String restore(Set<String> copyColumns) {
+        String tenant = copyColumns.contains("tenant_id") ? "c.tenant_id" : "''";
+        String generation = copyColumns.contains("generation") ? "COALESCE(c.generation, CONCAT('upgraded-', c.version))" : "CONCAT('upgraded-', c.version)";
+        return "INSERT INTO " + table + " (projection, tenant_id, entity_id, version, generation, attempts, available_at, last_error) "
+                + "SELECT c.projection, " + tenant + ", c.entity_id, c.version, " + generation + ", c.attempts, c.available_at, c.last_error "
+                + "FROM " + copyTable() + " c WHERE NOT EXISTS (SELECT 1 FROM " + table + " p "
+                + "WHERE p.projection = c.projection AND p.tenant_id = " + tenant + " AND p.entity_id = c.entity_id)";
+    }
+
+    private String copyTable() {
+        return table + "_upgrade";
     }
 
     private void prepareDueIndex(boolean initialize) {
@@ -329,26 +381,26 @@ public class PendingRefreshes {
         }
     }
 
-    private Set<String> existingColumns() {
-        return inTable(metaData -> metaData::getColumns, "COLUMN_NAME", rs -> true);
+    private Set<String> columnsOf(String tableName) {
+        return inTable(tableName, metaData -> metaData::getColumns, "COLUMN_NAME", rs -> true);
     }
 
     /**
      * 各个索引的第一列。
      */
     private Set<String> leadingIndexColumns() {
-        return inTable(metaData -> (catalog, schema, table, ignored) -> metaData.getIndexInfo(catalog, schema, table, false, true),
+        return inTable(table, metaData -> (catalog, schema, name, ignored) -> metaData.getIndexInfo(catalog, schema, name, false, true),
                 "COLUMN_NAME", rs -> rs.getShort("ORDINAL_POSITION") == 1);
     }
 
     /**
      * 按表名原样、大写、小写依次查元数据：不同数据库对未加引号的标识符大小写处理不同。
      */
-    private Set<String> inTable(Function<DatabaseMetaData, MetaDataQuery> query, String column, RowFilter filter) {
+    private Set<String> inTable(String tableName, Function<DatabaseMetaData, MetaDataQuery> query, String column, RowFilter filter) {
         Set<String> values = jdbc.execute((ConnectionCallback<Set<String>>) connection -> {
             DatabaseMetaData metaData = connection.getMetaData();
-            String schema = table.contains(".") ? table.substring(0, table.indexOf('.')) : null;
-            String name = table.contains(".") ? table.substring(table.indexOf('.') + 1) : table;
+            String schema = tableName.contains(".") ? tableName.substring(0, tableName.indexOf('.')) : null;
+            String name = tableName.contains(".") ? tableName.substring(tableName.indexOf('.') + 1) : tableName;
             for (String candidate : new String[] {name, name.toUpperCase(Locale.ROOT), name.toLowerCase(Locale.ROOT)}) {
                 Set<String> found = new LinkedHashSet<>();
                 try (ResultSet rs = query.apply(metaData).run(null, schema, candidate, null)) {
