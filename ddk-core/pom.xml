@@ -20,6 +20,13 @@
             <artifactId>jspecify</artifactId>
         </dependency>
 
+        <!-- 可选：有 Micrometer 的上下文传播时，OperatorContext 随 ContextPropagatingTaskDecorator 等带到别的线程 -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>context-propagation</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <!-- 可选：只有引入 Jackson 的应用才会用到 com.ddk.core.jackson -->
         <dependency>
             <groupId>tools.jackson.core</groupId>
