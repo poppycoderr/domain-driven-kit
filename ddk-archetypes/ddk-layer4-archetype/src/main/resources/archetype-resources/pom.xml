@@ -22,7 +22,7 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-dependencies</artifactId>
                 <version>${ddk.version}</version>
                 <type>pom</type>
@@ -33,15 +33,15 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.ddk</groupId>
+            <groupId>com.domaindrivenkit</groupId>
             <artifactId>ddk-web-starter</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.ddk</groupId>
+            <groupId>com.domaindrivenkit</groupId>
             <artifactId>ddk-mybatis-starter</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.ddk</groupId>
+            <groupId>com.domaindrivenkit</groupId>
             <artifactId>ddk-event-starter</artifactId>
         </dependency>
 
@@ -73,12 +73,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.ddk</groupId>
+            <groupId>com.domaindrivenkit</groupId>
             <artifactId>ddk-archguard-starter</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.ddk</groupId>
+            <groupId>com.domaindrivenkit</groupId>
             <artifactId>ddk-test</artifactId>
             <scope>test</scope>
         </dependency>

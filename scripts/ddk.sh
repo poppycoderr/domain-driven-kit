@@ -55,6 +55,11 @@ ddk_version() {
     mvn -f "$SRC_DIR/pom.xml" -q -N help:evaluate -Dexpression=project.version -DforceStdout
 }
 
+# 0.9 及以前是 com.ddk，0.10 起是 com.domaindrivenkit，所以从装好的源码里读，而不是写死
+ddk_group() {
+    mvn -f "$SRC_DIR/pom.xml" -q -N help:evaluate -Dexpression=project.groupId -DforceStdout
+}
+
 # 把 DDK_REF 解析成一个具体的 ref：latest 是最新的发布 tag。连不上仓库时输出为空
 resolve_ref() {
     if [[ "$DDK_REF" != "latest" ]]; then
@@ -78,10 +83,12 @@ local_repository() {
 
 # 两个 archetype 都已经在本地 Maven 仓库里
 artifacts_present() {
-    local version="$1" repository
+    local version="$1" repository group
+    [[ -f "$SRC_DIR/pom.xml" ]] || return 1
     repository=$(local_repository)
-    [[ -f "$repository/com/ddk/ddk-layer3-archetype/$version/ddk-layer3-archetype-$version.jar" \
-        && -f "$repository/com/ddk/ddk-layer4-archetype/$version/ddk-layer4-archetype-$version.jar" ]]
+    group=$(ddk_group)
+    [[ -f "$repository/${group//.//}/ddk-layer3-archetype/$version/ddk-layer3-archetype-$version.jar" \
+        && -f "$repository/${group//.//}/ddk-layer4-archetype/$version/ddk-layer4-archetype-$version.jar" ]]
 }
 
 install_ddk() {
@@ -185,7 +192,7 @@ new_project() {
 
     info "Generating $artifact_id ($layers layers, package $package) with DDK $version ($ref, commit ${commit:0:7})"
     mvn -B -ntp -q archetype:generate \
-        -DarchetypeGroupId=com.ddk \
+        -DarchetypeGroupId="$(ddk_group)" \
         -DarchetypeArtifactId="ddk-layer${layers}-archetype" \
         -DarchetypeVersion="$version" \
         -DarchetypeCatalog=local \

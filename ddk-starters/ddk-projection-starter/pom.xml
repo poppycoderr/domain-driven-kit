@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.ddk</groupId>
+        <groupId>com.domaindrivenkit</groupId>
         <artifactId>ddk-starters</artifactId>
         <version>0.10.0-SNAPSHOT</version>
     </parent>
@@ -15,7 +15,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.ddk</groupId>
+            <groupId>com.domaindrivenkit</groupId>
             <artifactId>ddk-core</artifactId>
         </dependency>
         <dependency>
@@ -46,7 +46,7 @@
         </dependency>
         <!-- 和真实的租户拦截器组合测试：后台刷新恢复租户，取不到租户时失败 -->
         <dependency>
-            <groupId>com.ddk</groupId>
+            <groupId>com.domaindrivenkit</groupId>
             <artifactId>ddk-mybatis-starter</artifactId>
             <scope>test</scope>
         </dependency>
@@ -56,7 +56,7 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.ddk</groupId>
+            <groupId>com.domaindrivenkit</groupId>
             <artifactId>ddk-test</artifactId>
             <scope>test</scope>
         </dependency>

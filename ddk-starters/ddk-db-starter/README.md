@@ -6,7 +6,7 @@ Registers several JDBC data sources from configuration. Each source gets its own
 
 ```xml
 <dependency>
-    <groupId>com.ddk</groupId>
+    <groupId>com.domaindrivenkit</groupId>
     <artifactId>ddk-db-starter</artifactId>
 </dependency>
 ```

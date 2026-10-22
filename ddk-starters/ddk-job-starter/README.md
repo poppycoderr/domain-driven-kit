@@ -11,7 +11,7 @@ instance B  @Scheduled fires ──► lock ddk:job-lock:<app>:<job>  held by A 
 
 ```xml
 <dependency>
-    <groupId>com.ddk</groupId>
+    <groupId>com.domaindrivenkit</groupId>
     <artifactId>ddk-job-starter</artifactId>
 </dependency>
 ```

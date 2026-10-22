@@ -14,6 +14,7 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ### Breaking
 
+- The Maven groupId changes from `com.ddk` to `com.domaindrivenkit`, a namespace that DDK owns through its domain and that Maven Central can verify. Artifact IDs and Java packages (`com.ddk.*`) stay the same, so only build files change: the BOM import, every DDK dependency and `-DarchetypeGroupId`. `scripts/ddk.sh` reads the groupId of the version it installs, so older releases keep working with it
 - Three auto-configurations take the `Ddk` prefix like the other fourteen: `MybatisPlusAutoConfiguration` is now `DdkMybatisAutoConfiguration` (it shared its simple name with MyBatis-Plus's own), `WebAutoConfiguration` is now `DdkWebAutoConfiguration` and `WebOpenApiAutoConfiguration` is now `DdkWebOpenApiAutoConfiguration`. Update `spring.autoconfigure.exclude` entries and tests that name them
 - `@Bean` methods of the cache, event, MyBatis, Redis and web auto-configurations are package-private, as in the other starters. The container calls them; an application that called one directly creates the object itself or injects the bean
 

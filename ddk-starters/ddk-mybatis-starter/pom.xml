@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.ddk</groupId>
+        <groupId>com.domaindrivenkit</groupId>
         <artifactId>ddk-starters</artifactId>
         <version>0.10.0-SNAPSHOT</version>
     </parent>
@@ -15,7 +15,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.ddk</groupId>
+            <groupId>com.domaindrivenkit</groupId>
             <artifactId>ddk-mybatis</artifactId>
         </dependency>
 
@@ -49,7 +49,7 @@
 
         <!-- 多租户与数据权限同时开启时，在真实的 MySQL 上验证改写后的 SQL -->
         <dependency>
-            <groupId>com.ddk</groupId>
+            <groupId>com.domaindrivenkit</groupId>
             <artifactId>ddk-test</artifactId>
             <scope>test</scope>
         </dependency>

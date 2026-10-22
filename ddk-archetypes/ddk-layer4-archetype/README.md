@@ -18,7 +18,7 @@ mvn install -DskipTests
 
 ```bash
 mvn archetype:generate \
-  -DarchetypeGroupId=com.ddk \
+  -DarchetypeGroupId=com.domaindrivenkit \
   -DarchetypeArtifactId=ddk-layer4-archetype \
   -DarchetypeVersion=0.10.0-SNAPSHOT \
   -DgroupId=com.acme \

@@ -2,7 +2,8 @@
 #
 # Tests the version selection of scripts/ddk.sh without the network and without building DDK.
 #
-# A throwaway git repository stands in for the DDK repository (two release tags and a main branch with a snapshot),
+# A throwaway git repository stands in for the DDK repository (two release tags under the old groupId com.ddk and a
+# main branch with a snapshot under com.domaindrivenkit),
 # and a stub "mvn" stands in for Maven: "install" records the version as installed artifacts, "archetype:generate"
 # writes the version it was asked for into the generated project. Everything lives in a temporary directory; the
 # real ~/.ddk and ~/.m2 are never touched.
@@ -33,14 +34,15 @@ git -C "$REPO" init -q -b main
 git -C "$REPO" config user.email test@example.com
 git -C "$REPO" config user.name test
 write_version() {
-    printf '<project>\n    <version>%s</version>\n</project>\n' "$1" > "$REPO/pom.xml"
+    local group="${2:-com.domaindrivenkit}"
+    printf '<project>\n    <groupId>%s</groupId>\n    <version>%s</version>\n</project>\n' "$group" "$1" > "$REPO/pom.xml"
     printf '<project>\n    <properties>\n        <ddk.version>%s</ddk.version>\n    </properties>\n</project>\n' "$1" \
         > "$REPO/ddk-dependencies/pom.xml"
     git -C "$REPO" add -A
     git -C "$REPO" commit -q -m "version $1"
 }
-write_version 0.1.0-SNAPSHOT && git -C "$REPO" tag v0.1.0
-write_version 0.2.0-SNAPSHOT && git -C "$REPO" tag v0.2.0
+write_version 0.1.0-SNAPSHOT com.ddk && git -C "$REPO" tag v0.1.0
+write_version 0.2.0-SNAPSHOT com.ddk && git -C "$REPO" tag v0.2.0
 write_version 0.3.0-SNAPSHOT
 
 # --- a stand-in for Maven --------------------------------------------------------------------------------------
@@ -55,25 +57,28 @@ for ((i = 0; i < ${#args[@]}; i++)); do
     [[ "${args[$i]}" == "-f" ]] && pom="${args[$((i + 1))]}"
 done
 version() { sed -n 's:.*<version>\(.*\)</version>.*:\1:p' "$1" | head -n 1; }
+group() { sed -n 's:.*<groupId>\(.*\)</groupId>.*:\1:p' "$1" | head -n 1; }
 case " $* " in
     *"-Dexpression=settings.localRepository"*) printf '%s' "$FAKE_M2" ;;
     *"-Dexpression=project.version"*) printf '%s' "$(version "$pom")" ;;
+    *"-Dexpression=project.groupId"*) printf '%s' "$(group "$pom")" ;;
     *" versions:set "*)
         for arg in "$@"; do [[ "$arg" == -DnewVersion=* ]] && new="${arg#-DnewVersion=}"; done
         sed -i.bak "s|<version>.*</version>|<version>$new</version>|" "$pom" && rm -f "$pom.bak" ;;
     *" install "*)
-        v="$(version "$pom")"
+        v="$(version "$pom")" g="$(group "$pom")"
         for layers in 3 4; do
-            mkdir -p "$FAKE_M2/com/ddk/ddk-layer$layers-archetype/$v"
-            touch "$FAKE_M2/com/ddk/ddk-layer$layers-archetype/$v/ddk-layer$layers-archetype-$v.jar"
+            mkdir -p "$FAKE_M2/${g//.//}/ddk-layer$layers-archetype/$v"
+            touch "$FAKE_M2/${g//.//}/ddk-layer$layers-archetype/$v/ddk-layer$layers-archetype-$v.jar"
         done
         echo "$v" >> "$FAKE_M2/installs.log" ;;
     *" archetype:generate "*)
         for arg in "$@"; do
             [[ "$arg" == -DarchetypeVersion=* ]] && v="${arg#-DarchetypeVersion=}"
+            [[ "$arg" == -DarchetypeGroupId=* ]] && g="${arg#-DarchetypeGroupId=}"
             [[ "$arg" == -DartifactId=* ]] && a="${arg#-DartifactId=}"
         done
-        mkdir -p "$a" && echo "$v" > "$a/ddk-version" ;;
+        mkdir -p "$a" && echo "$v" > "$a/ddk-version" && echo "$g" > "$a/ddk-group" ;;
     *) echo "unexpected mvn call: $*" >&2; exit 1 ;;
 esac
 MVN
@@ -91,12 +96,14 @@ check "an explicit older tag is installed and used, not the cached one" "0.1.0 2
 check "switching back to the newest release reinstalls it" "0.2.0 3" "$(new p4) $(installs)"
 check "main gives the development snapshot" "0.3.0-SNAPSHOT 4" "$(DDK_REF=main new p5) $(installs)"
 check "main unchanged is reused" "0.3.0-SNAPSHOT 4" "$(DDK_REF=main new p6) $(installs)"
+check "a release before 0.10 is generated from its own groupId" "com.ddk" "$(cat p3/ddk-group)"
+check "main is generated from the new groupId" "com.domaindrivenkit" "$(cat p6/ddk-group)"
 
 write_version 0.3.0-SNAPSHOT >/dev/null 2>&1 || true
 echo change >> "$REPO/README" && git -C "$REPO" add -A && git -C "$REPO" commit -q -m "new commit on main"
 check "a new commit on main is picked up" "0.3.0-SNAPSHOT 5" "$(DDK_REF=main new p7) $(installs)"
 
-rm -rf "$M2/com/ddk/ddk-layer4-archetype/0.3.0-SNAPSHOT"
+rm -rf "$M2/com/domaindrivenkit/ddk-layer4-archetype/0.3.0-SNAPSHOT"
 check "missing Maven artifacts are installed again" "0.3.0-SNAPSHOT 6" "$(DDK_REF=main new p8) $(installs)"
 
 mv "$REPO" "$REPO.offline"

@@ -20,7 +20,7 @@ A two-level cache behind the standard Spring Cache annotations: Caffeine (L1, pe
 
 ```xml
 <dependency>
-    <groupId>com.ddk</groupId>
+    <groupId>com.domaindrivenkit</groupId>
     <artifactId>ddk-cache-starter</artifactId>
 </dependency>
 ```

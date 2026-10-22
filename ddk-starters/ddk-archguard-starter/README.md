@@ -6,7 +6,7 @@ Executable architecture rules for DDD projects, built on ArchUnit. Layering writ
 
 ```xml
 <dependency>
-    <groupId>com.ddk</groupId>
+    <groupId>com.domaindrivenkit</groupId>
     <artifactId>ddk-archguard-starter</artifactId>
     <scope>test</scope>
 </dependency>

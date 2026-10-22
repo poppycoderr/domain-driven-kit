@@ -12,7 +12,7 @@ AI agent ──MCP──► adapter.mcp.*Tools ──► application service ─
 
 ```xml
 <dependency>
-    <groupId>com.ddk</groupId>
+    <groupId>com.domaindrivenkit</groupId>
     <artifactId>ddk-mcp-starter</artifactId>
 </dependency>
 ```

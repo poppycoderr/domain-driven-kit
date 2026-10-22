@@ -103,7 +103,7 @@ mvn -B install
 <dependencyManagement>
     <dependencies>
         <dependency>
-            <groupId>com.ddk</groupId>
+            <groupId>com.domaindrivenkit</groupId>
             <artifactId>ddk-dependencies</artifactId>
             <version>0.9.0</version>
             <type>pom</type>
@@ -114,17 +114,17 @@ mvn -B install
 
 <dependencies>
     <dependency>
-        <groupId>com.ddk</groupId>
+        <groupId>com.domaindrivenkit</groupId>
         <artifactId>ddk-web-starter</artifactId>
     </dependency>
     <dependency>
-        <groupId>com.ddk</groupId>
+        <groupId>com.domaindrivenkit</groupId>
         <artifactId>ddk-mybatis-starter</artifactId>
     </dependency>
 
     <!-- 架构规则只应出现在测试类路径上 -->
     <dependency>
-        <groupId>com.ddk</groupId>
+        <groupId>com.domaindrivenkit</groupId>
         <artifactId>ddk-archguard-starter</artifactId>
         <scope>test</scope>
     </dependency>

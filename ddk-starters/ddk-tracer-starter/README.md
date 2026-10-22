@@ -15,7 +15,7 @@ A caller reporting a problem can hand over the header value, and the whole call 
 
 ```xml
 <dependency>
-    <groupId>com.ddk</groupId>
+    <groupId>com.domaindrivenkit</groupId>
     <artifactId>ddk-tracer-starter</artifactId>
 </dependency>
 ```
