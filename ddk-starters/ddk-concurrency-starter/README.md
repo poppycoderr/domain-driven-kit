@@ -15,7 +15,7 @@ on failure: release the lock, remove the request registration
 
 ```xml
 <dependency>
-    <groupId>com.ddk</groupId>
+    <groupId>com.domaindrivenkit</groupId>
     <artifactId>ddk-concurrency-starter</artifactId>
 </dependency>
 ```

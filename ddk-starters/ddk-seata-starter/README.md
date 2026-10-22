@@ -18,7 +18,7 @@ Seata binds the XID from inbound requests but adds nothing to outbound ones. Wit
 
 ```xml
 <dependency>
-    <groupId>com.ddk</groupId>
+    <groupId>com.domaindrivenkit</groupId>
     <artifactId>ddk-seata-starter</artifactId>
 </dependency>
 ```

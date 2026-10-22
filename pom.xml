@@ -9,7 +9,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.ddk</groupId>
+    <groupId>com.domaindrivenkit</groupId>
     <artifactId>domain-driven-kit</artifactId>
     <version>0.10.0-SNAPSHOT</version>
     <packaging>pom</packaging>
@@ -68,6 +68,8 @@
         <japicmp.version>0.26.3</japicmp.version>
         <!-- 公开 API 与哪个已发布版本比较；每次发布之后改成刚发布的版本 -->
         <api.baseline.version>0.9.0</api.baseline.version>
+        <!-- 基线版本的 groupId：0.9 及以前是 com.ddk，发布 0.10 后改成 com.domaindrivenkit（写字面值，安装基线的脚本直接读取它） -->
+        <api.baseline.groupId>com.ddk</api.baseline.groupId>
         <okio.version>3.16.4</okio.version>
         <redisson.version>4.7.0</redisson.version>
         <springdoc.version>3.1.1</springdoc.version>
@@ -116,82 +118,82 @@
 
             <!-- DDK Internal Modules -->
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-test</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-mybatis</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-web-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-mybatis-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-redis-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-cache-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-db-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-tracer-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-seata-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-archguard-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-event-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-mcp-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-concurrency-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-job-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-projection-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -483,7 +485,7 @@
                         <configuration>
                             <oldVersion>
                                 <dependency>
-                                    <groupId>${project.groupId}</groupId>
+                                    <groupId>${api.baseline.groupId}</groupId>
                                     <artifactId>${project.artifactId}</artifactId>
                                     <version>${api.baseline.version}</version>
                                     <type>jar</type>

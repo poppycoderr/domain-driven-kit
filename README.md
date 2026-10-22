@@ -103,7 +103,7 @@ Use in another project. Import the BOM first, then drop the versions:
 <dependencyManagement>
     <dependencies>
         <dependency>
-            <groupId>com.ddk</groupId>
+            <groupId>com.domaindrivenkit</groupId>
             <artifactId>ddk-dependencies</artifactId>
             <version>0.9.0</version>
             <type>pom</type>
@@ -114,17 +114,17 @@ Use in another project. Import the BOM first, then drop the versions:
 
 <dependencies>
     <dependency>
-        <groupId>com.ddk</groupId>
+        <groupId>com.domaindrivenkit</groupId>
         <artifactId>ddk-web-starter</artifactId>
     </dependency>
     <dependency>
-        <groupId>com.ddk</groupId>
+        <groupId>com.domaindrivenkit</groupId>
         <artifactId>ddk-mybatis-starter</artifactId>
     </dependency>
 
     <!-- Architecture rules belong on the test classpath only -->
     <dependency>
-        <groupId>com.ddk</groupId>
+        <groupId>com.domaindrivenkit</groupId>
         <artifactId>ddk-archguard-starter</artifactId>
         <scope>test</scope>
     </dependency>

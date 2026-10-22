@@ -12,7 +12,7 @@
         pluginManagement 与 dependencies，产生意料之外的约束。
         独立的 BOM 只声明 dependencyManagement，是标准做法。
     -->
-    <groupId>com.ddk</groupId>
+    <groupId>com.domaindrivenkit</groupId>
     <artifactId>ddk-dependencies</artifactId>
     <version>0.10.0-SNAPSHOT</version>
     <packaging>pom</packaging>
@@ -92,84 +92,84 @@
             </dependency>
             <!-- 核心抽象 -->
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-core</artifactId>
                 <version>${ddk.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-test</artifactId>
                 <version>${ddk.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-mybatis</artifactId>
                 <version>${ddk.version}</version>
             </dependency>
 
             <!-- Starters -->
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-web-starter</artifactId>
                 <version>${ddk.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-mybatis-starter</artifactId>
                 <version>${ddk.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-redis-starter</artifactId>
                 <version>${ddk.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-cache-starter</artifactId>
                 <version>${ddk.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-db-starter</artifactId>
                 <version>${ddk.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-tracer-starter</artifactId>
                 <version>${ddk.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-seata-starter</artifactId>
                 <version>${ddk.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-archguard-starter</artifactId>
                 <version>${ddk.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-event-starter</artifactId>
                 <version>${ddk.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-mcp-starter</artifactId>
                 <version>${ddk.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-concurrency-starter</artifactId>
                 <version>${ddk.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-job-starter</artifactId>
                 <version>${ddk.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.ddk</groupId>
+                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-projection-starter</artifactId>
                 <version>${ddk.version}</version>
             </dependency>

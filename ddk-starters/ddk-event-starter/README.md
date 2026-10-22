@@ -15,7 +15,7 @@ aggregate.registerEvent(e) ──► repository save ──► DomainEventPublis
 
 ```xml
 <dependency>
-    <groupId>com.ddk</groupId>
+    <groupId>com.domaindrivenkit</groupId>
     <artifactId>ddk-event-starter</artifactId>
 </dependency>
 ```

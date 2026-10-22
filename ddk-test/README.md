@@ -4,7 +4,7 @@ Test support for DDK projects: assertions on aggregates and business rules, and 
 
 ```xml
 <dependency>
-    <groupId>com.ddk</groupId>
+    <groupId>com.domaindrivenkit</groupId>
     <artifactId>ddk-test</artifactId>
     <scope>test</scope>
 </dependency>
