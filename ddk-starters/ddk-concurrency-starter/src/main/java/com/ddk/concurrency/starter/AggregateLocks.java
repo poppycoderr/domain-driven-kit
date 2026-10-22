@@ -14,6 +14,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -64,6 +65,7 @@ public class AggregateLocks {
     /**
      * @param leaseTime 持有锁的最长时间；为 {@code null} 时由 Redisson 的看门狗自动续期，直到执行结束
      * @throws AggregateBusyException 等待时间内没有拿到锁
+     * @throws CancellationException  等锁时线程被中断（例如应用关闭、任务被取消）；中断标志保留，操作没有执行
      * @throws IllegalStateException  当前已经在事务里，并且配置为不允许在事务里面加锁
      */
     public <T, E extends Throwable> T execute(String type, Object id, Duration waitTime, @Nullable Duration leaseTime, Action<T, E> action)
@@ -71,7 +73,7 @@ public class AggregateLocks {
         String name = lockName(type, id);
         RLock lock = redisson.getLock(name);
         checkOutsideTransaction(lock, name);
-        if (!acquire(lock, waitTime, leaseTime)) {
+        if (!acquire(lock, name, waitTime, leaseTime)) {
             throw new AggregateBusyException(type);
         }
         try {
@@ -125,14 +127,19 @@ public class AggregateLocks {
         return keyPrefix + "lock:" + type + ":" + raw;
     }
 
-    private static boolean acquire(RLock lock, Duration waitTime, @Nullable Duration leaseTime) {
+    /**
+     * 中断不算锁被占用：被取消的操作不能报成「资源繁忙」，否则调用方会把它当成可以重试的冲突。
+     */
+    private static boolean acquire(RLock lock, String name, Duration waitTime, @Nullable Duration leaseTime) {
         try {
             return leaseTime == null
                     ? lock.tryLock(waitTime.toMillis(), TimeUnit.MILLISECONDS)
                     : lock.tryLock(waitTime.toMillis(), leaseTime.toMillis(), TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            return false;
+            CancellationException cancelled = new CancellationException("Interrupted while waiting for lock [" + name + "]");
+            cancelled.initCause(e);
+            throw cancelled;
         }
     }
 

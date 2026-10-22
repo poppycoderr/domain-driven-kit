@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
@@ -68,12 +69,17 @@ public class StockLockImpl implements StockLock {
         }
     }
 
+    /**
+     * 和 {@link AggregateLocks} 一致：等锁时被中断是取消，不报成库存正被占用。
+     */
     private static boolean tryLock(ReentrantLock lock) {
         try {
             return lock.tryLock(LOCAL_WAIT_SECONDS, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            return false;
+            CancellationException cancelled = new CancellationException("Interrupted while waiting for a stock lock");
+            cancelled.initCause(e);
+            throw cancelled;
         }
     }
 }
