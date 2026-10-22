@@ -6,7 +6,7 @@
 
 ## 维护
 
-DDK 由一个人维护：[@poppycoderr](https://github.com/poppycoderr)，AI 编码代理按 [`AGENTS.md`](./AGENTS.md) 的规则参与开发。问题和缺陷请提到 [GitHub Issues](https://github.com/poppycoderr/domain-driven-kit/issues)。尽力答复，但不保证响应时间，也没有商业支持。
+DDK 由一个人维护：[@poppycoderr](https://github.com/poppycoderr)，AI 编码代理按 [`AGENTS.md`](./AGENTS.md) 的规则参与开发。问题和缺陷请提到 [GitHub Issues](https://github.com/poppycoderr/domain-driven-kit/issues)。尽力答复，但不保证响应时间，也没有商业支持。安全问题请按 [SECURITY.zh-CN.md](./SECURITY.zh-CN.md) 私下报告。
 
 ## 哪些版本会得到修复
 
