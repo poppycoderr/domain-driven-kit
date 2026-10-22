@@ -11,6 +11,8 @@
     <packaging>pom</packaging>
 
     <artifactId>ddk-archetypes</artifactId>
+    <name>DDK Archetypes</name>
+    <description>Project templates for Domain Driven Kit: three- and four-layer Spring Boot applications with architecture tests</description>
 
     <modules>
         <module>ddk-layer3-archetype</module>
@@ -68,6 +70,34 @@
             <properties>
                 <archetype.test.skip>false</archetype.test.skip>
             </properties>
+        </profile>
+        <!-- 中央仓库要求带 jar 的组件同时有 Javadoc 包；模板没有 Java 代码，Javadoc 包里只放 archetype 的 README -->
+        <profile>
+            <id>central</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-jar-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>readme-javadoc</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                    <classifier>javadoc</classifier>
+                                    <classesDirectory>${project.basedir}</classesDirectory>
+                                    <includes>
+                                        <include>README.md</include>
+                                    </includes>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 </project>
