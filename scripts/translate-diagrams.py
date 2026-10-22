@@ -117,9 +117,9 @@ T = {
 },
 'ddk-roadmap': {
 'DDK 演进路线':'DDK roadmap',
-'基础层、0.1–0.4（Spring Boot 4 基线、AI 协作、可靠事件与中间件）、0.5–0.8（多租户与参考应用）已发布；0.9 可靠性与生产路径已发布；之后是可采用与可升级，再冻结 1.0；好看又好用贯穿始终。':'The foundation, 0.1–0.4 (Spring Boot 4 baseline, AI collaboration, reliable events and middleware), 0.5–0.8 (multi-tenancy and the reference app) and 0.9 (reliability and the production path) are released; adoption and upgrades come next, then the 1.0 freeze; looking good and being useful is ongoing.',
+'基础层、0.1–0.4（Spring Boot 4 基线、AI 协作、可靠事件与中间件）、0.5–0.8（多租户与参考应用）已发布；0.9 可靠性与生产路径、0.10 可采用与可升级已发布；接下来冻结 1.0；好看又好用贯穿始终。':'The foundation, 0.1–0.4 (Spring Boot 4 baseline, AI collaboration, reliable events and middleware), 0.5–0.8 (multi-tenancy and the reference app), 0.9 (reliability and the production path) and 0.10 (adoption and upgrades) are released; the 1.0 freeze comes next; looking good and being useful is ongoing.',
 '演进路线':'Roadmap',
-'0.9.0 已发布，完成了评审提出的可靠性修复与生产路径；接下来是可采用与可升级，再冻结 1.0。':'0.9.0 is out with the reliability fixes from the review; adoption comes next, then the 1.0 freeze.',
+'0.10.0 已发布，完成了可采用与可升级：新的 Maven 坐标、API 审查、分发准备；接下来冻结 1.0。':'0.10.0 is out: new Maven coordinates, an API review, distribution groundwork; the 1.0 freeze comes next.',
 '基础层':'Foundation',
 '已完成':'Done',
 '领域模型与仓储':'Domain model',
