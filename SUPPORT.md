@@ -28,6 +28,20 @@ Every change runs the full test suite in CI on these versions. Other versions ma
 
 How thoroughly each module is verified, and its known limits, is in the [support matrix](./ROADMAP.md#support-status). Modules marked wiring only are experimental: see [COMPATIBILITY.md](./COMPATIBILITY.md#what-is-not-stable). The semantics on virtual threads are on the [virtual threads page](https://domaindrivenkit.com/ddk/core/virtual-threads).
 
+## GraalVM native images
+
+Native images are verified module by module, not promised for all of DDK at once. CI builds `ddk-example-user` with GraalVM CE 25.0.2 (`mvn -Pnative native:compile` from Spring Boot's parent) and runs `scripts/native-smoke.sh` against the executable: conditional queries, inserts with snowflake IDs, paging, optimistic locking, business and validation errors, an MCP tool call, and domain event listeners after commit.
+
+| Module | Native image |
+|---|---|
+| `ddk-core`, `ddk-mybatis`, `ddk-mybatis-starter`, `ddk-web-starter` | Verified in CI |
+| `ddk-event-starter` | Verified in CI for domain events inside the application; the outbox and RocketMQ delivery are not verified |
+| `ddk-mcp-starter` | Verified in CI: synchronous server over streamable HTTP, tool calls |
+| Archetypes | A project generated from 0.10.0 compiled and started once by hand; not in CI |
+| Every other module | Not verified. It may work; nothing tests it |
+
+`ddk-mybatis-starter` registers the reflection that MyBatis-Plus and the default ID generator need on a native image, so applications add nothing for it. A module moves up this table when CI exercises it.
+
 ## Rolling back an upgrade
 
 Going back to the previous version is a matter of reverting the version in your build when the upgrade did not change stored data. Each section of the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) says whether it does and, if so, how to roll back. Data that DDK stores or sends:

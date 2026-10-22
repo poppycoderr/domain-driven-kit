@@ -12,6 +12,10 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ## [Unreleased]
 
+### Added
+
+- GraalVM native images, verified module by module: `ddk-mybatis-starter` registers the reflection that MyBatis-Plus and the default snowflake ID generator need, and CI builds `ddk-example-user` as a native image and smoke-tests it. `ddk-core`, `ddk-mybatis`, the web, MyBatis and MCP starters, and in-application domain events are verified; [SUPPORT.md](./SUPPORT.md#graalvm-native-images) lists the rest
+
 ### Changed
 
 - `AggregateLocks` and `@AggregateLock` throw `CancellationException` when the thread is interrupted while it waits for a lock, and keep the interrupt flag. They used to throw `AggregateBusyException`, so an operation cancelled during shutdown, or by cancelling its task, was reported as a conflict that the client should retry. `ddk-mall`'s in-process stock lock does the same

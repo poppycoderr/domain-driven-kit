@@ -98,7 +98,7 @@ DDK 只有一个版本号，但各模块经受的验证并不一样。每个模�
 
 - [ ] 冻结经过验证的核心 API 和上面的支持矩阵，此后严格遵守语义化版本。冻结哪些、哪些保持实验性，见 [COMPATIBILITY.zh-CN.md](./COMPATIBILITY.zh-CN.md)
 - [x] 虚拟线程上的上下文语义：操作者、链路、加锁顺序、取消、线程池复用，而不只是「能启动」
-- [ ] GraalVM 按模块声明支持，从一个最小示例开始，不要求所有 starter 一起支持
+- [x] GraalVM 按模块声明支持，从一个最小示例开始，不要求所有 starter 一起支持：CI 用 `ddk-example-user` 验证，清单见 [SUPPORT.zh-CN.md](./SUPPORT.zh-CN.md#graalvm-原生镜像)
 - [x] 写清已知限制、回滚路径和维护责任：[SUPPORT.zh-CN.md](./SUPPORT.zh-CN.md)，以及升级指南里每个版本的回退一节
 
 ## 候选池
