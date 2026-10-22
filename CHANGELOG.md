@@ -12,6 +12,10 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-10-22
+
+Getting ready to freeze 1.0. DDK now publishes under its own Maven namespace, `com.domaindrivenkit`, which Maven Central can verify. Java packages stay `com.ddk.*`, so upgrading changes build files, not code. Auto-configurations follow one naming rule, and their `@Bean` methods are no longer public API. `ddk-core` stops bringing Hutool along. Release artifacts carry build provenance, and a `central` profile signs and bundles a release for Maven Central once publishing there is decided. CI runs in named stages and fails when a test is skipped. The [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) lists the steps from 0.9.
+
 ### Breaking
 
 - The Maven groupId changes from `com.ddk` to `com.domaindrivenkit`, a namespace that DDK owns through its domain and that Maven Central can verify. Artifact IDs and Java packages (`com.ddk.*`) stay the same, so only build files change: the BOM import, every DDK dependency and `-DarchetypeGroupId`. `scripts/ddk.sh` reads the groupId of the version it installs, so older releases keep working with it
@@ -236,7 +240,8 @@ The first release: the DDD foundation on a Spring Boot 4.1 baseline.
 Starter implementation classes live in `com.ddk.<starter>.starter.internal` packages and are not public API: `CacheInvalidationListener`, `CacheInvalidationMessage`, `RedisCacheInvalidationPublisher`, `MicrometerCacheMetrics`, `JitteredTtlFunction`, `SpringDomainEventPublisher` and `TraceIdResponseFilter`. Generated projects check this with `DDK_INTERNALS_MUST_NOT_BE_USED`.
 - The springdoc dependency from `ddk-web-starter`; add it in the application when API docs are needed
 
-[Unreleased]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.10.0...HEAD
+[0.10.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.6.0...v0.7.0
