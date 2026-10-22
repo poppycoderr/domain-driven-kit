@@ -98,7 +98,7 @@ DDK has one version number, but its modules are not equally proven. Each one has
 
 - [ ] Freeze the verified core API and the support matrix above; strict semantic versioning from then on. What is frozen, and what stays experimental, is listed in [COMPATIBILITY.md](./COMPATIBILITY.md)
 - [x] Context semantics on virtual threads: operator, trace, lock ordering, cancellation and pool reuse, not only "it starts"
-- [ ] GraalVM support declared per module, starting with a minimal example, instead of all starters at once
+- [x] GraalVM support declared per module, starting with a minimal example, instead of all starters at once: verified in CI with `ddk-example-user`, listed in [SUPPORT.md](./SUPPORT.md#graalvm-native-images)
 - [x] Known limits, rollback paths and maintenance responsibility written down: [SUPPORT.md](./SUPPORT.md), and a rollback section per release in the upgrade guide
 
 ## Candidate pool

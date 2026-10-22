@@ -28,6 +28,20 @@ DDK 由一个人维护：[@poppycoderr](https://github.com/poppycoderr)，AI 编
 
 各模块验证到什么程度、有哪些已知限制，见[支持状态](./ROADMAP.zh-CN.md#支持状态)。标为「仅装配」的模块是实验性的，见 [COMPATIBILITY.zh-CN.md](./COMPATIBILITY.zh-CN.md#不稳定的部分)。虚拟线程下的语义见[虚拟线程](https://domaindrivenkit.com/ddk/core/virtual-threads)一页。
 
+## GraalVM 原生镜像
+
+原生镜像按模块逐个验证，不对整个 DDK 一次性承诺。CI 用 GraalVM CE 25.0.2 编译 `ddk-example-user`（Spring Boot 父 pom 提供的 `mvn -Pnative native:compile`），再对可执行文件运行 `scripts/native-smoke.sh`：条件查询、雪花 ID 插入、分页、乐观锁、业务错误与校验错误、一次 MCP 工具调用，以及事务提交后的领域事件监听器。
+
+| 模块 | 原生镜像 |
+|---|---|
+| `ddk-core`、`ddk-mybatis`、`ddk-mybatis-starter`、`ddk-web-starter` | CI 已验证 |
+| `ddk-event-starter` | CI 验证了应用内的领域事件；Outbox 和 RocketMQ 投递没有验证 |
+| `ddk-mcp-starter` | CI 已验证：同步服务端、streamable HTTP、工具调用 |
+| archetype | 用 0.10.0 生成的项目手动编译并启动过一次，不在 CI 里 |
+| 其他模块 | 未验证。也许可用，但没有测试覆盖 |
+
+`ddk-mybatis-starter` 自动登记 MyBatis-Plus 和默认 ID 生成器在原生镜像里需要的反射，应用不用为此做任何事。CI 覆盖到某个模块之后，它才会在上表里升级。
+
 ## 升级后回退
 
 升级没有改动持久数据时，回退就是把构建文件里的版本改回去。[升级指南](https://domaindrivenkit.com/ddk/upgrade)的每一节都写明这次升级有没有改动持久数据，有的话怎么回退。DDK 存储或发送的数据：

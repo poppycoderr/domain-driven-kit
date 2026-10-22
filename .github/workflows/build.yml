@@ -72,11 +72,36 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
+  # GraalVM 原生镜像：编译 ddk-example-user，再对可执行文件跑冒烟测试。
+  # 这个示例覆盖 web、mybatis、event、mcp 四个 starter；声明为原生已验证的模块以它为准
+  native:
+    runs-on: ubuntu-latest
+    name: native image
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up GraalVM
+        uses: graalvm/setup-graalvm@v1.6.7
+        with:
+          java-version: '25.0.2'
+          distribution: 'graalvm-community'
+          cache: maven
+
+      # 测试已经在 test 任务里跑过，这里只构建示例用到的模块
+      - name: Install the modules the example needs
+        run: mvn -B -ntp install -DskipTests -pl ddk-examples/ddk-example-user -am
+
+      - name: Build the native image
+        run: mvn -B -ntp -Pnative -DskipTests -pl ddk-examples/ddk-example-user native:compile
+
+      - name: Smoke test the native image
+        run: scripts/native-smoke.sh ddk-examples/ddk-example-user/target/ddk-example-user
+
   # 分支保护要求名为 build 的检查；矩阵任务的名字带 Java 版本，由这个汇总任务统一给出结果
   build:
     runs-on: ubuntu-latest
-    needs: test
+    needs: [ test, native ]
     if: always()
     steps:
-      - name: Require every Java version to pass
-        run: test "${{ needs.test.result }}" = "success"
+      - name: Require every Java version and the native image to pass
+        run: test "${{ needs.test.result }}" = "success" && test "${{ needs.native.result }}" = "success"

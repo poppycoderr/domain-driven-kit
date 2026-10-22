@@ -11,7 +11,7 @@ mvn -B -ntp install -Parchetype-it,release   # everything CI tests in one comman
 scripts/install-api-baseline.sh && mvn verify -Papi-check   # compare the public API with the last release
 ```
 
-CI (`.github/workflows/build.yml`) runs the same checks as separate steps, so a failure names its stage: the BOM check (`scripts/check-bom.py`), the installer test, unit, wiring and middleware tests, generated projects, a check that no test was skipped (`scripts/check-test-reports.py`), and API compatibility. In CI, container tests fail instead of skipping when Docker is missing.
+CI (`.github/workflows/build.yml`) runs the same checks as separate steps, so a failure names its stage: the BOM check (`scripts/check-bom.py`), the installer test, unit, wiring and middleware tests, generated projects, a check that no test was skipped (`scripts/check-test-reports.py`), and API compatibility. A separate job builds `ddk-example-user` as a GraalVM native image and runs `scripts/native-smoke.sh` against it. In CI, container tests fail instead of skipping when Docker is missing.
 
 `mvn verify` fails on any of these, and none of them may be weakened to get a green build:
 
@@ -37,7 +37,7 @@ Integration tests for the cache starter use Testcontainers and need a running Do
 | `SECURITY.md` | Reporting vulnerabilities privately |
 | `SUPPORT.md` | Maintenance, versions that get fixes, tested platforms, rolling back |
 | `RELEASING.md` | How a release is tagged, signed and published to Maven Central (maintainer only) |
-| `scripts/` | `ddk.sh` installer and its test (`test-ddk.sh`), the API baseline installer, the BOM and test report checks, and the diagram translation script |
+| `scripts/` | `ddk.sh` installer and its test (`test-ddk.sh`), the API baseline installer, the BOM and test report checks, the native image smoke test, and the diagram translation script |
 
 ## Conventions
 
