@@ -506,6 +506,8 @@
                         <extensions>true</extensions>
                         <configuration>
                             <publishingServerId>central</publishingServerId>
+                            <!-- 插件默认的部署名称是 Deployment；与 Portal 手动上传时填的名称保持一致 -->
+                            <deploymentName>${project.groupId}:${project.version}</deploymentName>
                             <autoPublish>false</autoPublish>
                             <waitUntil>validated</waitUntil>
                             <!-- 示例应用不发布 -->

@@ -125,14 +125,16 @@ cd order-service && mvn verify
 
 ### 校验构件
 
-Maven 中央仓库上的构件用 DDK 的发布密钥签名，指纹 `02F5 D443 996C 2388 C803 9D6C AE07 FF4C 8842 56F0`（[公钥](https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x02F5D443996C2388C8039D6CAE07FF4C884256F0)）：
+Maven 中央仓库上的构件用 DDK 的发布密钥签名，指纹 `02F5 D443 996C 2388 C803 9D6C AE07 FF4C 8842 56F0`（[公钥](https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x02F5D443996C2388C8039D6CAE07FF4C884256F0)）。从中央仓库下载 jar 和对应的 `.asc`，导入公钥后验签；`gpg` 应当报告签名有效，并显示这个主密钥指纹：
 
 ```bash
+curl -fsSO https://repo.maven.apache.org/maven2/com/domaindrivenkit/ddk-core/0.10.0/ddk-core-0.10.0.jar
+curl -fsSO https://repo.maven.apache.org/maven2/com/domaindrivenkit/ddk-core/0.10.0/ddk-core-0.10.0.jar.asc
 gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys 02F5D443996C2388C8039D6CAE07FF4C884256F0
 gpg --verify ddk-core-0.10.0.jar.asc ddk-core-0.10.0.jar
 ```
 
-[GitHub Release](https://github.com/poppycoderr/domain-driven-kit/releases) 上的 jar 由发布工作流构建，附有构建来源证明：`gh attestation verify <jar> --repo poppycoderr/domain-driven-kit`。两处的构件是同一个 tag 的两次构建。
+[GitHub Release](https://github.com/poppycoderr/domain-driven-kit/releases) 上的 jar 由发布工作流构建，附有构建来源证明：`gh attestation verify <jar> --repo poppycoderr/domain-driven-kit`。两处的构件是同一个 tag 的两次构建，jar 和 `.asc` 要取自同一处：GitHub Release 的 jar 配不上中央仓库的签名。
 
 ### 快照与旧版本
 

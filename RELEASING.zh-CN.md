@@ -27,16 +27,35 @@ git push origin vX.Y.Z
 下面这些都在仓库之外。
 
 - **命名空间。** `com.domaindrivenkit` 已经在 [Central Publisher Portal](https://central.sonatype.com/publishing) 上通过 `domaindrivenkit.com` 的 DNS TXT 记录验证。
-- **签名密钥。** 当前密钥为 RSA 4096，指纹 `02F5D443996C2388C8039D6CAE07FF4C884256F0`，2026-10-22 创建，2028-10-21 到期，[已发布到 keyserver.ubuntu.com](https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x02F5D443996C2388C8039D6CAE07FF4C884256F0)。ASCII 格式的私钥和它的口令放在只有自己能读的文件里（目录 `0700`，文件 `0600`）。更换或续期：
+- **签名密钥。** ASCII 格式的私钥和它的口令放在只有自己能读的文件里（目录 `0700`，文件 `0600`）。用过的密钥：
+
+  | 指纹 | 创建 | 到期 | 签名的版本 |
+  |---|---|---|---|
+  | `02F5D443996C2388C8039D6CAE07FF4C884256F0`（RSA 4096，[公钥](https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x02F5D443996C2388C8039D6CAE07FF4C884256F0)） | 2026-10-22 | 2028-10-21 | 0.10.0 及以后 |
+
+  这把密钥只有主密钥，没有子密钥。到期前二选一：给它延期，或者换一把新密钥。密钥有效期内做出的签名，过期后仍然有效。
+
+  *延长当前密钥的有效期。* 指纹不变，使用者那边什么都不用改：
 
   ```bash
-  gpg --quick-generate-key "Domain Driven Kit Release Signing" rsa4096 sign 2y
+  gpg --import <private-key.asc>
+  gpg --quick-set-expire <指纹> 2y
   gpg --armor --export-secret-keys <指纹> > <private-key.asc>
   gpg --keyserver hkps://keyserver.ubuntu.com --send-keys <指纹>
   ```
 
-  使用前先从 keyserver 取回公钥，核对完整指纹；然后更新两份 README 里的指纹。
-- **Central token。** 在 <https://central.sonatype.com/usertoken> 生成用户 token（[Sonatype 的说明](https://central.sonatype.org/publish/generate-portal-token/)）。token 只显示一次，到期日由生成时指定，所以每次发布前都要确认它还有效。把它写进 `~/.m2/settings.xml`（权限 `0600`），server id 与 `central` profile 使用的一致：
+  从 keyserver 取回公钥，确认显示的是新的到期日，再更新上表里的到期日。
+
+  *换成新密钥。* 使用者需要信任一个新指纹：
+
+  ```bash
+  gpg --quick-generate-key "Domain Driven Kit Release Signing" rsa4096 sign 2y
+  gpg --armor --export-secret-keys <新指纹> > <private-key.asc>
+  gpg --keyserver hkps://keyserver.ubuntu.com --send-keys <新指纹>
+  ```
+
+  钥匙环里已经有同名的密钥时，`gpg` 会先要求确认；带 `--batch` 时只提示 `already exists`，不加 `--yes` 就什么也不生成，所以要确认确实出现了新指纹。取回新公钥并核对完整指纹，替换仓库之外的签名材料；在上表加一行，并写明旧密钥签到哪个版本为止；更新两份 README 和文档站快速开始里的指纹。旧公钥留在 keyserver 上，它仍然用来验证它签过的版本。
+- **Central token。** 在 <https://central.sonatype.com/usertoken> 生成用户 token（[Sonatype 的说明](https://central.sonatype.org/publish/generate-portal-token/)）。token 只显示一次，到期日由生成时指定；当前的 token 有效期到 2027-10-22。每次发布前都要确认它还有效。把它写进 `~/.m2/settings.xml`（权限 `0600`），server id 与 `central` profile 使用的一致：
 
   ```xml
   <settings>
@@ -73,7 +92,7 @@ MAVEN_GPG_PASSPHRASE="$(cat <口令文件>)" \
 mvn -B -ntp -Prelease,central deploy
 ```
 
-构建会给每个文件签名，排除 `ddk-examples`、`ddk-example-user`、`ddk-mall`，把整个 reactor 打成 `ddk-dependencies/target/central-publishing/central-bundle.zip` 并上传。因为 `autoPublish=false`、`waitUntil=validated`，Maven 在 Portal 校验完部署后返回，此时还没有任何东西公开。
+构建会给每个文件签名，排除 `ddk-examples`、`ddk-example-user`、`ddk-mall`，把整个 reactor 打成 `ddk-dependencies/target/central-publishing/central-bundle.zip`，以部署名称 `com.domaindrivenkit:X.Y.Z` 上传（由 profile 里的 `deploymentName` 设定；插件自己的默认名称是 `Deployment`）。因为 `autoPublish=false`、`waitUntil=validated`，Maven 在 Portal 校验完部署后返回，此时还没有任何东西公开。
 
 ### 检查，再发布
 
@@ -99,7 +118,7 @@ gpg --verify ddk-core-X.Y.Z.jar.asc ddk-core-X.Y.Z.jar
 2. 如果没有，就上传 Maven 已经生成并签好名的部署包，不要重新构建：先记下 `shasum -a 256 ddk-dependencies/target/central-publishing/central-bundle.zip`，然后在 Portal 上点 **Publish Component**，部署名称填 `com.domaindrivenkit:X.Y.Z`，上传这个文件并确认（[Sonatype 的说明](https://central.sonatype.org/publish/publish-portal-upload/)）。
 3. 等到 `VALIDATED`，再按上一节检查并发布。
 
-0.10.0 就是这样发布的。
+0.10.0 就是这样发布的；它的部署名称是在 Portal 上手动填写的，当时 profile 还没有设定 `deploymentName`。
 
 ## 四、发布之后
 
