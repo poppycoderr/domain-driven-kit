@@ -17,6 +17,10 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 - Three auto-configurations take the `Ddk` prefix like the other fourteen: `MybatisPlusAutoConfiguration` is now `DdkMybatisAutoConfiguration` (it shared its simple name with MyBatis-Plus's own), `WebAutoConfiguration` is now `DdkWebAutoConfiguration` and `WebOpenApiAutoConfiguration` is now `DdkWebOpenApiAutoConfiguration`. Update `spring.autoconfigure.exclude` entries and tests that name them
 - `@Bean` methods of the cache, event, MyBatis, Redis and web auto-configurations are package-private, as in the other starters. The container calls them; an application that called one directly creates the object itself or injects the bean
 
+### Added
+
+- Release artifacts carry SLSA build provenance attestations. `gh attestation verify <jar> --repo poppycoderr/domain-driven-kit` checks that a jar or the BOM was built from this repository by the release workflow for that tag
+
 ### Changed
 
 - `ddk-core` no longer brings Hutool in transitively; it never used it. `ddk-mybatis` and `ddk-mybatis-starter`, which do, declare `hutool-core` themselves. An application that uses Hutool directly and got it only through `ddk-core` declares it itself

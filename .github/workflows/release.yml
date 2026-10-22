@@ -6,6 +6,9 @@ on:
 
 permissions:
   contents: write
+  # 来源证明：id-token 换取 Sigstore 签名证书，attestations 把证明写进仓库
+  id-token: write
+  attestations: write
 
 jobs:
   release:
@@ -39,6 +42,13 @@ jobs:
             | xargs -I{} cp {} dist/
           cp ddk-dependencies/pom.xml "dist/ddk-dependencies-$VERSION.pom"
           ls -l dist
+
+      # 给每个发布的 jar 和 BOM 生成 SLSA 来源证明，证明它们由这个仓库的这次 tag 构建产生。
+      # 使用者用 gh attestation verify <文件> --repo poppycoderr/domain-driven-kit 校验
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v4.2.2
+        with:
+          subject-path: 'dist/*'
 
       # 发布说明取自 CHANGELOG.md 中对应版本的一节
       - name: Extract release notes
