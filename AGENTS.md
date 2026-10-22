@@ -33,6 +33,7 @@ Integration tests for the cache starter use Testcontainers and need a running Do
 | `ddk-dependencies` | BOM; does not inherit the parent pom |
 | `ddk-archetypes/*` | Three- and four-layer project templates (Velocity; Markdown headings use `$h2`) |
 | `ddk-examples/*` | Runnable reference applications |
+| `COMPATIBILITY.md` | What stays compatible between releases and what 1.0 freezes |
 | `RELEASING.md` | How a release is tagged, signed and published to Maven Central (maintainer only) |
 | `scripts/` | `ddk.sh` installer and its test (`test-ddk.sh`), the API baseline installer, the BOM and test report checks, and the diagram translation script |
 
@@ -43,6 +44,7 @@ Integration tests for the cache starter use Testcontainers and need a running Do
 - **Java layering in examples and archetypes**: `*Request` / `*Response` in their own files with `static from(...)`; rich domain model with no public setters; explicit `@PathVariable("id")` and `@RequestParam(value = "...")`
 - **Diagrams**: the Chinese SVGs in `assets/diagrams` are the source; regenerate English variants with `python3 scripts/translate-diagrams.py assets/diagrams`
 - **Changelog**: add user-visible changes to the `[Unreleased]` section of `CHANGELOG.md`
+- **Compatibility**: `COMPATIBILITY.md` lists what stays compatible between releases. Beyond the Java API this covers `ddk.*` property names, message headers, table schemas, Redis keys and error codes, so a change to any of them needs a rolling-upgrade path. Do not make an existing ArchGuard rule stricter; add a new rule instead
 
 ## Git mode
 

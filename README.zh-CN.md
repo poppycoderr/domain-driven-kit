@@ -148,7 +148,7 @@ curl -fsSL https://raw.githubusercontent.com/poppycoderr/domain-driven-kit/main/
 
 ## 模块
 
-DDK 由个人维护，目前处于 0.x 阶段：次版本可能包含破坏性变更，每一项都记录在 [CHANGELOG](./CHANGELOG.md) 里，需要做的事见[升级指南](https://domaindrivenkit.com/ddk/upgrade)。0.10.0 起的版本同时发布到 Maven 中央仓库和 GitHub Release，校验方法见[校验构件](#校验构件)。
+DDK 由个人维护，目前处于 0.x 阶段：次版本可能包含破坏性变更，每一项都记录在 [CHANGELOG](./CHANGELOG.md) 里，需要做的事见[升级指南](https://domaindrivenkit.com/ddk/upgrade)。0.10.0 起的版本同时发布到 Maven 中央仓库和 GitHub Release，校验方法见[校验构件](#校验构件)。版本之间保持哪些兼容、1.0 冻结哪些内容，见 [COMPATIBILITY.zh-CN.md](./COMPATIBILITY.zh-CN.md)。
 
 | 模块 | 当前能力 | 状态 |
 |---|---|---|
@@ -166,9 +166,9 @@ DDK 由个人维护，目前处于 0.x 阶段：次版本可能包含破坏性�
 | `ddk-cache-starter` | Caffeine（L1）+ Redis（L2）两级缓存，跨实例失效广播，Redis 故障降级 | 可用，含 Redis 集成测试 |
 | `ddk-archguard-starter` | DDD 分层与领域层纯度的 ArchUnit 规则 | 可用 |
 | `ddk-dependencies` | BOM，下游 import 后无需再写版本号 | 可用 |
-| `ddk-db-starter` | 按名字注册多数据源，连接池参数可配，主数据源启动期校验 | 可用 |
+| `ddk-db-starter` | 按名字注册多数据源，连接池参数可配，主数据源启动期校验 | 实验性：只有装配测试 |
 | `ddk-tracer-starter` | 链路追踪，traceId 写入响应头 | 可用 |
-| `ddk-seata-starter` | 分布式事务，出站 HTTP 调用传播 XID | 可用 |
+| `ddk-seata-starter` | 分布式事务，出站 HTTP 调用传播 XID | 实验性：只有装配测试 |
 | `ddk-archetypes` | 三层 / 四层 Maven archetype，生成即带架构守卫测试 | 可用，含生成项目的集成测试 |
 | `ddk-examples` | `ddk-example-user`：可运行的四层用户注册示例。[`ddk-mall`](./ddk-examples/ddk-mall)：订单、库存、支付三个上下文通过集成事件协作的参考应用，把各个 starter 放在一起用 | 可用 |
 
