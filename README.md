@@ -135,7 +135,7 @@ See the full guide: [Quick Start](https://domaindrivenkit.com/ddk/quickstart).
 
 ## Modules
 
-DDK is maintained by one person and is in its 0.x series: a minor release may contain breaking changes, each listed in the [changelog](./CHANGELOG.md), with the steps to take in the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade). Releases are published on GitHub rather than Maven Central for now.
+DDK is maintained by one person and is in its 0.x series: a minor release may contain breaking changes, each listed in the [changelog](./CHANGELOG.md), with the steps to take in the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade). Releases are published on GitHub rather than Maven Central for now. From 0.10 on, every jar on a release carries a build provenance attestation: `gh attestation verify <jar> --repo poppycoderr/domain-driven-kit` checks that it was built from this repository by the release workflow.
 
 | Module | Capability | Status |
 |---|---|---|

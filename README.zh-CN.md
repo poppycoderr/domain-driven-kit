@@ -135,7 +135,7 @@ mvn -B install
 
 ## 模块
 
-DDK 由个人维护，目前处于 0.x 阶段：次版本可能包含破坏性变更，每一项都记录在 [CHANGELOG](./CHANGELOG.md) 里，需要做的事见[升级指南](https://domaindrivenkit.com/ddk/upgrade)。暂时通过 GitHub Release 发布，不发布到 Maven Central。
+DDK 由个人维护，目前处于 0.x 阶段：次版本可能包含破坏性变更，每一项都记录在 [CHANGELOG](./CHANGELOG.md) 里，需要做的事见[升级指南](https://domaindrivenkit.com/ddk/upgrade)。暂时通过 GitHub Release 发布，不发布到 Maven Central。从 0.10 起，Release 上的每个 jar 都附有构建来源证明：`gh attestation verify <jar> --repo poppycoderr/domain-driven-kit` 可以校验它确实由本仓库的发布流程构建。
 
 | 模块 | 当前能力 | 状态 |
 |---|---|---|
