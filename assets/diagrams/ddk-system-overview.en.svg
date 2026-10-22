@@ -117,6 +117,6 @@
   <text class="kicker" x="80" y="616">Build time</text>
   <text class="lbl-sm" x="80" y="642">ddk-archguard-starter</text>
   <text class="txt" x="296" y="642">"Adapters hold no business logic, the domain depends on no framework" becomes an ArchUnit test that fails the build.</text>
-  <text class="txt-xs" x="1064" y="87" text-anchor="end">Install locally with scripts/ddk.sh</text>
+  <text class="txt-xs" x="1064" y="87" text-anchor="end">On Maven Central from 0.10.0</text>
 
 </svg>

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 #
 # Installs Domain Driven Kit into the local Maven repository and generates projects from its archetypes.
-# DDK is not published to Maven Central yet, so every project needs the artifacts installed locally first.
+# Releases from 0.10.0 on are on Maven Central, but snapshots and older releases are not. The script builds the requested
+# ref from source and installs it locally, so the same command works for all of them.
 #
 #   curl -fsSL https://raw.githubusercontent.com/poppycoderr/domain-driven-kit/main/scripts/ddk.sh | bash -s -- new order-service
 #

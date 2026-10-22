@@ -471,9 +471,9 @@
 
     <profiles>
         <!--
-            发布到 Maven 中央仓库：mvn -Prelease,central deploy。需要的东西都在 CI 之外：
+            发布到 Maven 中央仓库：mvn -Prelease,central deploy，完整流程见 RELEASING.md。需要的东西都在 CI 之外：
             settings.xml 里 id 为 central 的 Central Portal token，环境变量里的签名私钥和口令。
-            只验证签名和部署包、不上传：mvn -Prelease,central deploy -DskipPublishing=true
+            只验证签名、不生成部署包也不上传：mvn -Prelease,central deploy -DskipPublishing=true
         -->
         <profile>
             <id>central</id>

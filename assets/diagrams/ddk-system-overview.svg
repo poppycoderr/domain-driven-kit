@@ -117,6 +117,6 @@
   <text class="kicker" x="80" y="616">构建期</text>
   <text class="lbl-sm" x="80" y="642">ddk-archguard-starter</text>
   <text class="txt" x="296" y="642">把「adapter 不碰业务、domain 不依赖框架」写成 ArchUnit 测试，违反时构建失败——约束不再只写在文档里。</text>
-  <text class="txt-xs" x="1064" y="87" text-anchor="end">未发布到 Maven 中央仓库，当前需要本地 mvn install</text>
+  <text class="txt-xs" x="1064" y="87" text-anchor="end">0.10.0 起发布在 Maven 中央仓库</text>
 
 </svg>

@@ -71,33 +71,23 @@ DDK 不是 Spring Modulith 的替代品：DDK 的可靠领域事件直接使用 
 
 ## 快速开始
 
-一条命令生成四层架构服务。脚本会构建 DDK、安装到本地 Maven 仓库，再用 archetype 生成项目：
+DDK 从 0.10.0 起发布在 Maven 中央仓库，groupId 是 `com.domaindrivenkit`。环境要求：JDK 21+、Maven 3.9+、Spring Boot 4.1.x。
+
+生成一个四层架构服务（三层用 `ddk-layer3-archetype`）：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/poppycoderr/domain-driven-kit/main/scripts/ddk.sh | bash -s -- new order-service --group com.acme
+mvn archetype:generate \
+  -DarchetypeGroupId=com.domaindrivenkit \
+  -DarchetypeArtifactId=ddk-layer4-archetype \
+  -DarchetypeVersion=0.10.0 \
+  -DgroupId=com.acme \
+  -DartifactId=order-service \
+  -Dpackage=com.acme.order \
+  -DinteractiveMode=false
 cd order-service && mvn verify
 ```
 
-脚本默认构建最新的发布版本，并输出实际使用的版本号和提交。加 `--layers 3` 生成三层骨架，`DDK_REF=v0.10.0` 指定某个发布版本，`DDK_REF=main` 使用开发中的快照。之后再运行时，只有 ref 相同、提交相同、Maven 产物仍在，才会复用已有的安装。`ddk.sh help` 查看全部选项。
-
-手动构建 DDK：
-
-环境要求：
-
-- JDK 21
-- Maven 3.9+
-- Spring Boot 4.1.x（Jackson 3）
-
-本地构建：
-
-```bash
-git clone https://github.com/poppycoderr/domain-driven-kit.git
-cd domain-driven-kit
-mvn -B -ntp verify
-mvn -B install
-```
-
-在业务项目中先 import BOM，之后引依赖就不用再写版本号：
+已有的 Spring Boot 4.1 项目引入 BOM，之后的依赖不用写版本。BOM 管理所有 DDK 模块，以及 DDK 锁定版本的几个库（Spring Modulith、RocketMQ 客户端、springdoc、Okio）；Spring Boot 本身仍由项目的 Spring Boot 父 pom 或 BOM 管理。
 
 ```xml
 <dependencyManagement>
@@ -122,7 +112,7 @@ mvn -B install
         <artifactId>ddk-mybatis-starter</artifactId>
     </dependency>
 
-    <!-- 架构规则只应出现在测试类路径上 -->
+    <!-- 架构规则只放在测试类路径上 -->
     <dependency>
         <groupId>com.domaindrivenkit</groupId>
         <artifactId>ddk-archguard-starter</artifactId>
@@ -131,11 +121,32 @@ mvn -B install
 </dependencies>
 ```
 
-更多完整示例见：[快速开始](https://domaindrivenkit.com/ddk/quickstart)。
+完整说明见：[快速开始](https://domaindrivenkit.com/ddk/quickstart)。
+
+### 校验构件
+
+Maven 中央仓库上的构件用 DDK 的发布密钥签名，指纹 `02F5 D443 996C 2388 C803 9D6C AE07 FF4C 8842 56F0`（[公钥](https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x02F5D443996C2388C8039D6CAE07FF4C884256F0)）：
+
+```bash
+gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys 02F5D443996C2388C8039D6CAE07FF4C884256F0
+gpg --verify ddk-core-0.10.0.jar.asc ddk-core-0.10.0.jar
+```
+
+[GitHub Release](https://github.com/poppycoderr/domain-driven-kit/releases) 上的 jar 由发布工作流构建，附有构建来源证明：`gh attestation verify <jar> --repo poppycoderr/domain-driven-kit`。两处的构件是同一个 tag 的两次构建。
+
+### 快照与旧版本
+
+开发中的快照和 0.10.0 之前的版本（groupId `com.ddk`）不在中央仓库。`scripts/ddk.sh` 从源码构建指定的版本，装进本地 Maven 仓库，再用 archetype 生成项目：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/poppycoderr/domain-driven-kit/main/scripts/ddk.sh | DDK_REF=main bash -s -- new order-service --group com.acme
+```
+
+不设 `DDK_REF` 时构建最新的发布版本；`DDK_REF=v0.9.0` 指定某个发布版本，`--layers 3` 生成三层骨架，`ddk.sh help` 查看全部选项。之后再运行时，只有 ref 相同、提交相同、Maven 产物仍在，才会复用已有的安装。想手动构建，在本仓库的克隆里执行 `mvn -B install`。
 
 ## 模块
 
-DDK 由个人维护，目前处于 0.x 阶段：次版本可能包含破坏性变更，每一项都记录在 [CHANGELOG](./CHANGELOG.md) 里，需要做的事见[升级指南](https://domaindrivenkit.com/ddk/upgrade)。暂时通过 GitHub Release 发布，不发布到 Maven Central。从 0.10 起，Release 上的每个 jar 都附有构建来源证明：`gh attestation verify <jar> --repo poppycoderr/domain-driven-kit` 可以校验它确实由本仓库的发布流程构建。
+DDK 由个人维护，目前处于 0.x 阶段：次版本可能包含破坏性变更，每一项都记录在 [CHANGELOG](./CHANGELOG.md) 里，需要做的事见[升级指南](https://domaindrivenkit.com/ddk/upgrade)。0.10.0 起的版本同时发布到 Maven 中央仓库和 GitHub Release，校验方法见[校验构件](#校验构件)。
 
 | 模块 | 当前能力 | 状态 |
 |---|---|---|

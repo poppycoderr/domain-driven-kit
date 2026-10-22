@@ -25,7 +25,7 @@ T = {
 '5 个基础设施 starter':'Infrastructure starters',
 '构建期':'Build time',
 '把「adapter 不碰业务、domain 不依赖框架」写成 ArchUnit 测试，违反时构建失败——约束不再只写在文档里。':'"Adapters hold no business logic, the domain depends on no framework" becomes an ArchUnit test that fails the build.',
-'未发布到 Maven 中央仓库，当前需要本地 mvn install':'Install locally with scripts/ddk.sh',
+'0.10.0 起发布在 Maven 中央仓库':'On Maven Central from 0.10.0',
 },
 'ddk-domain-model': {
 'DDK 领域模型基类关系':'DDK domain model primitives',

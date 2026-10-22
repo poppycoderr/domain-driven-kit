@@ -8,19 +8,13 @@
 
 ## 生成项目
 
-DDK 尚未发布到 Maven 中央仓库，先在 DDK 仓库根目录安装到本地：
-
-```bash
-mvn install -DskipTests
-```
-
-再在任意目录生成：
+发布版本在 Maven 中央仓库（0.10.0 起），在任意目录直接生成：
 
 ```bash
 mvn archetype:generate \
   -DarchetypeGroupId=com.domaindrivenkit \
   -DarchetypeArtifactId=ddk-layer4-archetype \
-  -DarchetypeVersion=0.11.0-SNAPSHOT \
+  -DarchetypeVersion=0.10.0 \
   -DgroupId=com.acme \
   -DartifactId=order-service \
   -Dpackage=com.acme.order \
@@ -32,6 +26,8 @@ cd order-service
 mvn verify
 mvn spring-boot:run
 ```
+
+想用开发中的快照（如 `0.11.0-SNAPSHOT`），先在 DDK 仓库根目录执行 `mvn install -DskipTests` 装进本地仓库，再把上面的 `archetypeVersion` 换成快照版本。
 
 | 参数 | 默认值 | 说明 |
 |---|---|---|
