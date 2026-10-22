@@ -52,7 +52,7 @@ jobs:
       - name: Require that no test was skipped
         run: python3 scripts/check-test-reports.py
 
-      # 公开 API 兼容性检查要和上一个发布版本比较。DDK 没有发布到 Maven Central，基线 jar 从 GitHub Release 下载后装进本地仓库
+      # 公开 API 兼容性检查要和上一个发布版本比较。0.10.0 之前的版本只在 GitHub Release 上，基线 jar 统一从 Release 下载后装进本地仓库
       - name: Install the API baseline
         env:
           GH_TOKEN: ${{ github.token }}

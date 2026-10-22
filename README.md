@@ -71,33 +71,23 @@ DDK does not replace Spring Modulith: reliable domain events in DDK run on Modul
 
 ## Quick Start
 
-Generate a four-layer service in one command. The script builds DDK, installs it into your local Maven repository and runs the archetype:
+DDK is on Maven Central under the groupId `com.domaindrivenkit` from 0.10.0 on. Requirements: JDK 21+, Maven 3.9+, Spring Boot 4.1.x.
+
+Generate a four-layer service (`ddk-layer3-archetype` for three layers):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/poppycoderr/domain-driven-kit/main/scripts/ddk.sh | bash -s -- new order-service --group com.acme
+mvn archetype:generate \
+  -DarchetypeGroupId=com.domaindrivenkit \
+  -DarchetypeArtifactId=ddk-layer4-archetype \
+  -DarchetypeVersion=0.10.0 \
+  -DgroupId=com.acme \
+  -DartifactId=order-service \
+  -Dpackage=com.acme.order \
+  -DinteractiveMode=false
 cd order-service && mvn verify
 ```
 
-The script builds the newest release by default and prints the version and commit it used. Use `--layers 3` for the three-layer skeleton, `DDK_REF=v0.10.0` for a specific release, or `DDK_REF=main` for the development snapshot. A later run reuses an install only when it is the same ref, at the same commit, with its Maven artifacts still present. Run `ddk.sh help` for all options.
-
-To build DDK by hand instead:
-
-Requirements:
-
-- JDK 21
-- Maven 3.9+
-- Spring Boot 4.1.x (Jackson 3)
-
-Build locally:
-
-```bash
-git clone https://github.com/poppycoderr/domain-driven-kit.git
-cd domain-driven-kit
-mvn -B -ntp verify
-mvn -B install
-```
-
-Use in another project. Import the BOM first, then drop the versions:
+To add DDK to an existing Spring Boot 4.1 project, import the BOM and leave out the versions. The BOM manages every DDK module and the versions of the few libraries DDK pins (Spring Modulith, the RocketMQ client, springdoc, Okio); Spring Boot itself still comes from your Spring Boot parent or BOM.
 
 ```xml
 <dependencyManagement>
@@ -133,9 +123,30 @@ Use in another project. Import the BOM first, then drop the versions:
 
 See the full guide: [Quick Start](https://domaindrivenkit.com/ddk/quickstart).
 
+### Verifying artifacts
+
+Artifacts on Maven Central are signed with the DDK release key, fingerprint `02F5 D443 996C 2388 C803 9D6C AE07 FF4C 8842 56F0` ([public key](https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x02F5D443996C2388C8039D6CAE07FF4C884256F0)):
+
+```bash
+gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys 02F5D443996C2388C8039D6CAE07FF4C884256F0
+gpg --verify ddk-core-0.10.0.jar.asc ddk-core-0.10.0.jar
+```
+
+The jars on [GitHub Releases](https://github.com/poppycoderr/domain-driven-kit/releases) are built by the release workflow and carry a build provenance attestation: `gh attestation verify <jar> --repo poppycoderr/domain-driven-kit`. The two are separate builds of the same tag.
+
+### Snapshots and older releases
+
+Development snapshots and releases before 0.10.0 (groupId `com.ddk`) are not on Maven Central. `scripts/ddk.sh` builds the requested version from source, installs it into your local Maven repository and runs the archetype:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/poppycoderr/domain-driven-kit/main/scripts/ddk.sh | DDK_REF=main bash -s -- new order-service --group com.acme
+```
+
+Without `DDK_REF` it builds the newest release. `DDK_REF=v0.9.0` picks a specific release, `--layers 3` the three-layer skeleton, and `ddk.sh help` lists all options. A later run reuses an install only when it is the same ref, at the same commit, with its Maven artifacts still present. To build by hand instead, run `mvn -B install` in a clone of this repository.
+
 ## Modules
 
-DDK is maintained by one person and is in its 0.x series: a minor release may contain breaking changes, each listed in the [changelog](./CHANGELOG.md), with the steps to take in the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade). Releases are published on GitHub rather than Maven Central for now. From 0.10 on, every jar on a release carries a build provenance attestation: `gh attestation verify <jar> --repo poppycoderr/domain-driven-kit` checks that it was built from this repository by the release workflow.
+DDK is maintained by one person and is in its 0.x series: a minor release may contain breaking changes, each listed in the [changelog](./CHANGELOG.md), with the steps to take in the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade). Releases from 0.10.0 on are published to Maven Central and as GitHub Releases; see [Verifying artifacts](#verifying-artifacts).
 
 | Module | Capability | Status |
 |---|---|---|

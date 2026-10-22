@@ -2,8 +2,9 @@
 #
 # Install the release that the API compatibility check compares against into the local Maven repository.
 #
-# DDK is published as GitHub Releases, not to Maven Central, so the baseline jars cannot be resolved the usual way.
-# This script downloads them from the release and places them where Maven looks. Jars that are already there are kept.
+# Releases before 0.10.0 exist only as GitHub Releases, so Maven cannot resolve them as a baseline. This script downloads
+# the jars from the release and places them where Maven looks; it works the same for later releases, which are also
+# on Maven Central. Jars that are already there are kept.
 #
 #   scripts/install-api-baseline.sh            # the version in <api.baseline.version> of the root pom
 #   scripts/install-api-baseline.sh 0.8.0      # a specific version
