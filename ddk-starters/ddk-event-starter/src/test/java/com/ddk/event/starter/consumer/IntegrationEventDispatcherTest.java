@@ -3,7 +3,12 @@ package com.ddk.event.starter.consumer;
 import com.ddk.core.context.Operator;
 import com.ddk.core.context.OperatorContext;
 import com.ddk.event.starter.inbox.IdempotentConsumer;
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 import org.junit.jupiter.api.DisplayName;
+import org.slf4j.LoggerFactory;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -200,6 +205,31 @@ class IntegrationEventDispatcherTest {
         assertThat(onlyV1.dispatch("billing", "orders", null, headers("OrderPaid", "one"), JSON)).isZero();
         assertThat(onlyV1.dispatch("billing", "orders", null, Map.of(IntegrationEventDispatcher.EVENT_TYPE_HEADER, "OrderPaid"), JSON)).isZero();
         assertThat(v1.received).isEmpty();
+    }
+
+    @Test
+    @DisplayName("跳过只在每个消费方的每个版本第一次出现时警告，之后记 DEBUG")
+    void skipsAreWarnedOncePerConsumerAndVersion() {
+        Recording v1 = withContract(EventContract.of("OrderPaid", 1));
+        IntegrationEventDispatcher dispatcher = new IntegrationEventDispatcher(List.of(v1), jsonMapper, null);
+        Logger logger = (Logger) LoggerFactory.getLogger(IntegrationEventDispatcher.class);
+        Level original = logger.getLevel();
+        ListAppender<ILoggingEvent> appender = new ListAppender<>();
+        appender.start();
+        logger.addAppender(appender);
+        logger.setLevel(Level.DEBUG);
+        try {
+            for (int i = 0; i < 3; i++) {
+                dispatcher.dispatch("billing", "orders", null, headers("OrderPaid", "2"), JSON);
+            }
+            dispatcher.dispatch("billing", "orders", null, headers("OrderPaid", "3"), JSON);
+        } finally {
+            logger.detachAppender(appender);
+            logger.setLevel(original);
+        }
+
+        assertThat(appender.list).extracting(ILoggingEvent::getLevel).containsExactly(Level.WARN, Level.DEBUG, Level.DEBUG, Level.WARN);
+        assertThat(appender.list.get(0).getFormattedMessage()).contains("version 2", "logged at DEBUG");
     }
 
     @Test
