@@ -30,13 +30,27 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # 不能加 -DskipTests：它只跳过测试执行、不跳过测试编译，历史上正是靠它掩盖了
-      # ddk-cache-starter 测试类的语法错误，导致整个 reactor 长期构建失败。
-      # 用 install 而不是 verify：archetype 集成测试会生成项目并对它执行 mvn verify，
-      # 生成的项目要从本地仓库解析 DDK 各模块。
-      # 安装脚本的版本选择：不联网、不构建 DDK，几秒钟
+      # 几秒钟的检查放在前面：BOM 不继承父 pom，版本写了两份；安装脚本的版本选择不联网、不构建 DDK
+      - name: Check the BOM against the parent pom
+        run: python3 scripts/check-bom.py
+
       - name: Test the installer
         run: scripts/test-ddk.sh
+
+      # 不能加 -DskipTests：它只跳过测试执行、不跳过测试编译，历史上正是靠它掩盖了
+      # ddk-cache-starter 测试类的语法错误，导致整个 reactor 长期构建失败。
+      # 用 install 而不是 verify：后面的 archetype 集成测试要从本地仓库解析 DDK 各模块。
+      # 容器测试在没有 Docker 时会自己跳过；CI 关掉这个条件，Docker 不可用就直接失败
+      - name: Unit, wiring and middleware tests
+        run: mvn -B -ntp install -Prelease '-Djunit.jupiter.conditions.deactivate=org.testcontainers.*'
+
+      # 用两种 archetype 生成项目，再对生成的项目执行 mvn verify
+      - name: Generated projects
+        run: mvn -B -ntp install -Parchetype-it -pl ddk-archetypes/ddk-layer3-archetype,ddk-archetypes/ddk-layer4-archetype
+
+      # 包括生成项目的测试报告；任何被跳过的测试都让构建失败
+      - name: Require that no test was skipped
+        run: python3 scripts/check-test-reports.py
 
       # 公开 API 兼容性检查要和上一个发布版本比较。DDK 没有发布到 Maven Central，基线 jar 从 GitHub Release 下载后装进本地仓库
       - name: Install the API baseline
@@ -44,9 +58,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: scripts/install-api-baseline.sh
 
-      # api-check：与上一个发布版本相比出现不兼容的公开 API 变化时构建失败，有意的变化要在根 pom 的放行列表里写明
-      - name: Build and test
-        run: mvn -B -ntp install -Parchetype-it,release,api-check
+      # 比较上面已经打好的 jar，不重新测试。不兼容的公开 API 变化让构建失败，有意的变化要在根 pom 的放行列表里写明。
+      # 写全插件坐标：命令行上的前缀解析不到 profile 里的插件。BOM 没有 Java API，也不继承父 pom 里锁定的插件版本，排除在外
+      - name: API compatibility
+        run: mvn -B -ntp -Papi-check -pl '!ddk-dependencies' com.github.siom79.japicmp:japicmp-maven-plugin:cmp
 
       - name: Upload test reports
         if: always()
