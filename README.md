@@ -148,7 +148,7 @@ Without `DDK_REF` it builds the newest release. `DDK_REF=v0.9.0` picks a specifi
 
 ## Modules
 
-DDK is maintained by one person and is in its 0.x series: a minor release may contain breaking changes, each listed in the [changelog](./CHANGELOG.md), with the steps to take in the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade). Releases from 0.10.0 on are published to Maven Central and as GitHub Releases; see [Verifying artifacts](#verifying-artifacts). [COMPATIBILITY.md](./COMPATIBILITY.md) lists what stays compatible between releases and what 1.0 freezes.
+DDK is maintained by one person and is in its 0.x series: a minor release may contain breaking changes, each listed in the [changelog](./CHANGELOG.md), with the steps to take in the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade). Releases from 0.10.0 on are published to Maven Central and as GitHub Releases; see [Verifying artifacts](#verifying-artifacts). [COMPATIBILITY.md](./COMPATIBILITY.md) lists what stays compatible between releases and what 1.0 freezes; [SUPPORT.md](./SUPPORT.md) says which versions get fixes, what DDK is tested against and how to roll back.
 
 | Module | Capability | Status |
 |---|---|---|
