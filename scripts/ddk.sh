@@ -33,7 +33,7 @@ Options for "new":
   --layers <3|4>            Three- or four-layer architecture (default: 4)
 
 Environment:
-  DDK_REF    What to build: "latest" (default, the newest release tag), a tag such as v0.9.0,
+  DDK_REF    What to build: "latest" (default, the newest release tag), a tag such as v0.10.0,
              or a branch such as main for the development snapshot
   DDK_REPO   Git repository to clone
   DDK_HOME   Working directory for the source checkout (default: ~/.ddk)

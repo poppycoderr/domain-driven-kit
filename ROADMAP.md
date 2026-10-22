@@ -82,23 +82,15 @@ DDK has one version number, but its modules are not equally proven. Each one has
 | Archetypes (three and four layers) | Verified | Generated projects are built and tested in CI | |
 | `ddk-mall` | Verified, as a reference | MySQL, Redis, RocketMQ, Elasticsearch | Simulated payment channel; demo users in the `secure` profile |
 
-## Latest release: 0.9
+## Latest release: 0.10
 
-[0.9.0](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v0.9.0), released on 2026-10-21, carries the fixes and production-path work from the October 2026 review.
-
-- **Reliability**: projections converge when refreshes overlap; `@Idempotent` releases only its own registration; idempotent event consumers have a stable identity; the four-layer rule keeps application services off infrastructure; the installer installs the version that was asked for
-- **Production path**: tenants carried by projection marks and integration events, system operators for background work; projection and event operations (failure lists, retries, metrics, scheduled maintenance); event contracts by type and version; payment recovery and a `secure` profile in `ddk-mall`
-- **Upgrading**: CI compares the public API with the last release (japicmp), and breaking changes and migrations are collected in the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade)
-
-## After 0.9: adoption and upgrades
-
-**Goal: someone outside this repository can use DDK and move between versions without reading its source.**
+[0.10.0](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v0.10.0), released on 2026-10-22, completes the adoption and upgrades stage. **Goal: someone outside this repository can use DDK and move between versions without reading its source.**
 
 - [x] Clean-room build: a project outside the repository with an empty local Maven repository, using only the installer and the BOM; both archetypes generated and verified
-- [x] Upgrade rehearsal: a 0.8 project upgraded to 0.9 with nothing but the upgrade guide; the gaps it found are fixed in the guide
-- [x] Review the public API and each starter's transitive dependencies: what is required, what is optional, what leaks into applications
-- [x] Distribution: decide Maven coordinates (`io.github.poppycoderr`), signing and provenance, so publishing to a standard Maven repository becomes a decision rather than a project. No longer waits for stars: friction in adoption is what prevents feedback
-- [x] CI split into stages that are easier to read (unit and wiring, real middleware, generated projects, API compatibility) without letting required tests skip silently; check that the BOM and the parent pom agree on versions
+- [x] Upgrade rehearsals: a 0.8 project upgraded to 0.9, and a 0.9 project to 0.10, with nothing but the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade)
+- [x] Public API and dependency review: auto-configurations named `Ddk*AutoConfiguration` with package-private `@Bean` methods; Hutool declared only where it is used
+- [x] Distribution: Maven coordinates `com.domaindrivenkit`, a namespace backed by the project's own domain; build provenance on every release artifact; a `central` profile that signs and bundles a release, so publishing to Maven Central is a decision rather than a project
+- [x] CI in named stages (unit, wiring and middleware tests, generated projects, API compatibility) that fails when a test is skipped; the BOM checked against the parent pom
 
 ## 1.0: freeze
 
@@ -137,6 +129,7 @@ No order and no dates. An item moves into a release when there is a concrete nee
 | 0.7 | Fail-fast checks for locks and events inside or outside transactions, in-process job locks |
 | 0.8 | Projections, row-level data scope |
 | 0.9 | Reliability fixes from the October 2026 review, tenants in background work, projection and event operations, payment recovery and a secure profile in `ddk-mall`, an upgrade guide |
+| 0.10 | Adoption and upgrades: the `com.domaindrivenkit` groupId, the public API and dependency review, release provenance and Central signing, CI in named stages |
 
 ## Non-goals
 
