@@ -27,16 +27,35 @@ git push origin vX.Y.Z
 All of this lives outside the repository.
 
 - **Namespace.** `com.domaindrivenkit` is verified on the [Central Publisher Portal](https://central.sonatype.com/publishing) through a DNS TXT record on `domaindrivenkit.com`.
-- **Signing key.** The current key is RSA 4096, fingerprint `02F5D443996C2388C8039D6CAE07FF4C884256F0`, created on 2026-10-22, expiring on 2028-10-21, [published on keyserver.ubuntu.com](https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x02F5D443996C2388C8039D6CAE07FF4C884256F0). Keep the armored private key and its passphrase in files only you can read (directory `0700`, files `0600`). To replace or renew it:
+- **Signing key.** Keep the armored private key and its passphrase in files only you can read (directory `0700`, files `0600`). The keys used so far:
+
+  | Fingerprint | Created | Expires | Signs |
+  |---|---|---|---|
+  | `02F5D443996C2388C8039D6CAE07FF4C884256F0` (RSA 4096, [public key](https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x02F5D443996C2388C8039D6CAE07FF4C884256F0)) | 2026-10-22 | 2028-10-21 | 0.10.0 and later |
+
+  The key has a primary key only, no subkeys. Before it expires, either extend it or rotate to a new one. Signatures made while a key was valid stay valid after it expires.
+
+  *Extend the current key.* The fingerprint stays the same, so nothing changes for users:
 
   ```bash
-  gpg --quick-generate-key "Domain Driven Kit Release Signing" rsa4096 sign 2y
+  gpg --import <private-key.asc>
+  gpg --quick-set-expire <fingerprint> 2y
   gpg --armor --export-secret-keys <fingerprint> > <private-key.asc>
   gpg --keyserver hkps://keyserver.ubuntu.com --send-keys <fingerprint>
   ```
 
-  Fetch the key back from the keyserver and compare the full fingerprint before using it, then update the fingerprint in both READMEs.
-- **Central token.** Generate a user token at <https://central.sonatype.com/usertoken> ([Sonatype's guide](https://central.sonatype.org/publish/generate-portal-token/)). The token is shown only once and expires on the date you choose, so check it before every release. Put it in `~/.m2/settings.xml` (permissions `0600`) under the server id the `central` profile uses:
+  Fetch the key back from the keyserver, check that it shows the new expiry, and update the expiry in the table above.
+
+  *Rotate to a new key.* Users have to trust a new fingerprint:
+
+  ```bash
+  gpg --quick-generate-key "Domain Driven Kit Release Signing" rsa4096 sign 2y
+  gpg --armor --export-secret-keys <new-fingerprint> > <private-key.asc>
+  gpg --keyserver hkps://keyserver.ubuntu.com --send-keys <new-fingerprint>
+  ```
+
+  If the keyring already holds a key with this user ID, `gpg` asks before creating another one; with `--batch` it prints `already exists` and creates nothing unless `--yes` is given, so check that a new fingerprint appeared. Fetch the new key back and compare the full fingerprint, replace the signing material outside the repository, add a row to the table above and close the old row's "Signs" range, and update the fingerprint in both READMEs and on the documentation site's quick start. Keep the old public key on the keyserver: it still verifies the releases it signed.
+- **Central token.** Generate a user token at <https://central.sonatype.com/usertoken> ([Sonatype's guide](https://central.sonatype.org/publish/generate-portal-token/)). The token is shown only once and expires on the date you choose; the current one is valid until 2027-10-22. Check it before every release. Put it in `~/.m2/settings.xml` (permissions `0600`) under the server id the `central` profile uses:
 
   ```xml
   <settings>
@@ -73,7 +92,7 @@ MAVEN_GPG_PASSPHRASE="$(cat <passphrase-file>)" \
 mvn -B -ntp -Prelease,central deploy
 ```
 
-The build signs every file, leaves out `ddk-examples`, `ddk-example-user` and `ddk-mall`, bundles the reactor into `ddk-dependencies/target/central-publishing/central-bundle.zip` and uploads it. With `autoPublish=false` and `waitUntil=validated`, Maven returns once the Portal has validated the deployment; nothing is public yet.
+The build signs every file, leaves out `ddk-examples`, `ddk-example-user` and `ddk-mall`, bundles the reactor into `ddk-dependencies/target/central-publishing/central-bundle.zip` and uploads it as the deployment `com.domaindrivenkit:X.Y.Z` (the profile sets `deploymentName`; the plugin's own default is `Deployment`). With `autoPublish=false` and `waitUntil=validated`, Maven returns once the Portal has validated the deployment; nothing is public yet.
 
 ### Check, then publish
 
@@ -99,7 +118,7 @@ The upload can fail after the bundle was built, for example with `central.sonaty
 2. If there is none, upload the bundle that Maven already built and signed, without rebuilding: record `shasum -a 256 ddk-dependencies/target/central-publishing/central-bundle.zip`, then on the Portal choose **Publish Component**, enter the deployment name `com.domaindrivenkit:X.Y.Z`, upload the file and confirm ([Sonatype's guide](https://central.sonatype.org/publish/publish-portal-upload/)).
 3. Wait for `VALIDATED`, then check and publish as above.
 
-This is how 0.10.0 was released.
+This is how 0.10.0 was released; its deployment name was entered by hand in the Portal, before the profile set it.
 
 ## 4. After the release
 
