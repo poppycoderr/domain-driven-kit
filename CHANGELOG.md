@@ -24,6 +24,7 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ### Changed
 
+- An event skipped because its version is not in the consumer's contract is logged at WARN only the first time per consumer and version, then at DEBUG. While v1 and v2 are published side by side, a consumer that only knows v1 no longer logs a warning for every v2 message
 - `ddk-core` no longer brings Hutool in transitively; it never used it. `ddk-mybatis` and `ddk-mybatis-starter`, which do, declare `hutool-core` themselves. An application that uses Hutool directly and got it only through `ddk-core` declares it itself
 
 ## [0.9.0] - 2026-10-21

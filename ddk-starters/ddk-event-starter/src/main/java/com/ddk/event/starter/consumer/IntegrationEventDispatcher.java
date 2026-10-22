@@ -13,6 +13,8 @@ import tools.jackson.databind.json.JsonMapper;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 把收到的消息分发给消费方，与消息从哪里来无关。
@@ -37,6 +39,8 @@ public class IntegrationEventDispatcher {
 
     private static final Logger log = LoggerFactory.getLogger(IntegrationEventDispatcher.class);
 
+    private static final int MAX_REPORTED_SKIPS = 256;
+
     private final List<IntegrationEventConsumer<?>> consumers;
 
     private final JsonMapper jsonMapper;
@@ -44,6 +48,12 @@ public class IntegrationEventDispatcher {
     private final @Nullable IdempotentConsumer idempotentConsumer;
 
     private final EventObservations observations;
+
+    /**
+     * 已经警告过的「消费方 + 版本」。并行发布期间每条新版本消息都会被旧消费方跳过，只在第一次警告，之后记 DEBUG；
+     * 版本来自消息头，数量有上限，防止任意的版本值让集合无限增长。
+     */
+    private final Set<String> reportedSkips = ConcurrentHashMap.newKeySet();
 
     /**
      * @throws IllegalStateException 有消费方要求去重，但没有可用的 {@code IdempotentConsumer}
@@ -149,7 +159,12 @@ public class IntegrationEventDispatcher {
             if (contract.otherVersions() == EventContract.OtherVersions.REJECT) {
                 throw new IllegalStateException(problem);
             }
-            log.warn("Skipped event [{}]: {}", eventId, problem);
+            String skip = consumer.getClass().getName() + "#" + version;
+            if (reportedSkips.size() < MAX_REPORTED_SKIPS && reportedSkips.add(skip)) {
+                log.warn("Skipped event [{}]: {}. Further events of this version for this consumer are logged at DEBUG", eventId, problem);
+            } else {
+                log.debug("Skipped event [{}]: {}", eventId, problem);
+            }
             return false;
         }
         if (!consumer.runInEventTenant()) {
