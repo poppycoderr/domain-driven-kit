@@ -14,11 +14,11 @@
     <a href="./LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="License" /></a>
     <img src="https://img.shields.io/badge/Java-21%20%7C%2025-ED8B00?logo=openjdk&logoColor=white" alt="Java 21 | 25" />
     <img src="https://img.shields.io/badge/Spring%20Boot-4.1-6DB33F?logo=springboot&logoColor=white" alt="Spring Boot 4.1" />
-    <a href="https://poppycoder.netlify.app/ddk/"><img src="https://img.shields.io/badge/docs-codesphere-06B6D4" alt="Docs" /></a>
+    <a href="https://domaindrivenkit.com/ddk/"><img src="https://img.shields.io/badge/docs-codesphere-06B6D4" alt="Docs" /></a>
 </p>
 
 <p align="center">
-    <a href="./README.md">English</a> · <b>简体中文</b> · <a href="https://poppycoder.netlify.app/ddk/">文档站</a> · <a href="./ROADMAP.zh-CN.md">开发计划</a>
+    <a href="./README.md">English</a> · <b>简体中文</b> · <a href="https://domaindrivenkit.com/ddk/">文档站</a> · <a href="./ROADMAP.zh-CN.md">开发计划</a>
 </p>
 
 ---
@@ -131,11 +131,11 @@ mvn -B install
 </dependencies>
 ```
 
-更多完整示例见：[快速开始](https://poppycoder.netlify.app/ddk/quickstart)。
+更多完整示例见：[快速开始](https://domaindrivenkit.com/ddk/quickstart)。
 
 ## 模块
 
-DDK 由个人维护，目前处于 0.x 阶段：次版本可能包含破坏性变更，每一项都记录在 [CHANGELOG](./CHANGELOG.md) 里，需要做的事见[升级指南](https://poppycoder.netlify.app/ddk/upgrade)。暂时通过 GitHub Release 发布，不发布到 Maven Central。
+DDK 由个人维护，目前处于 0.x 阶段：次版本可能包含破坏性变更，每一项都记录在 [CHANGELOG](./CHANGELOG.md) 里，需要做的事见[升级指南](https://domaindrivenkit.com/ddk/upgrade)。暂时通过 GitHub Release 发布，不发布到 Maven Central。
 
 | 模块 | 当前能力 | 状态 |
 |---|---|---|
@@ -272,7 +272,7 @@ com.ddk.core
 7. **v0.7 在出错的地方报错**：事务之外发布的事件、事务里面加的锁当场拒绝；定时任务的锁不再依赖 Redis
 8. **v0.8 查询侧**：从写模型刷新、可重建的读模型，行级数据权限
 
-9. **v0.9 可靠性与生产路径**：投影收敛、安全的防重复提交、稳定的消费方身份、后台工作的租户、事件与投影的运维、[升级指南](https://poppycoder.netlify.app/ddk/upgrade)
+9. **v0.9 可靠性与生产路径**：投影收敛、安全的防重复提交、稳定的消费方身份、后台工作的租户、事件与投影的运维、[升级指南](https://domaindrivenkit.com/ddk/upgrade)
 
 接下来：
 
@@ -283,12 +283,12 @@ com.ddk.core
 
 ## 文档
 
-- [DDK 文档首页](https://poppycoder.netlify.app/ddk/)
-- [快速开始](https://poppycoder.netlify.app/ddk/quickstart)
-- [领域模型基类](https://poppycoder.netlify.app/ddk/core/domain-model)
-- [分层约定与架构守卫](https://poppycoder.netlify.app/ddk/conventions)
-- [升级指南](https://poppycoder.netlify.app/ddk/upgrade)
-- [开发与重构计划](https://poppycoder.netlify.app/ddk/contributing)
+- [DDK 文档首页](https://domaindrivenkit.com/ddk/)
+- [快速开始](https://domaindrivenkit.com/ddk/quickstart)
+- [领域模型基类](https://domaindrivenkit.com/ddk/core/domain-model)
+- [分层约定与架构守卫](https://domaindrivenkit.com/ddk/conventions)
+- [升级指南](https://domaindrivenkit.com/ddk/upgrade)
+- [开发与重构计划](https://domaindrivenkit.com/ddk/contributing)
 
 ## 贡献
 
@@ -313,7 +313,7 @@ com.ddk.core
 </p>
 
 - 代码与文档在 IntelliJ IDEA 中借助 Claude Code 和 Codex 编写，所有改动都经过人工审阅、测试与 CI 校验后合并。
-- 文档站 [codesphere](https://poppycoder.netlify.app) 基于 VitePress 构建，早期版本使用 docsify。
+- 文档站 [codesphere](https://domaindrivenkit.com) 基于 VitePress 构建，早期版本使用 docsify。
 
 ## 许可证
 

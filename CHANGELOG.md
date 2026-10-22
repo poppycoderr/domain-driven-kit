@@ -6,7 +6,7 @@ All notable changes to Domain Driven Kit are documented here. The format follows
 
 DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat:
 
-- **0.x**: a minor release (`0.1` → `0.2`) may contain breaking changes, and every one is listed under **Breaking** below. Patch releases (`0.1.0` → `0.1.1`) never break. The [upgrade guide](https://poppycoder.netlify.app/ddk/upgrade) lists what to do for each minor release, including schema migrations and behavior changes that are not API breaks.
+- **0.x**: a minor release (`0.1` → `0.2`) may contain breaking changes, and every one is listed under **Breaking** below. Patch releases (`0.1.0` → `0.1.1`) never break. The [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) lists what to do for each minor release, including schema migrations and behavior changes that are not API breaks.
 - **1.0 onwards**: breaking changes only in major releases.
 - Releases are tagged `vX.Y.Z` and published as [GitHub Releases](https://github.com/poppycoderr/domain-driven-kit/releases). DDK is not on Maven Central yet; install it locally with [`scripts/ddk.sh`](./scripts/ddk.sh).
 
@@ -23,7 +23,7 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ## [0.9.0] - 2026-10-21
 
-Reliability and the production path. Projections converge when refreshes overlap, `@Idempotent` releases only its own registration, idempotent event consumers have a stable identity, and the four-layer rule keeps application services off infrastructure. Background work carries its tenant: projection marks, integration events, `@Async` tasks. Projections and event publications get operations: failure lists, retries, metrics and scheduled maintenance. `ddk-mall` recovers lost payments and has a `secure` profile. Upgrading from 0.8 takes a few steps, all listed in the [upgrade guide](https://poppycoder.netlify.app/ddk/upgrade).
+Reliability and the production path. Projections converge when refreshes overlap, `@Idempotent` releases only its own registration, idempotent event consumers have a stable identity, and the four-layer rule keeps application services off infrastructure. Background work carries its tenant: projection marks, integration events, `@Async` tasks. Projections and event publications get operations: failure lists, retries, metrics and scheduled maintenance. `ddk-mall` recovers lost payments and has a `secure` profile. Upgrading from 0.8 takes a few steps, all listed in the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade).
 
 ### Breaking
 

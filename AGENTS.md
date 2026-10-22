@@ -50,7 +50,7 @@ Integration tests for the cache starter use Testcontainers and need a running Do
 
 ## Documentation
 
-User documentation lives on the codesphere site (`poppycoder.netlify.app/ddk/`, sources in the `poppycoderr/codesphere` repository). When a change alters behavior, configuration or public API, update the matching page there as well as the module README.
+User documentation lives on the codesphere site (`domaindrivenkit.com/ddk/`, sources in the `poppycoderr/codesphere` repository). When a change alters behavior, configuration or public API, update the matching page there as well as the module README.
 
 <!-- shared-agent-rules:start v1 — keep this block identical (per language) in codesphere, codesphere-labs, domain-driven-kit and grounded-access -->
 ## Shared rules

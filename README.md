@@ -14,11 +14,11 @@
     <a href="./LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="License" /></a>
     <img src="https://img.shields.io/badge/Java-21%20%7C%2025-ED8B00?logo=openjdk&logoColor=white" alt="Java 21 | 25" />
     <img src="https://img.shields.io/badge/Spring%20Boot-4.1-6DB33F?logo=springboot&logoColor=white" alt="Spring Boot 4.1" />
-    <a href="https://poppycoder.netlify.app/ddk/"><img src="https://img.shields.io/badge/docs-codesphere-06B6D4" alt="Docs" /></a>
+    <a href="https://domaindrivenkit.com/ddk/"><img src="https://img.shields.io/badge/docs-codesphere-06B6D4" alt="Docs" /></a>
 </p>
 
 <p align="center">
-    <b>English</b> · <a href="./README.zh-CN.md">简体中文</a> · <a href="https://poppycoder.netlify.app/ddk/">Documentation</a> · <a href="./ROADMAP.md">Roadmap</a>
+    <b>English</b> · <a href="./README.zh-CN.md">简体中文</a> · <a href="https://domaindrivenkit.com/ddk/">Documentation</a> · <a href="./ROADMAP.md">Roadmap</a>
 </p>
 
 ---
@@ -131,11 +131,11 @@ Use in another project. Import the BOM first, then drop the versions:
 </dependencies>
 ```
 
-See the full guide: [Quick Start](https://poppycoder.netlify.app/ddk/quickstart).
+See the full guide: [Quick Start](https://domaindrivenkit.com/ddk/quickstart).
 
 ## Modules
 
-DDK is maintained by one person and is in its 0.x series: a minor release may contain breaking changes, each listed in the [changelog](./CHANGELOG.md), with the steps to take in the [upgrade guide](https://poppycoder.netlify.app/ddk/upgrade). Releases are published on GitHub rather than Maven Central for now.
+DDK is maintained by one person and is in its 0.x series: a minor release may contain breaking changes, each listed in the [changelog](./CHANGELOG.md), with the steps to take in the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade). Releases are published on GitHub rather than Maven Central for now.
 
 | Module | Capability | Status |
 |---|---|---|
@@ -272,7 +272,7 @@ Released so far:
 7. **v0.7 Fail where the mistake is made**: events published outside a transaction and locks taken inside one are rejected on the spot; job locks without Redis
 8. **v0.8 The query side**: read models refreshed from the write model and rebuildable, row-level data scope
 
-9. **v0.9 Reliability and the production path**: converging projections, safe idempotency, stable consumer identities, tenants in background work, event and projection operations, an [upgrade guide](https://poppycoder.netlify.app/ddk/upgrade)
+9. **v0.9 Reliability and the production path**: converging projections, safe idempotency, stable consumer identities, tenants in background work, event and projection operations, an [upgrade guide](https://domaindrivenkit.com/ddk/upgrade)
 
 Next:
 
@@ -283,12 +283,12 @@ See [ROADMAP.md](./ROADMAP.md) for the full plan.
 
 ## Documentation
 
-- [DDK documentation](https://poppycoder.netlify.app/ddk/)
-- [Quick Start](https://poppycoder.netlify.app/ddk/quickstart)
-- [Domain Model Primitives](https://poppycoder.netlify.app/ddk/core/domain-model)
-- [Layering and Architecture Guard](https://poppycoder.netlify.app/ddk/conventions)
-- [Upgrade Guide](https://poppycoder.netlify.app/ddk/upgrade)
-- [Development and Refactoring Plan](https://poppycoder.netlify.app/ddk/contributing)
+- [DDK documentation](https://domaindrivenkit.com/ddk/)
+- [Quick Start](https://domaindrivenkit.com/ddk/quickstart)
+- [Domain Model Primitives](https://domaindrivenkit.com/ddk/core/domain-model)
+- [Layering and Architecture Guard](https://domaindrivenkit.com/ddk/conventions)
+- [Upgrade Guide](https://domaindrivenkit.com/ddk/upgrade)
+- [Development and Refactoring Plan](https://domaindrivenkit.com/ddk/contributing)
 
 ## Contributing
 
@@ -313,7 +313,7 @@ Run `mvn verify` before opening a PR: it checks formatting with Spotless (fix wi
 </p>
 
 - Code and docs are written in IntelliJ IDEA with the help of Claude Code and Codex; every change is reviewed, tested and passes CI before it is merged.
-- The documentation site [codesphere](https://poppycoder.netlify.app) is built with VitePress; earlier versions used docsify.
+- The documentation site [codesphere](https://domaindrivenkit.com) is built with VitePress; earlier versions used docsify.
 
 ## License
 
