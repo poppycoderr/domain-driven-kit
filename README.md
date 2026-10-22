@@ -148,7 +148,7 @@ Without `DDK_REF` it builds the newest release. `DDK_REF=v0.9.0` picks a specifi
 
 ## Modules
 
-DDK is maintained by one person and is in its 0.x series: a minor release may contain breaking changes, each listed in the [changelog](./CHANGELOG.md), with the steps to take in the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade). Releases from 0.10.0 on are published to Maven Central and as GitHub Releases; see [Verifying artifacts](#verifying-artifacts).
+DDK is maintained by one person and is in its 0.x series: a minor release may contain breaking changes, each listed in the [changelog](./CHANGELOG.md), with the steps to take in the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade). Releases from 0.10.0 on are published to Maven Central and as GitHub Releases; see [Verifying artifacts](#verifying-artifacts). [COMPATIBILITY.md](./COMPATIBILITY.md) lists what stays compatible between releases and what 1.0 freezes.
 
 | Module | Capability | Status |
 |---|---|---|
@@ -166,9 +166,9 @@ DDK is maintained by one person and is in its 0.x series: a minor release may co
 | `ddk-cache-starter` | Caffeine (L1) + Redis (L2) two-level cache with cross-instance invalidation and Redis failure fallback | Usable, with Redis integration tests |
 | `ddk-archguard-starter` | ArchUnit rules for layering and domain purity | Usable |
 | `ddk-dependencies` | BOM, so downstream projects stop writing versions | Usable |
-| `ddk-db-starter` | Named data sources with configurable pools and a validated primary | Usable |
+| `ddk-db-starter` | Named data sources with configurable pools and a validated primary | Experimental: wiring tests only |
 | `ddk-tracer-starter` | Distributed tracing with the trace ID in a response header | Usable |
-| `ddk-seata-starter` | Distributed transactions with XID propagation on outbound HTTP calls | Usable |
+| `ddk-seata-starter` | Distributed transactions with XID propagation on outbound HTTP calls | Experimental: wiring tests only |
 | `ddk-archetypes` | Three- and four-layer Maven archetypes with architecture tests in every generated project | Usable, with integration tests on generated projects |
 | `ddk-examples` | `ddk-example-user`: a runnable four-layer user registration example. [`ddk-mall`](./ddk-examples/ddk-mall): a reference application where order, inventory and payment contexts work together through integration events, using every starter side by side | Usable |
 
