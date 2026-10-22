@@ -88,7 +88,7 @@ DDK has one version number, but its modules are not equally proven. Each one has
 
 - **Reliability**: projections converge when refreshes overlap; `@Idempotent` releases only its own registration; idempotent event consumers have a stable identity; the four-layer rule keeps application services off infrastructure; the installer installs the version that was asked for
 - **Production path**: tenants carried by projection marks and integration events, system operators for background work; projection and event operations (failure lists, retries, metrics, scheduled maintenance); event contracts by type and version; payment recovery and a `secure` profile in `ddk-mall`
-- **Upgrading**: CI compares the public API with the last release (japicmp), and breaking changes and migrations are collected in the [upgrade guide](https://poppycoder.netlify.app/ddk/upgrade)
+- **Upgrading**: CI compares the public API with the last release (japicmp), and breaking changes and migrations are collected in the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade)
 
 ## After 0.9: adoption and upgrades
 
