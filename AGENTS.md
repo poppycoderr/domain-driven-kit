@@ -34,6 +34,7 @@ Integration tests for the cache starter use Testcontainers and need a running Do
 | `ddk-archetypes/*` | Three- and four-layer project templates (Velocity; Markdown headings use `$h2`) |
 | `ddk-examples/*` | Runnable reference applications |
 | `COMPATIBILITY.md` | What stays compatible between releases and what 1.0 freezes |
+| `SUPPORT.md` | Maintenance, versions that get fixes, tested platforms, rolling back |
 | `RELEASING.md` | How a release is tagged, signed and published to Maven Central (maintainer only) |
 | `scripts/` | `ddk.sh` installer and its test (`test-ddk.sh`), the API baseline installer, the BOM and test report checks, and the diagram translation script |
 

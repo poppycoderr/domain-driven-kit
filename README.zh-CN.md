@@ -148,7 +148,7 @@ curl -fsSL https://raw.githubusercontent.com/poppycoderr/domain-driven-kit/main/
 
 ## 模块
 
-DDK 由个人维护，目前处于 0.x 阶段：次版本可能包含破坏性变更，每一项都记录在 [CHANGELOG](./CHANGELOG.md) 里，需要做的事见[升级指南](https://domaindrivenkit.com/ddk/upgrade)。0.10.0 起的版本同时发布到 Maven 中央仓库和 GitHub Release，校验方法见[校验构件](#校验构件)。版本之间保持哪些兼容、1.0 冻结哪些内容，见 [COMPATIBILITY.zh-CN.md](./COMPATIBILITY.zh-CN.md)。
+DDK 由个人维护，目前处于 0.x 阶段：次版本可能包含破坏性变更，每一项都记录在 [CHANGELOG](./CHANGELOG.md) 里，需要做的事见[升级指南](https://domaindrivenkit.com/ddk/upgrade)。0.10.0 起的版本同时发布到 Maven 中央仓库和 GitHub Release，校验方法见[校验构件](#校验构件)。版本之间保持哪些兼容、1.0 冻结哪些内容，见 [COMPATIBILITY.zh-CN.md](./COMPATIBILITY.zh-CN.md)；哪些版本会得到修复、在什么环境下测试过、怎么回退，见 [SUPPORT.zh-CN.md](./SUPPORT.zh-CN.md)。
 
 | 模块 | 当前能力 | 状态 |
 |---|---|---|
