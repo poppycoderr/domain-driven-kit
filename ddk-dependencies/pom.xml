@@ -46,6 +46,8 @@
         <rocketmq.version>5.5.1</rocketmq.version>
         <springdoc.version>3.1.1</springdoc.version>
         <okio.version>3.16.4</okio.version>
+        <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
+        <central-publishing.version>0.11.1</central-publishing.version>
         <ddk.version>0.10.0-SNAPSHOT</ddk.version>
     </properties>
 
@@ -190,4 +192,46 @@
         </plugins>
     </build>
 
+
+    <!-- BOM 不继承父 pom，central profile 在这里重复一份；scripts/check-bom.py 检查两边的插件版本一致 -->
+    <profiles>
+        <profile>
+            <id>central</id>
+            <build>
+                <plugins>
+                    <!-- 签名用 BouncyCastle，不需要本机安装 gpg；私钥和口令只从环境变量 MAVEN_GPG_KEY、MAVEN_GPG_PASSPHRASE 读取 -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>${maven-gpg-plugin.version}</version>
+                        <configuration>
+                            <signer>bc</signer>
+                            <bestPractices>true</bestPractices>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- 代替 maven-deploy-plugin，把整个 reactor 打成一个部署包上传；autoPublish=false：上传后在 central.sonatype.com 人工确认才发布 -->
+                    <plugin>
+                        <groupId>org.sonatype.central</groupId>
+                        <artifactId>central-publishing-maven-plugin</artifactId>
+                        <version>${central-publishing.version}</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <publishingServerId>central</publishingServerId>
+                            <autoPublish>false</autoPublish>
+                            <waitUntil>validated</waitUntil>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

@@ -12,6 +12,7 @@
 
     <artifactId>ddk-starters</artifactId>
     <name>DDK Starters</name>
+    <description>Spring Boot starters of Domain Driven Kit, one concern each</description>
 
     <modules>
         <module>ddk-web-starter</module>
