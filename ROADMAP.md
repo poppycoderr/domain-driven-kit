@@ -98,7 +98,7 @@ DDK has one version number, but its modules are not equally proven. Each one has
 - [x] Upgrade rehearsal: a 0.8 project upgraded to 0.9 with nothing but the upgrade guide; the gaps it found are fixed in the guide
 - [x] Review the public API and each starter's transitive dependencies: what is required, what is optional, what leaks into applications
 - [ ] Distribution: decide Maven coordinates (`io.github.poppycoderr`), signing and provenance, so publishing to a standard Maven repository becomes a decision rather than a project. No longer waits for stars: friction in adoption is what prevents feedback
-- [ ] CI split into stages that are easier to read (unit and wiring, real middleware, generated projects, API compatibility) without letting required tests skip silently; check that the BOM and the parent pom agree on versions
+- [x] CI split into stages that are easier to read (unit and wiring, real middleware, generated projects, API compatibility) without letting required tests skip silently; check that the BOM and the parent pom agree on versions
 
 ## 1.0: freeze
 
