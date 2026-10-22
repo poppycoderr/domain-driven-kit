@@ -13,6 +13,7 @@ import com.baomidou.mybatisplus.extension.plugins.inner.TenantLineInnerIntercept
 import com.ddk.core.mapper.MapperProvider;
 import com.ddk.mybatis.starter.datascope.DataScopeResolver;
 import com.ddk.mybatis.starter.internal.AuditMetaObjectHandler;
+import com.ddk.mybatis.starter.internal.MybatisRuntimeHints;
 import com.ddk.mybatis.starter.internal.OperatorDataScopeHandler;
 import com.ddk.mybatis.starter.internal.OperatorTenantLineHandler;
 import org.springframework.beans.factory.ObjectProvider;
@@ -22,6 +23,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ImportRuntimeHints;
 
 
 /**
@@ -36,6 +38,7 @@ import org.springframework.context.annotation.Bean;
 @AutoConfiguration
 @ConditionalOnClass(MybatisPlusInterceptor.class)
 @EnableConfigurationProperties(DdkMybatisProperties.class)
+@ImportRuntimeHints(MybatisRuntimeHints.class)
 public class DdkMybatisAutoConfiguration {
 
     /**
