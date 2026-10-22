@@ -33,11 +33,17 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -178,6 +184,76 @@ class ConcurrencyRedisIntegrationTest {
         String unchecked = transaction.execute(status -> legacy.execute("order", 66L, () -> "legacy"));
 
         assertThat(List.of(warned, ignored, unchecked)).containsExactly("warned", "ignored", "legacy");
+    }
+
+    @Test
+    @DisplayName("虚拟线程上锁照样互斥：锁的持有者按线程区分，每个虚拟线程是不同的持有者")
+    void locksAreExclusiveAcrossVirtualThreads() throws Exception {
+        int tasks = 32;
+        AtomicInteger counter = new AtomicInteger();
+        AtomicInteger virtualHolders = new AtomicInteger();
+        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
+            List<Future<?>> futures = new ArrayList<>();
+            for (int i = 0; i < tasks; i++) {
+                futures.add(executor.submit(() -> locks.execute("counter", "1", Duration.ofSeconds(30), null, () -> {
+                    if (Thread.currentThread().isVirtual() && redisson.getLock("it:lock:counter:1").isHeldByCurrentThread()) {
+                        virtualHolders.incrementAndGet();
+                    }
+                    int seen = counter.get();
+                    Thread.sleep(2);
+                    counter.set(seen + 1);
+                    return null;
+                })));
+            }
+            for (Future<?> future : futures) {
+                future.get(60, TimeUnit.SECONDS);
+            }
+        }
+
+        assertThat(counter).hasValue(tasks);
+        assertThat(virtualHolders).hasValue(tasks);
+        assertThat(redisson.getLock("it:lock:counter:1").isLocked()).isFalse();
+    }
+
+    @Test
+    @DisplayName("等锁时被中断按取消处理：抛 CancellationException 而不是资源繁忙，中断标志保留，操作没有执行")
+    void interruptionWhileWaitingIsCancellation() throws Exception {
+        CountDownLatch held = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        CompletableFuture<Void> holder = CompletableFuture.runAsync(() -> locks.execute("order", "7", () -> {
+            held.countDown();
+            try {
+                release.await(10, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            return Boolean.TRUE;
+        }));
+        assertThat(held.await(10, TimeUnit.SECONDS)).isTrue();
+        AtomicInteger ran = new AtomicInteger();
+        CompletableFuture<Throwable> failure = new CompletableFuture<>();
+        AtomicReference<Boolean> interruptedAfter = new AtomicReference<>();
+
+        Thread waiter = Thread.ofVirtual().start(() -> {
+            try {
+                locks.execute("order", "7", Duration.ofSeconds(30), null, ran::incrementAndGet);
+                failure.complete(null);
+            } catch (Throwable e) {
+                interruptedAfter.set(Thread.currentThread().isInterrupted());
+                failure.complete(e);
+            }
+        });
+        Thread.sleep(200);
+        waiter.interrupt();
+
+        assertThat(failure.get(10, TimeUnit.SECONDS))
+                .isInstanceOf(CancellationException.class)
+                .hasMessageContaining("it:lock:order:7");
+        assertThat(interruptedAfter.get()).isTrue();
+        assertThat(ran).hasValue(0);
+        release.countDown();
+        holder.get(10, TimeUnit.SECONDS);
+        assertThat(redisson.getLock("it:lock:order:7").isLocked()).isFalse();
     }
 
     @Test

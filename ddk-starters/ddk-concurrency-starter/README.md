@@ -41,7 +41,7 @@ If no `RedissonClient` is available, calling an annotated method fails with an `
 | Aspect | Behavior |
 |---|---|
 | Lock name | `<key-prefix>lock:<type>:<id>`. `id` is a SpEL expression over the method parameters; a typed identifier contributes its raw value |
-| Waiting | `waitTime` on the annotation, or `ddk.concurrency.lock.wait-time`. When the lock is not acquired in time, `AggregateBusyException` (`AGGREGATE_BUSY`) is thrown and the web starter answers 409 |
+| Waiting | `waitTime` on the annotation, or `ddk.concurrency.lock.wait-time`. When the lock is not acquired in time, `AggregateBusyException` (`AGGREGATE_BUSY`) is thrown and the web starter answers 409. A thread interrupted while it waits, for example during shutdown or when its task is cancelled, gets `CancellationException` instead, with its interrupt flag kept: a cancelled operation is not a conflict to retry |
 | Holding | Without a lease time, Redisson's watchdog renews the lock until the method returns. With `leaseTime`, the lock expires on its own, and a warning is logged if the method outlives it |
 | Transactions | The lock wraps the transaction of the annotated method: acquired before it begins, released after it commits or rolls back. A test checks that the lock is still held in `afterCommit` |
 | Reentrancy | The same thread can take the same lock again |
