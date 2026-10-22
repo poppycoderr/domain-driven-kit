@@ -97,7 +97,7 @@ DDK has one version number, but its modules are not equally proven. Each one has
 **Goal: freeze only what has been verified.**
 
 - [ ] Freeze the verified core API and the support matrix above; strict semantic versioning from then on
-- [ ] Context semantics on virtual threads: operator, trace, lock ordering, cancellation and pool reuse, not only "it starts"
+- [x] Context semantics on virtual threads: operator, trace, lock ordering, cancellation and pool reuse, not only "it starts"
 - [ ] GraalVM support declared per module, starting with a minimal example, instead of all starters at once
 - [ ] Known limits, rollback paths and maintenance responsibility written down
 
