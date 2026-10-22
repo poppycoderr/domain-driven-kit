@@ -6,7 +6,7 @@ Who maintains DDK, which versions get fixes, what it is tested against, and how 
 
 ## Maintenance
 
-DDK is maintained by one person, [@poppycoderr](https://github.com/poppycoderr), with AI coding agents working under the rules in [`AGENTS.md`](./AGENTS.md). Questions and bugs go to [GitHub Issues](https://github.com/poppycoderr/domain-driven-kit/issues). Answers are best effort; there is no guaranteed response time and no commercial support.
+DDK is maintained by one person, [@poppycoderr](https://github.com/poppycoderr), with AI coding agents working under the rules in [`AGENTS.md`](./AGENTS.md). Questions and bugs go to [GitHub Issues](https://github.com/poppycoderr/domain-driven-kit/issues). Answers are best effort; there is no guaranteed response time and no commercial support. Security issues are reported privately, as described in [SECURITY.md](./SECURITY.md).
 
 ## Versions that get fixes
 
