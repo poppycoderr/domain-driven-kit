@@ -152,7 +152,12 @@ public class DdkCacheAutoConfiguration {
                     properties.getKeyPrefix() + "invalidation");
         }
 
+        /**
+         * 只订阅 DDK 自己的 Redis 频道。应用换了发布器，就由它负责传输，接收端调用 {@code DdkCacheManager.findCache(name)}
+         * 再 {@code evictLocal} / {@code clearLocal}。
+         */
         @Bean
+        @ConditionalOnBean(RedisCacheInvalidationPublisher.class)
         RedisMessageListenerContainer ddkCacheInvalidationListenerContainer(
                 RedisConnectionFactory factory,
                 RedisCacheInvalidationPublisher publisher,
