@@ -30,7 +30,7 @@ DDK 由一个人维护：[@poppycoderr](https://github.com/poppycoderr)，AI 编
 
 ## GraalVM 原生镜像
 
-原生镜像按模块逐个验证，不对整个 DDK 一次性承诺。CI 用 GraalVM CE 25.0.2 编译 `ddk-example-user`（Spring Boot 父 pom 提供的 `mvn -Pnative native:compile`），再对可执行文件运行 `scripts/native-smoke.sh`：条件查询、雪花 ID 插入、分页、乐观锁、业务错误与校验错误、一次 MCP 工具调用，以及事务提交后的领域事件监听器。
+原生镜像按模块逐个验证，不对整个 DDK 一次性承诺。CI 用 GraalVM CE 25.0.2 编译 `ddk-example-user`（Spring Boot 父 pom 提供的 `mvn -Pnative native:compile`），再对可执行文件运行 `scripts/native-smoke.sh`。它检查示例的成功路径和下面列出的错误路径：一次条件查询加雪花 ID 插入、按 ID 读取、按两种条件分页并核对总数、修改、禁用、删除、Bean Validation（`VALIDATION_ERROR`）、业务错误、领域规则、数据不存在、一次 MCP 工具调用，以及事务提交后的两个领域事件监听器。它不检查乐观锁冲突、事务回滚，也不涉及示例没有用到的功能，例如租户、数据权限、Outbox、Redis。
 
 | 模块 | 原生镜像 |
 |---|---|
