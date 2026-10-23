@@ -8,7 +8,7 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 - **0.x**: a minor release (`0.1` → `0.2`) may contain breaking changes, and every one is listed under **Breaking** below. Patch releases (`0.1.0` → `0.1.1`) never break. The [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) lists what to do for each minor release, including schema migrations and behavior changes that are not API breaks.
 - **1.0 onwards**: breaking changes only in major releases.
-- Releases are tagged `vX.Y.Z` and published as [GitHub Releases](https://github.com/poppycoderr/domain-driven-kit/releases). DDK is not on Maven Central yet; install it locally with [`scripts/ddk.sh`](./scripts/ddk.sh).
+- Releases are tagged `vX.Y.Z` and published as [GitHub Releases](https://github.com/poppycoderr/domain-driven-kit/releases). From 0.10.0 on they are also on Maven Central under `com.domaindrivenkit`; earlier releases (groupId `com.ddk`) and snapshots are installed locally with [`scripts/ddk.sh`](./scripts/ddk.sh). [COMPATIBILITY.md](./COMPATIBILITY.md) says what each kind of release may change.
 
 ## [Unreleased]
 
@@ -28,7 +28,7 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ## [0.10.0] - 2026-10-22
 
-Getting ready to freeze 1.0. DDK now publishes under its own Maven namespace, `com.domaindrivenkit`, which Maven Central can verify. Java packages stay `com.ddk.*`, so upgrading changes build files, not code. Auto-configurations follow one naming rule, and their `@Bean` methods are no longer public API. `ddk-core` stops bringing Hutool along. Release artifacts carry build provenance, and a `central` profile signs and bundles a release for Maven Central once publishing there is decided. CI runs in named stages and fails when a test is skipped. The [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) lists the steps from 0.9.
+Getting ready to freeze 1.0. DDK now publishes under its own Maven namespace, `com.domaindrivenkit`, which Maven Central can verify. Java packages stay `com.ddk.*`, so upgrading changes build files, not code. Auto-configurations follow one naming rule, and their `@Bean` methods are no longer public API. `ddk-core` stops bringing Hutool along. Release artifacts carry build provenance, and a `central` profile signs and bundles a release for Maven Central, where 0.10.0 itself was published. CI runs in named stages and fails when a test is skipped. The [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) lists the steps from 0.9.
 
 ### Breaking
 
