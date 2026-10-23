@@ -16,6 +16,19 @@ From 1.0 on, DDK follows [semantic versioning](https://semver.org/) for everythi
 
 Something to be removed is first marked `@Deprecated(since = "...", forRemoval = true)`, or deprecated in the documentation for things that are not Java, in a minor release. It is removed in the next major release at the earliest.
 
+## Platform
+
+What DDK runs on is part of the contract too, but not every version that happens to work is:
+
+| | In 1.x |
+|---|---|
+| Java | The minimum is Java 21 for all of 1.x; raising it is a major release. The JDKs that CI tests are listed in [SUPPORT.md](./SUPPORT.md#what-ddk-is-tested-against) |
+| Spring Boot | 1.x is built for Spring Boot 4. A minor release may move to a newer Spring Boot 4.x minor, listed in the changelog with its upgrade notes; a patch release keeps the Spring Boot minor. Spring Boot 5 means DDK 2.0 |
+| Libraries whose versions DDK pins (Spring Modulith, MyBatis-Plus, Redisson, ShedLock, the RocketMQ client, springdoc, Spring AI, Okio) | A patch release takes their patch updates, a minor release may take minor updates. An update that makes applications change their code is a major-release change, with one exception: a security fix ships when it is needed, listed under **Breaking** with a migration note |
+| Library types in DDK's API | `GenericRepositoryImpl` extends MyBatis-Plus's `ServiceImpl`, and `RedisJsonMapper.create` returns Jackson's `ObjectMapper`. DDK keeps these in 1.x, but the inherited methods are the library's and change with it, under the rule above. The API check compares DDK's own classes only, so it does not catch such a change |
+| Overriding a managed version | Allowed, but only the versions in [SUPPORT.md](./SUPPORT.md#what-ddk-is-tested-against) are tested; a different one is for the application to verify |
+| Middleware and databases | The versions in SUPPORT.md are tested. Others may work, without a promise |
+
 ## What is stable
 
 ### Java API
