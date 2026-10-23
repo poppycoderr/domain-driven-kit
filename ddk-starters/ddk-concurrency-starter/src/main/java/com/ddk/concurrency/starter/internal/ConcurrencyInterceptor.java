@@ -114,15 +114,17 @@ public class ConcurrencyInterceptor implements MethodInterceptor {
     }
 
     /**
-     * 默认作用域：声明方法的类的完整类名、方法名和参数类型，例如 {@code com.acme.OrderService#place(PlaceOrderCommand)}。
+     * 默认作用域：声明方法的类的完整类名、方法名和参数的完整类型名，例如
+     * {@code com.acme.OrderService#place(com.acme.PlaceOrderCommand)}。
      * <p>
-     * 用完整类名，不同包里同名的类不会共用一个作用域；带上参数类型，重载的方法也互不影响。{@code method} 是目标类上的方法，
+     * 用完整类名，不同包里同名的类不会共用一个作用域；参数也用完整类型名，参数简单类名相同的重载（{@code java.util.Date} 与
+     * {@code java.sql.Date}）同样互不影响。{@code method} 是目标类上的方法，
      * 不是代理类上的，所以有没有代理、是 JDK 代理还是 CGLIB 代理，作用域都一样。
      */
     static String defaultScope(Method method) {
         StringJoiner parameters = new StringJoiner(",", "(", ")");
         for (Class<?> type : method.getParameterTypes()) {
-            parameters.add(type.getSimpleName());
+            parameters.add(type.getTypeName());
         }
         return method.getDeclaringClass().getName() + "#" + method.getName() + parameters;
     }

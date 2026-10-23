@@ -22,8 +22,8 @@ public @interface Idempotent {
     String key();
 
     /**
-     * key 的作用域，不同用例之间互不影响。留空用「完整类名#方法名(参数类型)」，例如 {@code com.acme.OrderService#place(PlaceOrderCommand)}：
-     * 不同包里的同名类、重载的方法都不会共用作用域。
+     * key 的作用域，不同用例之间互不影响。留空用「完整类名#方法名(参数的完整类型名)」，例如
+     * {@code com.acme.OrderService#place(com.acme.PlaceOrderCommand)}：不同包里的同名类、重载的方法都不会共用作用域。
      */
     String scope() default "";
 

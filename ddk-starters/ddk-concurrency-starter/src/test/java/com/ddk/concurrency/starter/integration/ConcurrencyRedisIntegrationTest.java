@@ -313,7 +313,7 @@ class ConcurrencyRedisIntegrationTest {
         assertThatThrownBy(() -> orders.submit("req-1")).isInstanceOf(DuplicateRequestException.class);
         assertThat(orders.submit("req-2")).isEqualTo(2);
 
-        long ttl = redisson.getBucket("it:idempotent:" + SERVICE + "#submit(String):req-1", StringCodec.INSTANCE).remainTimeToLive();
+        long ttl = redisson.getBucket("it:idempotent:" + SERVICE + "#submit(java.lang.String):req-1", StringCodec.INSTANCE).remainTimeToLive();
         assertThat(ttl).isBetween(Duration.ofMinutes(9).toMillis(), Duration.ofMinutes(10).toMillis());
     }
 
@@ -363,7 +363,7 @@ class ConcurrencyRedisIntegrationTest {
         assertThat(orders.search("bob")).isEqualTo("results for bob");
 
         await().atMost(Duration.ofSeconds(5)).ignoreExceptions().until(() -> orders.search("alice").equals("results for alice"));
-        assertThat(redisson.getKeys().getKeysStream().toList()).anyMatch(key -> key.startsWith("it:rate:" + SERVICE + "#search(String):2/1000ms:alice"));
+        assertThat(redisson.getKeys().getKeysStream().toList()).anyMatch(key -> key.startsWith("it:rate:" + SERVICE + "#search(java.lang.String):2/1000ms:alice"));
     }
 
     @Test
@@ -372,8 +372,8 @@ class ConcurrencyRedisIntegrationTest {
         assertThat(orders.export("req-1")).isEqualTo("exported");
         assertThatThrownBy(() -> orders.export("req-2")).isInstanceOf(RateLimitedException.class);
 
-        assertThat(redisson.getBucket("it:idempotent:" + SERVICE + "#export(String):req-2", StringCodec.INSTANCE).isExists()).isFalse();
-        assertThat(redisson.getBucket("it:idempotent:" + SERVICE + "#export(String):req-1", StringCodec.INSTANCE).isExists()).isTrue();
+        assertThat(redisson.getBucket("it:idempotent:" + SERVICE + "#export(java.lang.String):req-2", StringCodec.INSTANCE).isExists()).isFalse();
+        assertThat(redisson.getBucket("it:idempotent:" + SERVICE + "#export(java.lang.String):req-1", StringCodec.INSTANCE).isExists()).isTrue();
     }
 
     @Test
