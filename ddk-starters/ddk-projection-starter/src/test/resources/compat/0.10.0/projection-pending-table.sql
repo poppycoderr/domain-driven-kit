@@ -1,0 +1,3 @@
+CREATE TABLE IF NOT EXISTS ddk_projection_pending (projection VARCHAR(100) NOT NULL, tenant_id VARCHAR(64) DEFAULT '' NOT NULL, entity_id VARCHAR(200) NOT NULL, version BIGINT NOT NULL, generation VARCHAR(36), claim_token VARCHAR(36), claimed_until TIMESTAMP, attempts INT NOT NULL, available_at TIMESTAMP NOT NULL, last_error VARCHAR(500), PRIMARY KEY (projection, tenant_id, entity_id));
+CREATE INDEX ddk_projection_pending_due ON ddk_projection_pending (available_at);
+INSERT INTO ddk_projection_pending (projection, tenant_id, entity_id, version, generation, claim_token, claimed_until, attempts, available_at, last_error) VALUES ('catalog', 'tenant-a', '42', 1, '3d7e59d1-2101-4304-a4ad-3b37d829e636', NULL, NULL, 0, TIMESTAMP '2026-10-22 08:00:00', NULL);

@@ -1,0 +1,9 @@
+{
+  "handled" : 1,
+  "rows" : [ {
+    "consumer" : "billing:ShipmentTracker",
+    "message_id" : "evt-7",
+    "processed_at" : "2026-10-22 08:00:00.0"
+  } ],
+  "schema" : "CREATE TABLE IF NOT EXISTS ddk_processed_message (consumer VARCHAR(200) NOT NULL, message_id VARCHAR(200) NOT NULL, processed_at TIMESTAMP NOT NULL, PRIMARY KEY (consumer, message_id))"
+}

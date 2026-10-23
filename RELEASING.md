@@ -123,4 +123,5 @@ This is how 0.10.0 was released; its deployment name was entered by hand in the 
 ## 4. After the release
 
 1. **Next snapshot.** A pull request moves every module, the BOM's `ddk.version` and the snapshot examples in the archetype READMEs to the next `-SNAPSHOT`, sets `api.baseline.version` in the root pom to the release, and empties the `api-check` excludes.
-2. **Docs.** A pull request points both READMEs (Quick Start and the release list), both archetype READMEs, both roadmaps and the roadmap diagram at the release. The documentation site's quick start, home page and upgrade guide move to it as well.
+2. **Compatibility fixtures.** Run `compat/generator` with `-Dddk.version=X.Y.Z` and add its output under each module's `src/test/resources/compat/X.Y.Z/`, next to the earlier releases (see `compat/README.md`).
+3. **Docs.** A pull request points both READMEs (Quick Start and the release list), both archetype READMEs, both roadmaps and the roadmap diagram at the release. The documentation site's quick start, home page and upgrade guide move to it as well.

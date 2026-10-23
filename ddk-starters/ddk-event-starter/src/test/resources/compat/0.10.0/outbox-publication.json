@@ -1,0 +1,5 @@
+{
+  "event_type" : "com.ddk.compat.ShipmentDispatched",
+  "listener_id" : "org.springframework.modulith.events.support.EventExternalizerModuleListener.externalize(java.lang.Object)",
+  "serialized_event" : "{\"eventId\":\"evt-7\",\"shipmentId\":7,\"tenantId\":\"tenant-a\",\"carrier\":\"SF\",\"occurredOn\":\"2026-10-22T08:00:00Z\"}"
+}

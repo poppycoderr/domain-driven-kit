@@ -29,7 +29,7 @@ Public and protected members of the published modules, outside `*.internal` pack
 | `ddk-test` | `DdkAssertions`, `AggregateAssert`, `BusinessRuleAssert`, `DdkContainers` and its container types |
 | Starters | The types applications inject, implement, annotate with or catch: `@AggregateLock`, `AggregateLocks`, `@Idempotent`, `@RateLimit`; `IntegrationEventConsumer`, `ReceivedEvent`, `EventContract`, `IntegrationEventDispatcher`, `IdempotentConsumer`; `Projection`, `Projections`, `FailedRefresh`; `DataScopeResolver`; `OperatorResolver`, `BaseExceptionHandler`; `CacheSettings`, `DdkCacheManager`, `TwoLevelCache`, `CacheInvalidationPublisher`, `CacheMetrics`; `RedisJsonMapper`; `CommonArchRules`, `ArchGuard`, `ArchGuardReport`, `Violation` |
 
-Adding a constructor overload, a method with a default implementation, or an annotation element with a default is compatible. Changing a parameter list is not; a new parameter comes as a new overload.
+Adding a method with a default implementation, or an annotation element with a default, is compatible. Changing a parameter list is not; a new parameter comes as a new overload. A new overload is binary compatible, but it can make an existing call with `null` arguments ambiguous at compile time, so each one is reviewed for that.
 
 CI checks this on every change: japicmp compares each module with the last release, and a binary or source incompatible change fails the build unless it is listed as an intended break (see `AGENTS.md`).
 
@@ -41,18 +41,23 @@ CI checks this on every change: japicmp compares each module with the last relea
 
 ### Data and wire formats
 
-Data that outlives a deployment, or travels between applications on different DDK versions:
+Data that outlives a deployment, or travels between instances on different DDK versions. During a rolling upgrade, old and new instances read each other's messages, rows and Redis entries, so both the names and the values are part of the contract.
 
-| Contract | Where |
-|---|---|
-| Integration event headers `ddk-event-id`, `ddk-event-type`, `ddk-event-version`, `ddk-event-tenant` | Event starter |
-| Tables `ddk_projection_pending` and `ddk_processed_message` (names configurable), their columns and keys | Projection and event starters |
-| Redis key layout of locks, idempotency and rate limits (`ddk:` prefix), the job lock (`ddk:job-lock`) and the cache (`ddk:cache:`) | Concurrency, job and cache starters |
-| `ApiResponse` JSON (`code`, `message`, `data`, `timestamp`), `CommonError` codes and their HTTP statuses | Core and web starter |
-| The trace ID response header (`X-Trace-Id` by default) | Tracer starter |
-| The ArchGuard report format | ArchGuard starter |
+| Contract | What is fixed | Where |
+|---|---|---|
+| Integration event messages | Header names `ddk-event-id`, `ddk-event-type`, `ddk-event-version`, `ddk-event-tenant`. Their values: the event ID as written by `@IntegrationEvent(id)`, the type (`type`, or the event class's simple name), the version as a decimal string, the tenant. The body is the event serialized as JSON, typed identifiers as their raw value. Topic and tag come from `@IntegrationEvent(value)` as `topic:tag`, and the message key from `key` | Event starter |
+| Idempotent consumer identity | A processed message is recorded as `group:consumerId` with the event ID; `consumerId()` defaults to the consumer class's simple name. Renaming a consumer class, or changing `consumerId()`, makes it handle redelivered events again | Event starter |
+| Tables `ddk_projection_pending` and `ddk_processed_message` (names configurable) | Columns, keys and the due index; a mark written by one version is processed by the next | Projection and event starters |
+| The outbox (`event_publication`) | The table and its status values belong to Spring Modulith, which DDK verifies with its default JDBC structure. DDK's part is what goes in it: `event_type` is the event class's full name, and `serialized_event` is the event as JSON. Moving or renaming an event class strands its unfinished publications, so let them complete first | Event starter, Spring Modulith |
+| Redis keys | Locks `ddk:lock:<type>:<id>`, idempotency `ddk:idempotent:<scope>:<key>`, rate limits `ddk:rate:<scope>:<limit>/<period>ms:<key>`, cache entries `ddk:cache:<cache>::<key>`, all with configurable prefixes. The job lock key belongs to ShedLock; DDK sets its prefix `ddk:job-lock:<application>:` | Concurrency, cache and job starters |
+| Redis values | The Redis starter's JSON with type information (`@class`, and type-tagged arrays for collections and numbers). DDK keeps this encoding; the classes inside it, and how they evolve, are the application's | Redis and cache starters |
+| Cache invalidation | The channel `ddk:cache:invalidation` (configurable prefix) and its message `{"origin", "cacheName", "key"}`, where a `null` key clears the cache | Cache starter |
+| HTTP | `ApiResponse` JSON (`code`, `message`, `data`, `timestamp`), `CommonError` codes and their HTTP statuses, the trace ID response header (`X-Trace-Id` by default) | Core, web and tracer starters |
+| The ArchGuard report format | Fields of the machine-readable report | ArchGuard starter |
 
 A change to any of these comes with a way through a rolling deployment: old and new instances must work side by side, or the upgrade guide says that they cannot and what to do. A schema change is applied by the starter or comes with migration SQL.
+
+These contracts are tested against data that a released version actually produced: [`compat/`](./compat/README.md) holds a generator that runs a released DDK from Maven Central, and each module reads that release's fixtures and checks that it still writes the same data. japicmp does not look at JSON, SQL, Redis values or message contents.
 
 ### Architecture rules
 

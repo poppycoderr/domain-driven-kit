@@ -1,0 +1,15 @@
+{
+  "body" : "{\"eventId\":\"evt-7\",\"shipmentId\":7,\"tenantId\":\"tenant-a\",\"carrier\":\"SF\",\"occurredOn\":\"2026-10-22T08:00:00Z\"}",
+  "keys" : "7",
+  "properties" : {
+    "KEYS" : "7",
+    "TAGS" : "dispatched",
+    "WAIT" : "true",
+    "ddk-event-id" : "evt-7",
+    "ddk-event-tenant" : "tenant-a",
+    "ddk-event-type" : "shipment.dispatched",
+    "ddk-event-version" : "2"
+  },
+  "tags" : "dispatched",
+  "topic" : "shipments"
+}
