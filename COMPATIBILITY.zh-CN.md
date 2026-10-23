@@ -16,6 +16,19 @@ DDK 承诺在版本之间保持哪些东西可用，哪些不承诺。1.0 之前
 
 要删除的东西，先在某个次版本里标为 `@Deprecated(since = "...", forRemoval = true)`（不是 Java 的，在文档里标为弃用），最早在下一个主版本删除。
 
+## 平台
+
+DDK 运行在什么平台上也属于契约，但并不是每个碰巧能用的版本都算：
+
+| | 1.x 期间 |
+|---|---|
+| Java | 最低版本在整个 1.x 都是 Java 21，提高它属于主版本。CI 测试的 JDK 见 [SUPPORT.zh-CN.md](./SUPPORT.zh-CN.md#测试过的环境) |
+| Spring Boot | 1.x 面向 Spring Boot 4。次版本可以升到更新的 Spring Boot 4.x 次版本，在 CHANGELOG 里列出并附升级说明；补丁版本不改 Spring Boot 的次版本。Spring Boot 5 对应 DDK 2.0 |
+| DDK 锁定版本的库（Spring Modulith、MyBatis-Plus、Redisson、ShedLock、RocketMQ 客户端、springdoc、Spring AI、Okio） | 补丁版本只跟进它们的补丁更新，次版本可以跟进次版本更新。会迫使应用改代码的升级属于主版本，只有一个例外：安全修复在需要时随时发布，列在 **Breaking** 下并附迁移说明 |
+| DDK API 里的第三方类型 | `GenericRepositoryImpl` 继承 MyBatis-Plus 的 `ServiceImpl`，`RedisJsonMapper.create` 返回 Jackson 的 `ObjectMapper`。DDK 在 1.x 里保留它们，但继承来的方法属于那些库，按上一条的规则随库变化。API 检查只比较 DDK 自己的类，发现不了这类变化 |
+| 覆盖 DDK 管理的版本 | 可以，但只有 [SUPPORT.zh-CN.md](./SUPPORT.zh-CN.md#测试过的环境) 列出的版本经过测试；用别的版本由应用自己验证 |
+| 中间件和数据库 | SUPPORT 里列出的版本经过测试。其他版本也许可用，但不做承诺 |
+
 ## 稳定的部分
 
 ### Java API
