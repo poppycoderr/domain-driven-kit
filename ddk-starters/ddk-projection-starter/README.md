@@ -140,7 +140,7 @@ With Micrometer on the classpath (for example through Spring Boot Actuator), the
 | `ddk.projection.failing{projection}` | Gauge | Marks that failed at least once and wait for a retry |
 | `ddk.projection.oldest.age{projection}` | Gauge, seconds | How long the oldest due mark has been waiting. A rising value means the worker is falling behind or stuck |
 
-The gauges query the pending table when they are scraped. Useful alerts: `oldest.age` above a few sweep intervals, `failing` above zero for longer than `max-retry-delay`, and a rising `failed` rate.
+The three gauges of a projection share one scan of its marks, taken when they are scraped and reused for a second. The scan grows with the backlog: measured with one million marks for one projection, it took about 45 ms on PostgreSQL 17 and about 0.5 s on MySQL 8.4 (default buffer pool), against about 15 ms on both at 100,000. Scrape no more often than every 15–30 seconds if the backlog can grow that large. Useful alerts: `oldest.age` above a few sweep intervals, `failing` above zero for longer than `max-retry-delay`, and a rising `failed` rate.
 
 ## Configuration
 

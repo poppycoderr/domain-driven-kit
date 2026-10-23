@@ -318,6 +318,30 @@ class RefreshProtocolTest {
     }
 
     @Test
+    @DisplayName("指标用的一次扫描与分开的三条查询结果相同：标记数、失败过的数量、已到期标记的最长等待")
+    void theBacklogScanMatchesTheSeparateQueries() {
+        change("1", "v1");
+        change("2", "v1");
+        clock.advance(Duration.ofSeconds(5));
+        change("3", "v1");
+        worker(id -> {
+            if (id.equals("2")) {
+                throw new IllegalStateException("index unavailable");
+            }
+        }).drain();
+        change("1", "v2");
+        change("4", "v1");
+
+        PendingRefreshes.Backlog backlog = pending.backlog("catalog");
+
+        assertThat(backlog).isEqualTo(new PendingRefreshes.Backlog(pending.count("catalog"), pending.failing("catalog"),
+                pending.oldestDueAge("catalog")));
+        assertThat(backlog.pending()).isEqualTo(3);
+        assertThat(backlog.failing()).isEqualTo(1);
+        assertThat(pending.backlog("unknown")).isEqualTo(new PendingRefreshes.Backlog(0, 0, Duration.ZERO));
+    }
+
+    @Test
     @DisplayName("刷新失败时释放领取并按退避推迟；推迟期间的新变化让它立即到期")
     void aFailureReleasesTheClaimAndBacksOff() {
         change("1", "v1");

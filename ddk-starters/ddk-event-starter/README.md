@@ -322,7 +322,7 @@ every ddk.event.maintenance.interval (1m)
 - **Replay window.** Resubmission and broker redelivery can bring a message back. `inbox-retention` must be longer than the longest time in which that can happen. Otherwise an idempotent consumer handles the message again after its record was purged. The default is 7 days.
 - Each step fails on its own. A broken step is logged, and the others and the next round still run.
 
-With Micrometer present, `ddk.event.publications{status}` reports how many publications are `published`, `processing`, `failed` or `resubmitted`. Completed ones are not counted. It is queried on scrape. Alert when `failed` stays above zero, or `published` keeps growing.
+With Micrometer present, `ddk.event.publications{status}` reports how many publications are `published`, `processing`, `failed` or `resubmitted`. Completed ones are not counted, but they are scanned: each scrape runs four `COUNT ... WHERE status = ?` queries through Spring Modulith, and its `event_publication` table has no index on `status`. Measured with one million rows, each query took about 45 ms on PostgreSQL 17 and about 0.23 s on MySQL 8.4. Keep completed publications short-lived with `ddk.event.maintenance` (`delete-completed-after`), or add an index on `status` to the table. Alert when `failed` stays above zero, or `published` keeps growing.
 
 ## Configuration
 
