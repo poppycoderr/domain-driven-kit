@@ -234,6 +234,31 @@ public class PendingRefreshes {
     }
 
     /**
+     * 一次扫描得到 {@link #count}、{@link #failing}、{@link #oldestDueAge} 三个值，供指标采集使用：积压很大时，三次扫描的代价是一次的三倍。
+     */
+    public Backlog backlog(String projection) {
+        Timestamp now = now();
+        Backlog backlog = jdbc.queryForObject("SELECT COUNT(*), SUM(CASE WHEN attempts > 0 THEN 1 ELSE 0 END), "
+                        + "MIN(CASE WHEN available_at <= ? THEN available_at END) FROM " + table + " WHERE projection = ?",
+                (rs, row) -> {
+                    Timestamp oldest = rs.getTimestamp(3);
+                    return new Backlog(rs.getLong(1), rs.getLong(2),
+                            oldest == null ? Duration.ZERO : Duration.between(oldest.toInstant(), now.toInstant()));
+                }, now, projection);
+        return backlog == null ? new Backlog(0, 0, Duration.ZERO) : backlog;
+    }
+
+    /**
+     * 一个读模型的积压：标记数量（含等待重试的）、失败过的数量、已到期的标记里等得最久的时长。
+     */
+    public record Backlog(
+            long pending,
+            long failing,
+            Duration oldestDueAge
+    ) {
+    }
+
+    /**
      * 失败过的标记，失败次数多的在前。
      */
     public List<FailedRefresh> failures(String projection, int limit) {

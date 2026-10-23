@@ -21,6 +21,10 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 - GraalVM native images, verified module by module: `ddk-mybatis-starter` registers the reflection that MyBatis-Plus and the default snowflake ID generator need, and CI builds `ddk-example-user` as a native image and smoke-tests it. `ddk-core`, `ddk-mybatis`, the web, MyBatis and MCP starters, and in-application domain events are verified; [SUPPORT.md](./SUPPORT.md#graalvm-native-images) lists the rest
 
+### Changed
+
+- The three projection gauges (`ddk.projection.pending`, `failing`, `oldest.age`) share one scan of the pending table per scrape instead of three, reused for a second. With a backlog of one million marks the scrape cost on MySQL 8.4 dropped from about 1.75 s to about 0.5 s
+
 ### Fixed
 
 - Projections converge when a refresh writes after losing its claim and then fails, for example when an external write went through but its response was lost. The failure used to release the claim without marking the entry again, so the read model could keep the stale snapshot with no mark left. Now any acknowledgement or failure from a worker that no longer owns the mark leaves a mark behind; a mark that still exists only gets a new generation, which keeps the attempts and back-off of the worker that holds it
