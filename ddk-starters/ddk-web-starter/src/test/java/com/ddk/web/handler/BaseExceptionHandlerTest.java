@@ -92,6 +92,11 @@ class BaseExceptionHandlerTest {
             throw new SystemException(TestError.UPSTREAM_UNAVAILABLE);
         }
 
+        @GetMapping("/cancelled")
+        void cancelled() {
+            throw new java.util.concurrent.CancellationException("Interrupted while waiting for lock [ddk:lock:order:1]");
+        }
+
         @GetMapping("/boom")
         void boom() {
             throw new IllegalStateException("连接串是 jdbc:mysql://10.0.0.1/prod?user=root");
@@ -212,6 +217,14 @@ class BaseExceptionHandlerTest {
         mvc.perform(post("/t/create").contentType(MediaType.APPLICATION_JSON).content("{not json"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("MALFORMED_REQUEST"));
+    }
+
+    @Test
+    @DisplayName("等锁时被取消的操作没有专门的映射：落到兜底处理，500 + SYSTEM_ERROR，不是 409")
+    void cancellationFallsBackTo500() throws Exception {
+        mvc.perform(get("/t/cancelled"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.code").value("SYSTEM_ERROR"));
     }
 
     @Test

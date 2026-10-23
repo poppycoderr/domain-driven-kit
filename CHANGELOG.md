@@ -15,14 +15,11 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 ### Breaking
 
 - The default scope of `@Idempotent` and `@RateLimit` names parameter types in full: `com.acme.OrderService#place(com.acme.PlaceOrderCommand)` instead of `...#place(PlaceOrderCommand)`. Overloads whose parameter types share a simple name, such as `submit(java.util.Date)` and `submit(java.sql.Date)`, used to share registrations and rate limits. The Redis keys change, so during a rolling deployment a request registered by the old version is not recognized as a duplicate for one TTL, and rate limits start a new window. To keep the old keys, set `scope` on the annotation to the old value
+- `AggregateLocks` and `@AggregateLock` throw `CancellationException` when the thread is interrupted while it waits for a lock, and keep the interrupt flag; the action does not run. They used to throw `AggregateBusyException`, which the web starter answers with 409, so an operation cancelled during shutdown or by cancelling its task was reported as a conflict to retry. To migrate: code that caught `AggregateBusyException` to retry does not catch the cancellation, and should not retry it as if the lock were busy; a task that is cancelled ends with `CancellationException` and its thread stays interrupted. Through `BaseExceptionHandler` the request now gets 500 with `SYSTEM_ERROR`. An application that prefers 503 adds its own `@ExceptionHandler(CancellationException.class)` returning `ApiResponse.ofFail(CommonError.SYSTEM_ERROR)` with that status
 
 ### Added
 
 - GraalVM native images, verified module by module: `ddk-mybatis-starter` registers the reflection that MyBatis-Plus and the default snowflake ID generator need, and CI builds `ddk-example-user` as a native image and smoke-tests it. `ddk-core`, `ddk-mybatis`, the web, MyBatis and MCP starters, and in-application domain events are verified; [SUPPORT.md](./SUPPORT.md#graalvm-native-images) lists the rest
-
-### Changed
-
-- `AggregateLocks` and `@AggregateLock` throw `CancellationException` when the thread is interrupted while it waits for a lock, and keep the interrupt flag. They used to throw `AggregateBusyException`, so an operation cancelled during shutdown, or by cancelling its task, was reported as a conflict that the client should retry. `ddk-mall`'s in-process stock lock does the same
 
 ### Fixed
 
