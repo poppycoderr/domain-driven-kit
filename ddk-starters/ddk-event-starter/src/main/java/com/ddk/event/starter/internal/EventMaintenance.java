@@ -21,7 +21,9 @@ import java.util.concurrent.TimeUnit;
  *     <li>删除超过保留期的已完成发布；</li>
  *     <li>删除超过保留期的已处理消息记录。</li>
  * </ol>
- * 每一步单独捕获异常，一步失败不影响其他步骤和下一轮。Modulith 的重投在实例之间没有认领，所以有 {@link MaintenanceLock} 时整轮在锁里执行。
+ * 每一步单独捕获异常，一步失败不影响其他步骤和下一轮。Modulith 默认的 JDBC 结构用条件更新认领每一条重投，旧结构
+ * （{@code spring.modulith.events.jdbc.use-legacy-structure=true}）不认领；有 {@link MaintenanceLock} 时整轮在锁里执行，
+ * 两种结构下都只有一个实例在维护。
  */
 public class EventMaintenance implements SmartLifecycle {
 
