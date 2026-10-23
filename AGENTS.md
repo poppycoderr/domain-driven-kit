@@ -46,7 +46,7 @@ Integration tests for the cache starter use Testcontainers and need a running Do
 - **Java layering in examples and archetypes**: `*Request` / `*Response` in their own files with `static from(...)`; rich domain model with no public setters; explicit `@PathVariable("id")` and `@RequestParam(value = "...")`
 - **Diagrams**: the Chinese SVGs in `assets/diagrams` are the source; regenerate English variants with `python3 scripts/translate-diagrams.py assets/diagrams`
 - **Changelog**: add user-visible changes to the `[Unreleased]` section of `CHANGELOG.md`
-- **Compatibility**: `COMPATIBILITY.md` lists what stays compatible between releases. Beyond the Java API this covers `ddk.*` property names, message headers, table schemas, Redis keys and error codes, so a change to any of them needs a rolling-upgrade path. Do not make an existing ArchGuard rule stricter; add a new rule instead
+- **Compatibility**: `COMPATIBILITY.md` lists what stays compatible between releases. Beyond the Java API this covers `ddk.*` property names, message headers, table schemas, Redis keys and error codes, so a change to any of them needs a rolling-upgrade path. The tests under `src/test/resources/compat/<version>/` read data that a released version produced (see `compat/README.md`); a change that breaks one of them is a deliberate break, never a fixture to regenerate. Do not make an existing ArchGuard rule stricter; add a new rule instead
 
 ## Git mode
 

@@ -29,7 +29,7 @@ DDK 承诺在版本之间保持哪些东西可用，哪些不承诺。1.0 之前
 | `ddk-test` | `DdkAssertions`、`AggregateAssert`、`BusinessRuleAssert`、`DdkContainers` 及其容器类型 |
 | 各 starter | 应用注入、实现、标注或捕获的类型：`@AggregateLock`、`AggregateLocks`、`@Idempotent`、`@RateLimit`；`IntegrationEventConsumer`、`ReceivedEvent`、`EventContract`、`IntegrationEventDispatcher`、`IdempotentConsumer`；`Projection`、`Projections`、`FailedRefresh`；`DataScopeResolver`；`OperatorResolver`、`BaseExceptionHandler`；`CacheSettings`、`DdkCacheManager`、`TwoLevelCache`、`CacheInvalidationPublisher`、`CacheMetrics`；`RedisJsonMapper`；`CommonArchRules`、`ArchGuard`、`ArchGuardReport`、`Violation` |
 
-新增构造器重载、带默认实现的方法、带默认值的注解元素，都是兼容的；改变参数列表不兼容，新参数以新增重载的方式加入。
+新增带默认实现的方法、带默认值的注解元素，都是兼容的；改变参数列表不兼容，新参数以新增重载的方式加入。新增重载在二进制上兼容，但可能让已有的、传 `null` 的调用在编译时出现歧义，所以每个新重载都要为此审查。
 
 CI 在每次改动时检查这一点：japicmp 把每个模块与上一个发布版本比较，二进制或源码不兼容的变化会让构建失败，除非它被列为有意的破坏（见 `AGENTS.md`）。
 
@@ -41,18 +41,23 @@ CI 在每次改动时检查这一点：japicmp 把每个模块与上一个发布
 
 ### 数据与传输格式
 
-比一次部署活得更久、或者在不同 DDK 版本的应用之间传递的数据：
+比一次部署活得更久、或者在不同 DDK 版本的实例之间传递的数据。滚动发布期间新旧实例会读对方写的消息、表记录和 Redis 数据，所以名称和取值都属于契约。
 
-| 契约 | 所在 |
-|---|---|
-| 集成事件消息头 `ddk-event-id`、`ddk-event-type`、`ddk-event-version`、`ddk-event-tenant` | Event starter |
-| 表 `ddk_projection_pending` 和 `ddk_processed_message`（表名可配置）及其列和主键 | Projection 和 Event starter |
-| 锁、防重复提交和限流（`ddk:` 前缀）、定时任务锁（`ddk:job-lock`）、缓存（`ddk:cache:`）的 Redis key 结构 | Concurrency、Job、Cache starter |
-| `ApiResponse` 的 JSON（`code`、`message`、`data`、`timestamp`）、`CommonError` 的错误码及其 HTTP 状态 | Core 和 Web starter |
-| 返回 traceId 的响应头（默认 `X-Trace-Id`） | Tracer starter |
-| ArchGuard 报告的格式 | ArchGuard starter |
+| 契约 | 固定的内容 | 所在 |
+|---|---|---|
+| 集成事件消息 | 消息头名称 `ddk-event-id`、`ddk-event-type`、`ddk-event-version`、`ddk-event-tenant`。取值：`@IntegrationEvent(id)` 指定的事件标识；类型（`type`，或事件类的简单类名）；十进制字符串形式的版本；租户。消息体是事件的 JSON，带类型的标识写成原始值。主题和标签来自 `@IntegrationEvent(value)` 的 `主题:标签`，消息 key 来自 `key` | Event starter |
+| 去重消费方的身份 | 已处理的消息按 `消费组:consumerId` 加事件标识记录；`consumerId()` 默认是消费方类的简单类名。改消费方的类名或 `consumerId()`，重投的事件会再处理一次 | Event starter |
+| 表 `ddk_projection_pending` 和 `ddk_processed_message`（表名可配置） | 列、主键和到期索引；上一个版本写下的标记，下一个版本照常处理 | Projection 和 Event starter |
+| Outbox（`event_publication`） | 表结构和状态值属于 Spring Modulith，DDK 在 Modulith 默认的 JDBC 结构上验证。DDK 负责写进去的内容：`event_type` 是事件类的全名，`serialized_event` 是事件的 JSON。移动或改名事件类会让它还没完成的发布无法处理，所以先等它们完成 | Event starter、Spring Modulith |
+| Redis key | 锁 `ddk:lock:<类型>:<标识>`、防重复提交 `ddk:idempotent:<scope>:<key>`、限流 `ddk:rate:<scope>:<额度>/<周期>ms:<key>`、缓存 `ddk:cache:<缓存名>::<key>`，前缀都可配置。定时任务锁的 key 属于 ShedLock，DDK 设置它的前缀 `ddk:job-lock:<应用名>:` | Concurrency、Cache、Job starter |
+| Redis 值 | Redis starter 带类型信息的 JSON（`@class`，集合和数字用带类型标注的数组）。DDK 保持这种编码；里面装的类以及它们怎么演进，由应用负责 | Redis 和 Cache starter |
+| 缓存失效广播 | 频道 `ddk:cache:invalidation`（前缀可配置）和消息 `{"origin", "cacheName", "key"}`，`key` 为 `null` 表示清空整个缓存 | Cache starter |
+| HTTP | `ApiResponse` 的 JSON（`code`、`message`、`data`、`timestamp`）、`CommonError` 的错误码及其 HTTP 状态、返回 traceId 的响应头（默认 `X-Trace-Id`） | Core、Web、Tracer starter |
+| ArchGuard 报告的格式 | 机器可读报告的字段 | ArchGuard starter |
 
 改动其中任何一项，都要给出滚动发布的过渡办法：新旧实例必须能同时运行，否则升级指南要写明不能，以及该怎么做。表结构的变化由 starter 自动处理，或者附带迁移 SQL。
+
+这些契约用已发布版本实际产生的数据测试：[`compat/`](./compat/README.md) 里有一个生成器，它从 Maven 中央仓库拉取一个已发布的 DDK 版本来运行；各模块读取那个版本的 fixture，并检查自己写出的数据仍然一样。japicmp 不检查 JSON、SQL、Redis 值和消息内容。
 
 ### 架构规则
 

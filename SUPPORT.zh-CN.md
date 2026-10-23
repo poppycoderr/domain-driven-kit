@@ -44,10 +44,6 @@ DDK 由一个人维护：[@poppycoderr](https://github.com/poppycoderr)，AI 编
 
 ## 升级后回退
 
-升级没有改动持久数据时，回退就是把构建文件里的版本改回去。[升级指南](https://domaindrivenkit.com/ddk/upgrade)的每一节都写明这次升级有没有改动持久数据，有的话怎么回退。DDK 存储或发送的数据：
-
-- 投影的待刷新表和已处理消息表；
-- 锁、防重复提交、限流、定时任务锁和缓存的 Redis key；
-- 集成事件的消息头。
+升级没有改动持久数据时，回退就是把构建文件里的版本改回去。[升级指南](https://domaindrivenkit.com/ddk/upgrade)的每一节都写明这次升级有没有改动持久数据，有的话怎么回退。DDK 存储或发送的数据见[数据与传输格式](./COMPATIBILITY.zh-CN.md#数据与传输格式)。
 
 和升级一样，依赖回退之前，先在副本上演练一遍。

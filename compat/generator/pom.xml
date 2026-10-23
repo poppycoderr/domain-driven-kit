@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.1.1</version>
+        <relativePath/>
+    </parent>
+    <groupId>com.example</groupId>
+    <artifactId>ddk-compat-generator</artifactId>
+    <description>Writes data exactly as a released DDK version produces it, for the compatibility tests of later versions</description>
+    <version>1</version>
+    <!-- Not part of the DDK build. Run against a released version: mvn -Dddk.version=X.Y.Z compile exec:java -->
+    <properties>
+        <java.version>21</java.version>
+        <ddk.version>0.10.0</ddk.version>
+    </properties>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.domaindrivenkit</groupId>
+                <artifactId>ddk-dependencies</artifactId>
+                <version>${ddk.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    <dependencies>
+        <dependency><groupId>com.domaindrivenkit</groupId><artifactId>ddk-event-starter</artifactId></dependency>
+        <dependency><groupId>org.apache.rocketmq</groupId><artifactId>rocketmq-client</artifactId></dependency>
+        <dependency><groupId>com.domaindrivenkit</groupId><artifactId>ddk-projection-starter</artifactId></dependency>
+        <dependency><groupId>com.domaindrivenkit</groupId><artifactId>ddk-redis-starter</artifactId></dependency>
+        <dependency><groupId>com.domaindrivenkit</groupId><artifactId>ddk-cache-starter</artifactId></dependency>
+        <dependency><groupId>com.domaindrivenkit</groupId><artifactId>ddk-concurrency-starter</artifactId></dependency>
+        <dependency><groupId>org.springframework.modulith</groupId><artifactId>spring-modulith-starter-jdbc</artifactId></dependency>
+        <dependency><groupId>org.springframework.modulith</groupId><artifactId>spring-modulith-events-core</artifactId></dependency>
+        <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-jdbc</artifactId></dependency>
+        <dependency><groupId>com.h2database</groupId><artifactId>h2</artifactId></dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>com.ddk.compat.Generate</mainClass>
+                    <arguments>
+                        <argument>target/compat/${ddk.version}</argument>
+                    </arguments>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -44,10 +44,6 @@ Native images are verified module by module, not promised for all of DDK at once
 
 ## Rolling back an upgrade
 
-Going back to the previous version is a matter of reverting the version in your build when the upgrade did not change stored data. Each section of the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) says whether it does and, if so, how to roll back. Data that DDK stores or sends:
-
-- the projection mark table and the processed message table;
-- Redis keys of locks, idempotency, rate limits, job locks and the cache;
-- integration event headers.
+Going back to the previous version is a matter of reverting the version in your build when the upgrade did not change stored data. Each section of the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) says whether it does and, if so, how to roll back. The data that DDK stores or sends is listed under [Data and wire formats](./COMPATIBILITY.md#data-and-wire-formats).
 
 Rehearse a rollback on a copy before relying on it in production, the same way as the upgrade.
