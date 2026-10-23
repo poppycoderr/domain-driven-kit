@@ -12,6 +12,10 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ## [Unreleased]
 
+### Breaking
+
+- The default scope of `@Idempotent` and `@RateLimit` names parameter types in full: `com.acme.OrderService#place(com.acme.PlaceOrderCommand)` instead of `...#place(PlaceOrderCommand)`. Overloads whose parameter types share a simple name, such as `submit(java.util.Date)` and `submit(java.sql.Date)`, used to share registrations and rate limits. The Redis keys change, so during a rolling deployment a request registered by the old version is not recognized as a duplicate for one TTL, and rate limits start a new window. To keep the old keys, set `scope` on the annotation to the old value
+
 ### Added
 
 - GraalVM native images, verified module by module: `ddk-mybatis-starter` registers the reflection that MyBatis-Plus and the default snowflake ID generator need, and CI builds `ddk-example-user` as a native image and smoke-tests it. `ddk-core`, `ddk-mybatis`, the web, MyBatis and MCP starters, and in-application domain events are verified; [SUPPORT.md](./SUPPORT.md#graalvm-native-images) lists the rest

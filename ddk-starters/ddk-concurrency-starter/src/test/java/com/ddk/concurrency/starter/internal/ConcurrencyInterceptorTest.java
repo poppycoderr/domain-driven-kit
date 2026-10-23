@@ -45,16 +45,40 @@ class ConcurrencyInterceptorTest {
     }
 
     @Test
+    @DisplayName("参数简单类名相同的重载各自一个默认作用域；数组和基本类型也写全")
+    void overloadsWhoseParametersShareASimpleNameHaveSeparateScopes() throws Exception {
+        String utilDate = ConcurrencyInterceptor.defaultScope(Overloads.class.getMethod("submit", java.util.Date.class));
+        String sqlDate = ConcurrencyInterceptor.defaultScope(Overloads.class.getMethod("submit", java.sql.Date.class));
+
+        assertThat(utilDate).isNotEqualTo(sqlDate);
+        assertThat(sqlDate).endsWith("$Overloads#submit(java.sql.Date)");
+        assertThat(ConcurrencyInterceptor.defaultScope(Overloads.class.getMethod("submit", String[].class, int.class)))
+                .endsWith("$Overloads#submit(java.lang.String[],int)");
+    }
+
+    static class Overloads {
+
+        public void submit(java.util.Date command) {
+        }
+
+        public void submit(java.sql.Date command) {
+        }
+
+        public void submit(String[] ids, int priority) {
+        }
+    }
+
+    @Test
     @DisplayName("默认作用域是完整类名、方法名和参数类型；代理不改变它")
     void theDefaultScopeNamesTheDeclaringMethod() throws Exception {
         assertThat(ConcurrencyInterceptor.defaultScope(Checkout.class.getMethod("pay", String.class)))
-                .isEqualTo("com.ddk.concurrency.starter.internal.ConcurrencyInterceptorTest$Checkout#pay(String)");
+                .isEqualTo("com.ddk.concurrency.starter.internal.ConcurrencyInterceptorTest$Checkout#pay(java.lang.String)");
 
         RequestRegistry registry = mock(RequestRegistry.class);
         when(registry.register(anyString(), anyString(), any(Duration.class)))
                 .thenReturn(new RequestRegistry.Registration("name", "token"));
         assertThatThrownBy(() -> proxy(registry).pay("req-2")).isInstanceOf(IllegalStateException.class);
-        verify(registry).register(eq("com.ddk.concurrency.starter.internal.ConcurrencyInterceptorTest$Checkout#pay(String)"), eq("req-2"),
+        verify(registry).register(eq("com.ddk.concurrency.starter.internal.ConcurrencyInterceptorTest$Checkout#pay(java.lang.String)"), eq("req-2"),
                 any(Duration.class));
     }
 
