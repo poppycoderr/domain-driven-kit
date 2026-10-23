@@ -103,6 +103,80 @@ class RefreshProtocolTest {
     }
 
     @Test
+    @DisplayName("A 读到 v1 后停顿，B 接手写入 v2 并删除标记；A 写回 v1 后抛异常（外部写入成功、响应丢失），失败落空也留下修复标记，最终收敛到 v2")
+    void aStaleWriteFollowedByAFailureIsCorrected() throws Exception {
+        change("1", "v1");
+        Paused paused = new Paused(true);
+        RefreshWorker slow = worker(paused);
+        RefreshWorker fast = worker(this::copy);
+
+        Future<Integer> old = executor.submit(slow::drain);
+        paused.awaitCaptured();
+        change("1", "v2");
+        clock.advance(LEASE.plusSeconds(1));
+        assertThat(fast.drain()).as("B takes over after the lease expired, writes v2 and removes the mark").isEqualTo(1);
+        assertThat(pending.count("catalog")).isZero();
+        paused.resume();
+
+        assertThat(old.get(10, TimeUnit.SECONDS)).isZero();
+        assertThat(view).as("A wrote its stale snapshot before failing").containsEntry("1", "v1");
+        assertThat(pending.count("catalog")).as("the stale write is scheduled for repair").isEqualTo(1);
+        drainUntilEmpty(fast);
+        assertThat(view).containsEntry("1", "v2");
+    }
+
+    @Test
+    @DisplayName("B 写入 v2 后还没确认时，A 写回 v1 并失败：B 的确认落空并重新标记，最终收敛到 v2")
+    void aStaleFailureBeforeTheNewWorkerAcknowledgesIsCorrected() throws Exception {
+        change("1", "v1");
+        Paused stale = new Paused(true);
+        Held current = new Held();
+        RefreshWorker slow = worker(stale);
+        RefreshWorker fast = worker(current);
+        ExecutorService second = Executors.newSingleThreadExecutor();
+        try {
+            Future<Integer> old = executor.submit(slow::drain);
+            stale.awaitCaptured();
+            change("1", "v2");
+            clock.advance(LEASE.plusSeconds(1));
+            Future<Integer> taken = second.submit(fast::drain);
+            current.awaitWritten();
+            assertThat(view).containsEntry("1", "v2");
+
+            stale.resume();
+            assertThat(old.get(10, TimeUnit.SECONDS)).isZero();
+            assertThat(view).containsEntry("1", "v1");
+            current.release();
+            assertThat(taken.get(10, TimeUnit.SECONDS)).as("B's acknowledgement misses").isZero();
+        } finally {
+            second.shutdownNow();
+        }
+        drainUntilEmpty(worker(this::copy));
+        assertThat(view).containsEntry("1", "v2");
+    }
+
+    @Test
+    @DisplayName("失去领取后的失败只换代次：别人正在退避的标记保留重试次数和到期时间")
+    void aStaleFailureKeepsTheBackoffOfTheCurrentMark() {
+        change("1", "v1");
+        PendingRefreshes.Claim stale = pending.claim(pending.due(10).getFirst(), LEASE).orElseThrow();
+        clock.advance(LEASE.plusSeconds(1));
+        RefreshWorker failing = worker(id -> {
+            throw new IllegalStateException("index unavailable");
+        });
+        assertThat(failing.drain()).isZero();
+        Map<String, Object> before = jdbc.queryForMap("SELECT generation, attempts, available_at FROM protocol_pending");
+
+        pending.failed(stale, Duration.ofSeconds(1), "late failure");
+
+        Map<String, Object> after = jdbc.queryForMap("SELECT generation, attempts, available_at FROM protocol_pending");
+        assertThat(after.get("generation")).as("a new generation").isNotEqualTo(before.get("generation"));
+        assertThat(after.get("attempts")).isEqualTo(before.get("attempts"));
+        assertThat(after.get("available_at")).isEqualTo(before.get("available_at"));
+        assertThat(pending.due(10)).as("still backing off").isEmpty();
+    }
+
+    @Test
     @DisplayName("租约未过期时别人领取不到；A 处理期间的新变化让它的确认落空，随后再刷新一次")
     void aChangeDuringAClaimedRefreshTriggersAnotherOne() throws Exception {
         change("1", "v1");
@@ -548,13 +622,23 @@ class RefreshProtocolTest {
     }
 
     /**
-     * 读到源数据之后停住，等测试放行再写读模型。
+     * 读到源数据之后停住，等测试放行再写读模型；{@code failAfterWrite} 时写完再抛异常，模拟外部写入成功、响应丢失。
      */
     private final class Paused implements java.util.function.Consumer<String> {
 
         private final CountDownLatch captured = new CountDownLatch(1);
 
         private final CountDownLatch resume = new CountDownLatch(1);
+
+        private final boolean failAfterWrite;
+
+        Paused() {
+            this(false);
+        }
+
+        Paused(boolean failAfterWrite) {
+            this.failAfterWrite = failAfterWrite;
+        }
 
         @Override
         public void accept(String id) {
@@ -563,6 +647,9 @@ class RefreshProtocolTest {
             captured.countDown();
             await(resume);
             snapshot.get().ifPresentOrElse(value -> view.put(id, value), () -> view.remove(id));
+            if (failAfterWrite) {
+                throw new IllegalStateException("the write went through but its acknowledgement was lost");
+            }
         }
 
         void awaitCaptured() throws InterruptedException {
@@ -571,6 +658,31 @@ class RefreshProtocolTest {
 
         void resume() {
             resume.countDown();
+        }
+    }
+
+    /**
+     * 写完读模型之后停住，等测试放行才返回，让 worker 停在确认之前。
+     */
+    private final class Held implements java.util.function.Consumer<String> {
+
+        private final CountDownLatch written = new CountDownLatch(1);
+
+        private final CountDownLatch release = new CountDownLatch(1);
+
+        @Override
+        public void accept(String id) {
+            copy(id);
+            written.countDown();
+            await(release);
+        }
+
+        void awaitWritten() throws InterruptedException {
+            assertThat(written.await(10, TimeUnit.SECONDS)).as("the current worker wrote the view").isTrue();
+        }
+
+        void release() {
+            release.countDown();
         }
     }
 
