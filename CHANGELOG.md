@@ -20,6 +20,10 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 - `AggregateLocks` and `@AggregateLock` throw `CancellationException` when the thread is interrupted while it waits for a lock, and keep the interrupt flag. They used to throw `AggregateBusyException`, so an operation cancelled during shutdown, or by cancelling its task, was reported as a conflict that the client should retry. `ddk-mall`'s in-process stock lock does the same
 
+### Fixed
+
+- Projections converge when a refresh writes after losing its claim and then fails, for example when an external write went through but its response was lost. The failure used to release the claim without marking the entry again, so the read model could keep the stale snapshot with no mark left. Now any acknowledgement or failure from a worker that no longer owns the mark leaves a mark behind; a mark that still exists only gets a new generation, which keeps the attempts and back-off of the worker that holds it
+
 ## [0.10.0] - 2026-10-22
 
 Getting ready to freeze 1.0. DDK now publishes under its own Maven namespace, `com.domaindrivenkit`, which Maven Central can verify. Java packages stay `com.ddk.*`, so upgrading changes build files, not code. Auto-configurations follow one naming rule, and their `@Bean` methods are no longer public API. `ddk-core` stops bringing Hutool along. Release artifacts carry build provenance, and a `central` profile signs and bundles a release for Maven Central once publishing there is decided. CI runs in named stages and fails when a test is skipped. The [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) lists the steps from 0.9.

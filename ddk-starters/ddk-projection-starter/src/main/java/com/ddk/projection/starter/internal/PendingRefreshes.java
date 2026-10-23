@@ -34,9 +34,9 @@ import java.util.regex.Pattern;
  * 这条数据有没有再变过」。<b>领取令牌</b>（{@code claim_token}）在每次领取时生成，带租约：同一时刻只有一个 worker 处理一条标记，
  * 确认时据此判断自己是否仍是领取者。
  * <p>
- * 确认按「代次 + 令牌」删除。删不到说明处理期间又有变化、或者租约过期后被别人接手，这次写进读模型的可能是旧状态，
- * 于是重新标记这条数据：之后一定还有一次刷新，它在这次写入之后才读源状态。读模型因此最终收敛到写模型，
- * 不会出现「读模型是旧的、表里却已经没有标记」。
+ * 确认按「代次 + 令牌」删除，失败按同样的条件推迟。落空说明处理期间又有变化、或者租约过期后被别人接手，这次写进读模型的
+ * 可能是旧状态；失败的刷新也可能已经写了一部分（例如外部写入成功、响应丢失）。两种情况都重新标记这条数据：之后一定还有一次
+ * 刷新，它在这次写入之后才读源状态。读模型因此最终收敛到写模型，不会出现「读模型是旧的、表里却已经没有标记」。
  * <p>
  * 标记按「读模型 + 租户 + 数据标识」区分：租户内唯一的标识在两个租户下是两条数据。租户随标记持久化，任何实例在任何时候接手都知道
  * 该以哪个租户刷新；没有租户时为空字符串。
@@ -169,12 +169,13 @@ public class PendingRefreshes {
             return true;
         }
         release(claim);
-        mark(pending.projection(), pending.tenant(), pending.id());
+        remark(pending);
         return false;
     }
 
     /**
      * 刷新失败，过 {@code delay} 之后再试，并释放领取。期间又被标记过的保持立即到期，不受这次失败影响。
+     * 已经不是领取者时（代次变了、或租约过期后被别人接手），这次失败的刷新也许已经写了旧状态，同样要保证之后还有一次刷新。
      */
     public void failed(Claim claim, Duration delay, @Nullable String error) {
         Pending pending = claim.pending();
@@ -186,6 +187,19 @@ public class PendingRefreshes {
                 claim.token());
         if (updated == 0) {
             release(claim);
+            remark(pending);
+        }
+    }
+
+    /**
+     * 失去所有权之后的补救：标记还在就只换代次，持有它的 worker 确认或失败时都会落空，再走到这里；重试次数和到期时间不变，
+     * 不打乱别人的退避。标记已经不在了就重新标记。
+     */
+    private void remark(Pending pending) {
+        int changed = jdbc.update("UPDATE " + table + " SET version = version + 1, generation = ? "
+                + "WHERE projection = ? AND tenant_id = ? AND entity_id = ?", newToken(), pending.projection(), pending.tenant(), pending.id());
+        if (changed == 0) {
+            mark(pending.projection(), pending.tenant(), pending.id());
         }
     }
 

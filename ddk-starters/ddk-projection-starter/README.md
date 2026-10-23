@@ -94,9 +94,11 @@ DELETE ... WHERE generation = the one I claimed AND claim_token = mine
                   my write may be stale, so mark the entry again
 ```
 
-A worker that loses its lease during a long pause can still write an old snapshot when it wakes up. It cannot hide that: its acknowledgement misses and the entry is refreshed once more. **When no mark is left for an entry, the read model holds the state that was current at its last refresh.** The same holds for deletions: a stale write that brings a deleted entry back is followed by a refresh that removes it again.
+A worker that loses its lease during a long pause can still write an old snapshot when it wakes up. It cannot hide that: its acknowledgement misses and the entry is refreshed once more. The same holds when that refresh then fails, for example because an external write went through but its response was lost: a failure from a worker that no longer owns the mark also marks the entry again. When the entry still has a mark, only its generation changes, so the attempts and back-off of whoever holds it now are kept. **When no mark is left for an entry, the read model holds the state that was current at its last refresh.** The same holds for deletions: a stale write that brings a deleted entry back is followed by a refresh that removes it again.
 
 The read model can show the stale snapshot for a moment, until that extra refresh runs. A read model that must never go back, even briefly, makes its writes conditional on the source version inside `refresh`: `WHERE source_version < ?` in SQL, `version_type=external_gte` in Elasticsearch. DDK aggregates carry that version (`AggregateRoot.version()`).
+
+This relies on one thing from `refresh`: when it returns or throws, the writes it started are finished, written or failed. A write still in flight in the background could land after the extra refresh and is not corrected.
 
 Choose `lease-time` longer than a normal refresh. Too short is not wrong, only wasteful: a slow refresh is taken over and the entry is refreshed twice.
 
