@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 #
 # Starts the native image of ddk-example-user and checks one request per capability that runs through DDK:
-# repository reads and writes, conditional queries, paging, snowflake IDs, domain events after commit, business and
-# validation errors in the web starter's format, and an MCP tool call. Exits non-zero on the first difference.
+# conditional queries, inserts with snowflake IDs, reads by ID, filtered paging with its total, updates, deletes,
+# request validation, business and domain errors in the web starter's format, an MCP tool call, and domain event
+# listeners after commit. Exits non-zero after reporting every difference.
 #
 #   scripts/native-smoke.sh ddk-examples/ddk-example-user/target/ddk-example-user
 
@@ -43,12 +44,18 @@ JSON='Content-Type: application/json'
 expect "register: conditional query, snowflake ID, insert" 200 '"username":"dave01"' \
     -X POST "$BASE/users" -H "$JSON" -d '{"username":"dave01","password":"password123","gender":1,"phoneNumber":"13900139001"}'
 expect "get by ID, masked phone number" 200 '"phoneNumber":"138****8001"' "$BASE/users/1001"
-expect "page with conditions" 200 '"records":[' \
+expect "page filtered by gender: alice and dave01" 200 '"total":"2"' \
     -X POST "$BASE/users/page" -H "$JSON" -d '{"enabled":true,"genders":[1],"pageNum":1,"pageSize":10}'
-expect "update with optimistic lock" 200 '"email":"alice@corp.example"' \
+expect "page filtered by the other gender: one record" 200 '"total":"1"' \
+    -X POST "$BASE/users/page" -H "$JSON" -d '{"enabled":true,"genders":[0],"pageNum":1,"pageSize":10}'
+expect "page filtered by the other gender: it is bobby" 200 '"username":"bobby"' \
+    -X POST "$BASE/users/page" -H "$JSON" -d '{"enabled":true,"genders":[0],"pageNum":1,"pageSize":10}'
+expect "update" 200 '"email":"alice@corp.example"' \
     -X PUT "$BASE/users/1001" -H "$JSON" -d '{"email":"alice@corp.example"}'
 expect "disable" 200 '"code":"SUCCESS"' -X PATCH "$BASE/users/1001/disable?reason=spam"
 expect "delete" 200 '"code":"SUCCESS"' -X DELETE "$BASE/users/1002"
+expect "request validation" 400 '"code":"VALIDATION_ERROR"' \
+    -X POST "$BASE/users" -H "$JSON" -d '{"username":"ab","password":"password123","gender":1,"phoneNumber":"13900139003"}'
 expect "business error" 400 '"code":"USERNAME_TAKEN"' \
     -X POST "$BASE/users" -H "$JSON" -d '{"username":"alice","password":"password123","gender":1,"phoneNumber":"13900139002"}'
 expect "domain rule" 400 '"code":"INVALID_PHONE_NUMBER"' \

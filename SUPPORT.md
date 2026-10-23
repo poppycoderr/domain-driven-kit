@@ -30,7 +30,7 @@ How thoroughly each module is verified, and its known limits, is in the [support
 
 ## GraalVM native images
 
-Native images are verified module by module, not promised for all of DDK at once. CI builds `ddk-example-user` with GraalVM CE 25.0.2 (`mvn -Pnative native:compile` from Spring Boot's parent) and runs `scripts/native-smoke.sh` against the executable: conditional queries, inserts with snowflake IDs, paging, optimistic locking, business and validation errors, an MCP tool call, and domain event listeners after commit.
+Native images are verified module by module, not promised for all of DDK at once. CI builds `ddk-example-user` with GraalVM CE 25.0.2 (`mvn -Pnative native:compile` from Spring Boot's parent) and runs `scripts/native-smoke.sh` against the executable. It checks the example's success paths and the listed error paths: a conditional query and an insert with a snowflake ID, a read by ID, paging filtered two ways with its total, an update, a disable and a delete, Bean Validation (`VALIDATION_ERROR`), a business error, a domain rule and a missing entity, an MCP tool call, and two domain event listeners after commit. It does not check optimistic-lock conflicts, rolled-back transactions or anything the example does not use, such as tenants, data scope, the outbox or Redis.
 
 | Module | Native image |
 |---|---|
