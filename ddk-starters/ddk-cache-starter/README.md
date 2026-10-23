@@ -60,6 +60,7 @@ ddk:
 
 - **L1 is off by default.** Each instance has its own L1, so enabling it introduces a staleness window across instances. Turn it on per cache where that trade-off is acceptable.
 - **Invalidation broadcast is best effort.** Redis Pub/Sub does not redeliver messages missed during a disconnect; the L1 TTL is the final safety net.
+- **Another transport for the broadcast.** Declare your own `CacheInvalidationPublisher` bean. DDK then neither publishes nor subscribes on its Redis channel; your receiving side clears the local level with `cacheManager.findCache(name).ifPresent(cache -> cache.evictLocal(key))`, or `clearLocal()` for a clear.
 - **Redis failures never reach business code.** L2 errors are treated as misses and counted. Caches with L1 keep serving from L1; caches without L1 call the method every time.
 - **Without a `RedisConnectionFactory` bean, every cache runs on L1 only** and the application still starts.
 - **Values in L2 use the Redis starter's serializer**, including its deserialization type allow-list (`ddk.redis.trusted-packages`).

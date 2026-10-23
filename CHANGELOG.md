@@ -23,6 +23,7 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 ### Fixed
 
 - Projections converge when a refresh writes after losing its claim and then fails, for example when an external write went through but its response was lost. The failure used to release the claim without marking the entry again, so the read model could keep the stale snapshot with no mark left. Now any acknowledgement or failure from a worker that no longer owns the mark leaves a mark behind; a mark that still exists only gets a new generation, which keeps the attempts and back-off of the worker that holds it
+- An application's own `CacheInvalidationPublisher` replaces the Redis one without failing startup. The Redis listener container used to require DDK's internal publisher, so a replacement made the context fail when Redis was present and a cache used its local level. DDK now subscribes to its channel only when it also publishes on it
 
 ## [0.10.0] - 2026-10-22
 

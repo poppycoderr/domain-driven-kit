@@ -1,10 +1,13 @@
 package com.ddk.cache.starter.config;
 
 import com.ddk.cache.starter.internal.MicrometerCacheMetrics;
+import com.ddk.cache.starter.internal.RedisCacheInvalidationPublisher;
+import com.ddk.cache.starter.invalidation.CacheInvalidationPublisher;
 import com.ddk.cache.starter.support.DdkCacheManager;
 import com.ddk.cache.starter.support.TwoLevelCache;
 import com.ddk.redis.starter.config.DdkRedisAutoConfiguration;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.cache.autoconfigure.CacheAutoConfiguration;
@@ -17,6 +20,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -60,6 +64,40 @@ class DdkCacheAutoConfigurationTest {
             // 没有任何缓存启用 L1，就不占用订阅连接
             assertThat(context).doesNotHaveBean(RedisMessageListenerContainer.class);
         });
+    }
+
+    @Test
+    @DisplayName("应用自己的失效发布器替换 DDK 的 Redis 发布器：照常启动，不订阅 DDK 的频道，失效通过应用的发布器发出")
+    void anApplicationPublisherReplacesTheRedisOne() {
+        RecordingPublisher publisher = new RecordingPublisher();
+        withRedis()
+                .withBean(CacheInvalidationPublisher.class, () -> publisher)
+                .withPropertyValues("ddk.cache.caches.dictionary.local-enabled=true")
+                .run(context -> {
+                    assertThat(context).hasNotFailed();
+                    assertThat(context).doesNotHaveBean(RedisCacheInvalidationPublisher.class);
+                    assertThat(context).doesNotHaveBean(RedisMessageListenerContainer.class);
+
+                    TwoLevelCache cache = (TwoLevelCache) context.getBean(DdkCacheManager.class).getCache("dictionary");
+                    cache.evict("k1");
+                    cache.clear();
+                    assertThat(publisher.events).containsExactly("evict dictionary k1", "clear dictionary");
+                });
+    }
+
+    static final class RecordingPublisher implements CacheInvalidationPublisher {
+
+        final List<String> events = new java.util.concurrent.CopyOnWriteArrayList<>();
+
+        @Override
+        public void publishEvict(String cacheName, String key) {
+            events.add("evict " + cacheName + " " + key);
+        }
+
+        @Override
+        public void publishClear(String cacheName) {
+            events.add("clear " + cacheName);
+        }
     }
 
     @Test
