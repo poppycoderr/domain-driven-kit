@@ -101,8 +101,8 @@ A draft for the 1.0 decision, written after the 0.10 → 0.11 rehearsal. It says
 
 The behavior that 1.0 freezes is the documented one, not more:
 
-- Event delivery is at least once. A consumer handles an event once per consumer identity and event ID, which needs event IDs that are unique across tenants and messages from a source the consumer trusts; the tenant header is not signed.
-- `@Idempotent` admits one call per key within its TTL. It does not make side effects exactly-once.
+- Event delivery is at least once. `IdempotentConsumer` skips a message whose consumer identity (`group:consumerId`) and event ID are already recorded. That holds while both stay stable, while the record is within the inbox retention, and because the record and the handler's database writes commit in one transaction: a handler that fails rolls back its record, and a purged record lets the message run again. Side effects outside that database are not exactly-once. It also needs event IDs that are unique across tenants and messages from a source the consumer trusts; the tenant header is not signed.
+- `@Idempotent` rejects a call while a registration for its key exists. A call that fails removes its own registration, so it can be retried; the registration of a call that succeeded expires with its TTL, after which the same key runs again; a call that runs longer than the TTL can overlap with a retry. It does not make side effects exactly-once.
 - An aggregate lock is as reliable as a single Redis. An interrupt while waiting is a cancellation (`CancellationException`), not a busy lock.
 - A projection converges to the current state of the write model; it can briefly show an older snapshot.
 

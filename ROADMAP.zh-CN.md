@@ -114,7 +114,7 @@ DDK 只有一个版本号，但各模块经受的验证并不一样。每个模�
 验收，发布 0.11.0 之前：
 
 - [x] 防重复提交和限流 key 的跨版本 fixture，这是 0.11 唯一改变的持久格式：key 的结构不变，默认 scope 按 **Breaking** 里写的改变
-- [x] 升级与回退演练：用 Maven 中央仓库的 0.10.0 生成一个项目，升级到 0.11 再回退，0.10 和 0.11 的实例共用一个 MySQL 和一个 Redis 同时运行，检查 Redis key、防重复提交的过渡窗口、取消，以及两个版本共用的表和 Outbox 记录。步骤和结果见[升级指南](https://domaindrivenkit.com/ddk/upgrade)
+- [x] 升级与回退演练：用 Maven 中央仓库的 0.10.0 生成一个项目，升级到 0.11 再回退，0.10 和 0.11 的实例共用一个 MySQL 和一个 Redis 同时运行，检查 Redis key、两个版本同时运行期间各用一套的登记和额度、取消，以及两个版本共用的表和 Outbox 记录。步骤和结果见[升级指南](https://domaindrivenkit.com/ddk/upgrade)
 - [x] 1.0 冻结清单草案：冻结什么、哪些保持实验性、哪些还没定，见 [COMPATIBILITY.zh-CN.md](./COMPATIBILITY.zh-CN.md#10-冻结清单草案)
 - [ ] 候选版本通过 Java 21 和 25、生成项目、API 比较和原生镜像任务。发布之后把它的 fixture 加到 `compat/`，`api.baseline.version` 改为 0.11.0
 
