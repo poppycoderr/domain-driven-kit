@@ -115,7 +115,7 @@ Acceptance, before 0.11.0 is released:
 
 - [ ] Cross-version fixtures for the idempotency and rate-limit keys, the one stored format that 0.11 changes
 - [ ] An upgrade and rollback rehearsal on a project generated from 0.10.0 on Maven Central, with 0.10 and 0.11 instances side by side on one MySQL and one Redis: Redis keys, the idempotency transition window, cancellation, and the tables and outbox rows both versions share. Steps and results go into the upgrade guide
-- [ ] A draft of the 1.0 freeze checklist: what freezes, what stays experimental, what is still open
+- [x] A draft of the 1.0 freeze checklist: what freezes, what stays experimental, what is still open, in [COMPATIBILITY.md](./COMPATIBILITY.md#10-freeze-checklist-draft)
 - [ ] The release candidate passes Java 21 and 25, generated projects, the API check and the native image job. After the release, its fixtures are added under `compat/` and `api.baseline.version` moves to 0.11.0
 
 Not in 0.11:
@@ -129,7 +129,7 @@ Not in 0.11:
 
 **Goal: freeze only what has been verified.**
 
-- [ ] Freeze the verified core API and the support matrix above; strict semantic versioning from then on. What is frozen, and what stays experimental, is listed in [COMPATIBILITY.md](./COMPATIBILITY.md)
+- [ ] Freeze the verified core API and the support matrix above; strict semantic versioning from then on. What is frozen, what stays experimental and what is still to decide is in the [freeze checklist](./COMPATIBILITY.md#10-freeze-checklist-draft)
 - [x] Context semantics on virtual threads: operator, trace, lock ordering, cancellation and pool reuse, not only "it starts"
 - [x] GraalVM support declared per module, starting with a minimal example, instead of all starters at once: verified in CI with `ddk-example-user`, listed in [SUPPORT.md](./SUPPORT.md#graalvm-native-images)
 - [x] Known limits, rollback paths and maintenance responsibility written down: [SUPPORT.md](./SUPPORT.md), and a rollback section per release in the upgrade guide
