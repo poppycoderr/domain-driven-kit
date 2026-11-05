@@ -15,6 +15,7 @@ mvn -Dddk.version=0.10.0 compile exec:java    # writes target/compat/0.10.0/
 | `outbox-publication.json` | Spring Modulith's `event_publication` row for an `@IntegrationEvent` | `EventDataCompatibilityTest` |
 | `processed-message-table.json` | the processed message table: schema and the row of an idempotent consumer | `EventDataCompatibilityTest` |
 | `projection-pending-table.sql` | the projection mark table: schema, due index and one mark with a tenant | `PendingTableCompatibilityTest` |
+| `concurrency-keys.json` | the default scope of `@Idempotent` and `@RateLimit`, and the Redis keys they register | `ConcurrencyKeyCompatibilityTest` |
 | `redis.json` | a value through the Redis starter's serializer, the cache invalidation messages, an aggregate lock key | `RedisValueCompatibilityTest`, `CacheMessageCompatibilityTest`, `LockKeyCompatibilityTest` (as `lock-key.txt`) |
 
 The tests live in the module that owns each format, under `src/test/resources/compat/<version>/`. Each test checks both directions: the current code reads what the released version wrote, and writes the same thing, so an old instance can read it too. A change that has to break one of them is a deliberate break: it goes under **Breaking** in the changelog with a rolling-upgrade path, and its test is updated to say so.
