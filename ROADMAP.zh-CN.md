@@ -92,6 +92,39 @@ DDK 只有一个版本号，但各模块经受的验证并不一样。每个模�
 - [x] 分发准备：Maven 坐标定为 `com.domaindrivenkit`，以项目自己的域名为依据；每个发布产物都有构建来源证明；`central` profile 负责签名和打包，发布到 Maven 中央仓库成为一个决定，而不是一个项目
 - [x] CI 分成带名字的阶段（单元、装配与中间件测试、生成项目、API 兼容），有测试被跳过就失败；检查 BOM 和父 pom 的版本一致
 
+## 下一个版本：0.11
+
+**目标：把 1.0 要冻结的契约定下来，补上 2026 年 10 月冻结评审发现的可靠性缺口，并在一个真实项目上验证升级和回退。** 0.11 不新增 starter，也不扩大任何支持声明；具体变化见 CHANGELOG 的 [Unreleased](./CHANGELOG.md#unreleased) 和[升级指南](https://domaindrivenkit.com/ddk/upgrade)。
+
+契约，已在 `main`：
+
+- [x] [COMPATIBILITY.zh-CN.md](./COMPATIBILITY.zh-CN.md) 列出滚动升级依赖的数据和传输格式，不只是 key 名和表名：Outbox 记录、消息头的取值、去重消费方的身份、Redis 值、缓存失效消息
+- [x] 同时写明每种版本可以做哪些平台变化：1.x 最低 Java 21、Spring Boot 4 系列、DDK 固定版本的库，以及出现在 DDK API 里的库类型
+- [x] 已发布的 0.10.0 写下的数据，当前代码能读，并且按同样的方式写回（[`compat/`](./compat/README.md)）：事件消息、Outbox 记录、两张表、Redis 值、缓存失效消息、锁 key
+- [x] 两项行为变化列在 **Breaking** 下并给出迁移步骤：`@Idempotent` 和 `@RateLimit` 的默认 scope 写全参数类型；等锁时被中断报 `CancellationException`
+
+可靠性，已在 `main`：
+
+- [x] 失去领取的 worker 写入后又失败时，投影也能收敛
+- [x] 应用自己的 `CacheInvalidationPublisher` 可以替换 Redis 发布器
+- [x] 参数简单类名相同的重载不再共用防重复提交登记和限流额度
+- [x] 事件维护在两个实例、真实 Redis 锁下测试
+- [x] GraalVM：CI 把 `ddk-example-user` 构建成原生镜像并做冒烟测试；支持情况按模块写在 [SUPPORT.zh-CN.md](./SUPPORT.zh-CN.md#graalvm-原生镜像)
+
+验收，发布 0.11.0 之前：
+
+- [ ] 防重复提交和限流 key 的跨版本 fixture，这是 0.11 唯一改变的持久格式
+- [ ] 升级与回退演练：用 Maven 中央仓库的 0.10.0 生成一个项目，升级到 0.11 再回退，0.10 和 0.11 的实例共用一个 MySQL 和一个 Redis 同时运行，检查 Redis key、防重复提交的过渡窗口、取消，以及两个版本共用的表和 Outbox 记录。步骤和结果写进升级指南
+- [ ] 1.0 冻结清单草案：冻结什么、哪些保持实验性、哪些还没定
+- [ ] 候选版本通过 Java 21 和 25、生成项目、API 比较和原生镜像任务。发布之后把它的 fixture 加到 `compat/`，`api.baseline.version` 改为 0.11.0
+
+不在 0.11 里：
+
+- DB 和 Seata starter 保持实验性，只验证到装配层面
+- 原生镜像的支持范围保持在 CI 验证过的模块，不声明其他模块
+- 事件发布指标在 `event_publication` 上按状态计数，而这张表的 `status` 没有索引，每次采集都扫表。事件 starter 的 README 给出了实测开销和应对办法；降低开销是之后的性能项
+- 消费端去重不变：它依赖跨租户唯一的事件 ID，以及来自消费方信任的来源的消息。租户消息头没有签名
+
 ## 1.0：冻结
 
 **目标：只冻结经过验证的部分。**
@@ -109,6 +142,7 @@ DDK 只有一个版本号，但各模块经受的验证并不一样。每个模�
 |---|---|
 | Nacos（配置）与 Sentinel（流量控制） | 两者都经由 Spring Cloud Alibaba，它跟随 Spring Cloud，Spring Cloud 又跟随 Spring Boot。2026-10-12 查到还没有面向 Spring Boot 4.1 的 Spring Cloud 正式版。开始做时重新核对上游兼容范围，并做组合测试 |
 | S3 兼容的对象存储 | 文件引用作为值对象，领域层不接触 SDK |
+| 降低事件发布指标的开销 | 每次采集都按状态对 `event_publication` 计数，会扫表；实测开销和应对办法见事件 starter 的 README。需要一种不依赖 Spring Modulith 表结构的做法 |
 | 投影的 Elasticsearch 辅助功能 | 索引管理、重建时切换别名 |
 | 一行命令创建项目、在线项目生成器 | `jbang ddk@poppycoderr new my-app`，类似 Spring Initializr 的页面；等安装脚本的版本选择稳定之后 |
 | `ddk-mall` 的预置 Grafana 看板 | 基于投影、事件和缓存的指标 |
