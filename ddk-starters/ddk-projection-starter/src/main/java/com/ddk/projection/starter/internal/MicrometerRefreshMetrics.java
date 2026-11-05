@@ -49,16 +49,20 @@ public class MicrometerRefreshMetrics implements RefreshMetrics {
             return;
         }
         for (String projection : projections) {
+            // Micrometer 只弱引用 gauge 的观察对象；backlog 没有别的引用，不用强引用的话下一次 GC 后三个指标都会变成 NaN
             Sampled backlog = new Sampled(() -> pending.backlog(projection), sampleTtl);
             Gauge.builder("ddk.projection.pending", backlog, b -> b.get().pending())
+                    .strongReference(true)
                     .tag("projection", projection)
                     .description("Marks waiting to be refreshed, including retries")
                     .register(r);
             Gauge.builder("ddk.projection.failing", backlog, b -> b.get().failing())
+                    .strongReference(true)
                     .tag("projection", projection)
                     .description("Marks that failed at least once and wait for a retry")
                     .register(r);
             Gauge.builder("ddk.projection.oldest.age", backlog, b -> b.get().oldestDueAge().toMillis() / 1000.0)
+                    .strongReference(true)
                     .tag("projection", projection)
                     .baseUnit("seconds")
                     .description("How long the oldest due mark has been waiting")
