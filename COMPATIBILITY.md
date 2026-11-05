@@ -2,7 +2,7 @@
 
 [简体中文](./COMPATIBILITY.zh-CN.md)
 
-What DDK promises to keep working between releases, and what it does not. Until 1.0 the promise is weaker (see [Before 1.0](#before-10)); this page is also the list of what 1.0 freezes.
+What DDK promises to keep working between releases, and what it does not. Until 1.0 the promise is weaker (see [Before 1.0](#before-10)); this page is also the list of what 1.0 freezes, and the [freeze checklist](#10-freeze-checklist-draft) says what is still open.
 
 ## Versioning
 
@@ -83,6 +83,55 @@ An existing rule in `CommonArchRules` does not become stricter in a minor releas
 - **Examples** (`ddk-examples/*`): reference code, not a library.
 - **Log messages, metric tag sets beyond the documented ones, and exception messages.** Write code against exception types and error codes, not message text.
 - **Generated project templates.** A new release of an archetype generates a different skeleton; projects generated earlier are not changed.
+
+## 1.0 freeze checklist (draft)
+
+A draft for the 1.0 decision, written after the 0.10 → 0.11 rehearsal. It says, for each part of the contract above, what 1.0 would freeze, what checks it, and what is still to decide. Nothing here is a promise until 1.0 is released; until then [Before 1.0](#before-10) applies.
+
+### Frozen in 1.0
+
+| Contract | Checked by | Not covered |
+|---|---|---|
+| [Java API](#java-api) of the stable types | japicmp against the last release on every change | Inherited library methods ([Platform](#platform)) |
+| [Configuration](#configuration): `ddk.*` names and defaults, `Ddk*AutoConfiguration` names, your bean replaces DDK's | Wiring tests of each starter | No automated check that a property keeps its name; reviewed by hand |
+| [Data and wire formats](#data-and-wire-formats): event headers and body, consumer identity, the projection and processed message tables, outbox content, Redis keys and values, cache invalidation | Fixtures of 0.10.0 in [`compat/`](./compat/README.md), read and written back by every build; the 0.10 → 0.11 rehearsal with both versions side by side | Fixtures exist for 0.10.0 only; the outbox table itself is Spring Modulith's |
+| HTTP: `ApiResponse`, `CommonError` codes and statuses, the trace ID header | Web and tracer starter tests | |
+| [Architecture rules](#architecture-rules): an existing rule never becomes stricter | Fixtures for every rule | |
+| [Platform](#platform): Java 21 minimum, Spring Boot 4 line, pinned libraries | CI on Java 21 and 25 | |
+
+The behavior that 1.0 freezes is the documented one, not more:
+
+- Event delivery is at least once. A consumer handles an event once per consumer identity and event ID, which needs event IDs that are unique across tenants and messages from a source the consumer trusts; the tenant header is not signed.
+- `@Idempotent` admits one call per key within its TTL. It does not make side effects exactly-once.
+- An aggregate lock is as reliable as a single Redis. An interrupt while waiting is a cancellation (`CancellationException`), not a busy lock.
+- A projection converges to the current state of the write model; it can briefly show an older snapshot.
+
+### Experimental in 1.0
+
+| Part | Why | Leaves the list when |
+|---|---|---|
+| `ddk-db-starter`, `ddk-seata-starter` | Wiring tests only; Seata's runtime is not verified on Spring Boot 4 | It is tested against the real system in CI |
+| GraalVM native images beyond the modules [SUPPORT.md](./SUPPORT.md#graalvm-native-images) lists as verified | Only `ddk-example-user` runs as a native image in CI | CI exercises the module natively |
+| How the documented metrics are computed | The metric names and documented tags are stable. Counting event publications scans `event_publication`, which is a known cost on large tables | |
+| Everything under [What is not stable](#what-is-not-stable) | | |
+
+### To decide before 1.0
+
+| Question | Why it has to be decided first |
+|---|---|
+| Release 1.0 right after 0.11, or after 0.11 has been used for a while | 0.11 is the first release that changes stored data since the `com.domaindrivenkit` coordinates. A maintainer decision, not a technical gate |
+| The HTTP answer to a cancelled request: 500 `SYSTEM_ERROR` as now, or a code of its own | `CommonError` codes and statuses freeze in 1.0; adding a code later is compatible, changing the status of an existing one is not |
+| Whether the processed message table's key includes the tenant | It is keyed by consumer and event ID. Freezing the table freezes that; a key with the tenant later needs a migration and a rolling-upgrade path |
+| Whether the ArchGuard exemption for `@Configuration` classes outside the layers stays as wide | An existing rule cannot become stricter in 1.x. A narrower exemption after 1.0 can only come as a new rule |
+| DB and Seata starters in the 1.0 release, marked experimental, or left out | Shipping them in a 1.0 BOM invites use; leaving them out is a break for current users |
+
+### Before tagging 1.0
+
+- [ ] The decisions above are made and written into this page
+- [ ] 0.11.0 is released and its fixtures are added under `compat/`; `api.baseline.version` is 0.11.0
+- [ ] An upgrade and rollback rehearsal from 0.11 to the 1.0 candidate, the same way as from 0.10 to 0.11
+- [ ] The candidate passes Java 21 and 25, generated projects, the API check and the native image job
+- [ ] This section's "draft" is removed, and the [support matrix](./ROADMAP.md#support-status) matches this page
 
 ## Before 1.0
 
