@@ -28,6 +28,7 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 ### Fixed
 
 - Projections converge when a refresh writes after losing its claim and then fails, for example when an external write went through but its response was lost. The failure used to release the claim without marking the entry again, so the read model could keep the stale snapshot with no mark left. Now any acknowledgement or failure from a worker that no longer owns the mark leaves a mark behind; a mark that still exists only gets a new generation, which keeps the attempts and back-off of the worker that holds it
+- On MySQL, a projection refresh starts right after the commit, instead of sometimes waiting for the next sweep (30 s by default). The pending table stores `available_at` without fractional seconds, and MySQL rounds them on insert, so a mark written in the second half of a second was due only in the next second and the wake-up after the commit did not see it. Marks are now written due at the start of their second. H2 and PostgreSQL were not affected
 - An application's own `CacheInvalidationPublisher` replaces the Redis one without failing startup. The Redis listener container used to require DDK's internal publisher, so a replacement made the context fail when Redis was present and a cache used its local level. DDK now subscribes to its channel only when it also publishes on it
 
 ## [0.10.0] - 2026-10-22

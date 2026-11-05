@@ -80,6 +80,25 @@ class RefreshProtocolTest {
     }
 
     @Test
+    @DisplayName("标记写下就到期，毫秒部分过半时也一样：MySQL 的 TIMESTAMP 不存小数秒，写入时四舍五入，会把到期时间推到下一秒")
+    void aMarkIsDueAtOnceWhateverTheMilliseconds() {
+        clock.advance(Duration.ofMillis(600));
+        change("1", "v1");
+        assertThat(pending.due(10)).as("a new mark").hasSize(1);
+
+        change("1", "v2");
+        assertThat(pending.due(10)).as("a mark that is touched again").hasSize(1);
+
+        RefreshWorker failing = worker(id -> {
+            throw new IllegalStateException("read store is down");
+        });
+        failing.drain();
+        assertThat(pending.due(10)).as("backing off after the failure").isEmpty();
+        assertThat(pending.retryFailed("catalog")).isEqualTo(1);
+        assertThat(pending.due(10)).as("retried at once").hasSize(1);
+    }
+
+    @Test
     @DisplayName("A 读到 v1 后停顿，v2 提交并被 B 写入；A 恢复写回 v1，确认落空并重新标记，最终收敛到 v2")
     void aStaleRefreshThatFinishesLastIsCorrected() throws Exception {
         change("1", "v1");
