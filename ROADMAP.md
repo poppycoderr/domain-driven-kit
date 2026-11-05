@@ -92,6 +92,39 @@ DDK has one version number, but its modules are not equally proven. Each one has
 - [x] Distribution: Maven coordinates `com.domaindrivenkit`, a namespace backed by the project's own domain; build provenance on every release artifact; a `central` profile that signs and bundles a release, so publishing to Maven Central is a decision rather than a project
 - [x] CI in named stages (unit, wiring and middleware tests, generated projects, API compatibility) that fails when a test is skipped; the BOM checked against the parent pom
 
+## Next release: 0.11
+
+**Goal: settle the contracts that 1.0 will freeze, close the reliability gaps that the October 2026 freeze review found, and prove the upgrade and the way back on a real project.** 0.11 adds no starter and widens no support claim; what changes is listed under [Unreleased](./CHANGELOG.md#unreleased) in the changelog and in the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade).
+
+Contracts, on `main`:
+
+- [x] [COMPATIBILITY.md](./COMPATIBILITY.md) names the data and wire formats that a rolling upgrade depends on, not only key and table names: outbox rows, the values of the message headers, the identity of idempotent consumers, Redis values and the cache invalidation message
+- [x] It also says which platform changes each kind of release may make: Java 21 as the minimum for 1.x, the Spring Boot 4 line, the libraries DDK pins, and the library types that appear in DDK's API
+- [x] Data written by the released 0.10.0 is read, and written back the same way, by the current code ([`compat/`](./compat/README.md)): event messages, outbox rows, both tables, Redis values, cache invalidation messages and lock keys
+- [x] Two behavior changes are listed under **Breaking** with migration steps: the default scope of `@Idempotent` and `@RateLimit` names parameter types in full, and an interrupt while waiting for a lock is reported as `CancellationException`
+
+Reliability, on `main`:
+
+- [x] Projections converge when a worker that lost its claim writes and then fails
+- [x] An application's own `CacheInvalidationPublisher` replaces the Redis one
+- [x] Overloads whose parameter types share a simple name no longer share idempotency registrations and rate limits
+- [x] Event maintenance tested on two instances against a real Redis lock
+- [x] GraalVM: `ddk-example-user` built as a native image and smoke-tested in CI; support declared per module in [SUPPORT.md](./SUPPORT.md#graalvm-native-images)
+
+Acceptance, before 0.11.0 is released:
+
+- [ ] Cross-version fixtures for the idempotency and rate-limit keys, the one stored format that 0.11 changes
+- [ ] An upgrade and rollback rehearsal on a project generated from 0.10.0 on Maven Central, with 0.10 and 0.11 instances side by side on one MySQL and one Redis: Redis keys, the idempotency transition window, cancellation, and the tables and outbox rows both versions share. Steps and results go into the upgrade guide
+- [ ] A draft of the 1.0 freeze checklist: what freezes, what stays experimental, what is still open
+- [ ] The release candidate passes Java 21 and 25, generated projects, the API check and the native image job. After the release, its fixtures are added under `compat/` and `api.baseline.version` moves to 0.11.0
+
+Not in 0.11:
+
+- The DB and Seata starters stay experimental, verified at the wiring level only
+- Native image support stays at what CI verifies; other modules are not declared
+- The event publication metrics count by status on `event_publication`, which has no index on `status`, so each scrape scans the table. The event starter's README gives the measured cost and the workarounds; reducing it is a later performance item
+- Deduplication of consumed events is unchanged: it relies on event IDs that are unique across tenants and on messages from a source the consumer trusts. The tenant header is not signed
+
 ## 1.0: freeze
 
 **Goal: freeze only what has been verified.**
@@ -109,6 +142,7 @@ No order and no dates. An item moves into a release when there is a concrete nee
 |---|---|
 | Nacos (configuration) and Sentinel (traffic control) | Both come through Spring Cloud Alibaba, which follows Spring Cloud, which follows Spring Boot. On 2026-10-12 there was no GA Spring Cloud release for Spring Boot 4.1. Check the upstream compatibility range again when starting, and test the combination |
 | S3-compatible object storage | File references as value objects; the domain never touches the SDK |
+| Cheaper event publication metrics | Each scrape counts `event_publication` by status, which scans the table; measured cost and workarounds in the event starter's README. Needs a way that does not depend on Spring Modulith's schema |
 | Elasticsearch helpers for projections | Index management and alias switching on rebuild |
 | One-command project creation and an online generator | `jbang ddk@poppycoderr new my-app`, a Spring Initializr-like page; after the installer's version selection has settled |
 | Preset Grafana dashboards for `ddk-mall` | On top of the projection, event and cache metrics |
