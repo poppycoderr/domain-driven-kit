@@ -62,6 +62,20 @@ class MicrometerRefreshMetricsTest {
         verify(pending, times(2)).backlog("catalog");
     }
 
+    @Test
+    @DisplayName("垃圾回收之后 gauge 照样有值：Micrometer 只弱引用 gauge 的观察对象，共用的采样对象必须被强引用，否则指标变成 NaN")
+    void theGaugesSurviveGarbageCollection() {
+        bind(Duration.ZERO);
+
+        for (int i = 0; i < 3; i++) {
+            System.gc();
+        }
+
+        assertThat(gauge("ddk.projection.pending")).isEqualTo(2);
+        assertThat(gauge("ddk.projection.failing")).isZero();
+        assertThat(gauge("ddk.projection.oldest.age")).isZero();
+    }
+
     private void bind(Duration ttl) {
         StaticListableBeanFactory beans = new StaticListableBeanFactory();
         beans.addBean("registry", registry);
