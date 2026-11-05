@@ -113,8 +113,8 @@ Reliability, on `main`:
 
 Acceptance, before 0.11.0 is released:
 
-- [ ] Cross-version fixtures for the idempotency and rate-limit keys, the one stored format that 0.11 changes
-- [ ] An upgrade and rollback rehearsal on a project generated from 0.10.0 on Maven Central, with 0.10 and 0.11 instances side by side on one MySQL and one Redis: Redis keys, the idempotency transition window, cancellation, and the tables and outbox rows both versions share. Steps and results go into the upgrade guide
+- [x] Cross-version fixtures for the idempotency and rate-limit keys, the one stored format that 0.11 changes: the key structure is unchanged, the default scope changes as listed under **Breaking**
+- [x] An upgrade and rollback rehearsal on a project generated from 0.10.0 on Maven Central, with 0.10 and 0.11 instances side by side on one MySQL and one Redis: Redis keys, the idempotency transition window, cancellation, and the tables and outbox rows both versions share. Steps and results are in the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade)
 - [ ] A draft of the 1.0 freeze checklist: what freezes, what stays experimental, what is still open
 - [ ] The release candidate passes Java 21 and 25, generated projects, the API check and the native image job. After the release, its fixtures are added under `compat/` and `api.baseline.version` moves to 0.11.0
 

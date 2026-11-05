@@ -2,6 +2,7 @@ package com.ddk.compat;
 
 import com.ddk.cache.starter.internal.CacheInvalidationMessage;
 import com.ddk.concurrency.starter.AggregateLocks;
+import com.ddk.concurrency.starter.internal.KeyProbe;
 import com.ddk.core.domain.DomainEventPublisher;
 import com.ddk.core.jackson.IdentifierJacksonModule;
 import com.ddk.event.starter.consumer.IntegrationEventDispatcher;
@@ -36,6 +37,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -135,6 +137,10 @@ public class Generate {
         redis.put("lockKey", new AggregateLocks(null, "ddk:", Duration.ofSeconds(3), null).lockName("order", ShipmentId.of(42L)));
         write(json, out.resolve("redis.json"), redis);
         Files.writeString(out.resolve("lock-key.txt"), (String) redis.get("lockKey") + "\n");
+
+        // Redis keys of @Idempotent and @RateLimit with the default scope: ShipmentDesk#dispatch(String, Date), request key req-1, 20 calls a minute per tenant-a
+        write(json, out.resolve("concurrency-keys.json"),
+                KeyProbe.keys(ShipmentDesk.class.getMethod("dispatch", String.class, Date.class), "req-1", "tenant-a", 20, Duration.ofMinutes(1)));
 
         context.close();
         System.out.println("written to " + out);
