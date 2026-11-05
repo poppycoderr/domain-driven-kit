@@ -17,6 +17,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -93,7 +94,7 @@ public class PendingRefreshes {
         try {
             nested.executeWithoutResult(status -> jdbc.update("INSERT INTO " + table
                             + " (projection, tenant_id, entity_id, version, generation, attempts, available_at) VALUES (?, ?, ?, 1, ?, 0, ?)",
-                    projection, tenant, id, newToken(), now()));
+                    projection, tenant, id, newToken(), dueNow()));
         } catch (DuplicateKeyException e) {
             touch(projection, tenant, id);
         }
@@ -101,7 +102,7 @@ public class PendingRefreshes {
 
     private int touch(String projection, String tenant, String id) {
         return jdbc.update("UPDATE " + table + " SET version = version + 1, generation = ?, attempts = 0, available_at = ?, last_error = NULL "
-                + "WHERE projection = ? AND tenant_id = ? AND entity_id = ?", newToken(), now(), projection, tenant, id);
+                + "WHERE projection = ? AND tenant_id = ? AND entity_id = ?", newToken(), dueNow(), projection, tenant, id);
     }
 
     /**
@@ -274,7 +275,7 @@ public class PendingRefreshes {
      * @return 受影响的标记数量
      */
     public int retryFailed(String projection) {
-        return jdbc.update("UPDATE " + table + " SET available_at = ? WHERE projection = ? AND attempts > 0", now(), projection);
+        return jdbc.update("UPDATE " + table + " SET available_at = ? WHERE projection = ? AND attempts > 0", dueNow(), projection);
     }
 
     /**
@@ -473,6 +474,16 @@ public class PendingRefreshes {
 
     private Timestamp now() {
         return Timestamp.from(clock.instant());
+    }
+
+    /**
+     * 「现在到期」的 {@code available_at}，截到整秒。
+     * <p>
+     * 这一列是不带小数秒的 {@code TIMESTAMP}，MySQL 写入时会把毫秒四舍五入：毫秒部分过半时，标记的到期时间被推到下一秒，
+     * 提交后马上唤醒的那一轮按 {@code available_at <= now} 查不到它，要等到下一次清扫。截掉小数秒只会让它早到期不到一秒。
+     */
+    private Timestamp dueNow() {
+        return Timestamp.from(clock.instant().truncatedTo(ChronoUnit.SECONDS));
     }
 
     private static String newToken() {
