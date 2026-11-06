@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-/** Writes data exactly as DDK 0.10.0 produces it, for the compatibility tests of later versions. */
+/** Writes data exactly as the released DDK version it runs against (-Dddk.version) produces it, for the compatibility tests of later versions. */
 @SpringBootApplication
 public class Generate {
 
@@ -78,7 +78,7 @@ public class Generate {
         }
         write(json, out.resolve("outbox-publication.json"), new TreeMap<>(lower(publication)));
 
-        // The RocketMQ message, as the 0.10.0 transport builds it
+        // The RocketMQ message, as the released transport builds it
         EventExternalizationConfiguration configuration = context.getBean(EventExternalizationConfiguration.class);
         StandardEvaluationContext evaluation = new StandardEvaluationContext();
         evaluation.setBeanResolver(new BeanFactoryResolver(context.getBeanFactory()));
@@ -96,7 +96,7 @@ public class Generate {
         rocketmq.put("body", body);
         write(json, out.resolve("rocketmq-message.json"), rocketmq);
 
-        // The processed message table: schema and the row 0.10.0 writes for an idempotent consumer
+        // The processed message table: schema and the row the released version writes for an idempotent consumer
         DriverManagerDataSource inboxSource = new DriverManagerDataSource("jdbc:h2:mem:inbox;DB_CLOSE_DELAY=-1", "sa", "");
         JdbcTemplate inboxJdbc = new JdbcTemplate(inboxSource);
         IdempotentConsumer inbox = new IdempotentConsumer(inboxJdbc, new DataSourceTransactionManager(inboxSource), "ddk_processed_message", clock);

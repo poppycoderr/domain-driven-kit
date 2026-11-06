@@ -1,5 +1,6 @@
 package com.ddk.event.starter.internal;
 
+import com.ddk.compat.Releases;
 import com.ddk.compat.ShipmentDispatched;
 import com.ddk.compat.ShipmentId;
 import com.ddk.compat.ShipmentTracker;
@@ -11,12 +12,12 @@ import com.ddk.event.starter.integration.IntegrationEventExternalizationTest;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.common.message.Message;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.expression.BeanFactoryResolver;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
@@ -38,14 +39,14 @@ import java.util.TreeMap;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * 事件数据的跨版本兼容：{@code compat/0.10.0} 下的文件由 DDK 0.10.0 实际产生（见仓库的 {@code compat/generator}）。
+ * 事件数据的跨版本兼容：每个已发布版本的 {@code compat/<版本>/} 下的文件由那个版本实际产生（见仓库的 {@code compat/generator}）。
  * 当前版本要能读它们，也要写出同样的数据，滚动发布期间新旧实例才能互相读对方发出的消息。
  */
 @SpringBootTest(classes = IntegrationEventExternalizationTest.TestApplication.class, properties = {
         "spring.datasource.url=jdbc:h2:mem:event-compat;DB_CLOSE_DELAY=-1",
         "spring.modulith.events.jdbc.schema-initialization.enabled=true"
 })
-@DisplayName("与 0.10.0 的事件数据兼容")
+@DisplayName("与已发布版本的事件数据兼容")
 class EventDataCompatibilityTest {
 
     private static final JsonMapper FIXTURE = JsonMapper.builder().build();
@@ -61,10 +62,11 @@ class EventDataCompatibilityTest {
     @Autowired
     private ConfigurableListableBeanFactory beanFactory;
 
-    @Test
-    @DisplayName("RocketMQ 消息：当前版本发出的主题、标签、key、属性和消息体与 0.10.0 相同")
-    void writesTheSameMessage() {
-        JsonNode fixture = fixture("rocketmq-message.json");
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("com.ddk.compat.Releases#versions")
+    @DisplayName("RocketMQ 消息：当前版本发出的主题、标签、key、属性和消息体与已发布版本相同")
+    void writesTheSameMessage(String version) {
+        JsonNode fixture = fixture(version, "rocketmq-message.json");
         Message message = currentMessage();
 
         assertThat(message.getTopic()).isEqualTo(fixture.get("topic").asString());
@@ -74,10 +76,11 @@ class EventDataCompatibilityTest {
         assertThat(new String(message.getBody(), StandardCharsets.UTF_8)).isEqualTo(fixture.get("body").asString());
     }
 
-    @Test
-    @DisplayName("RocketMQ 消息：当前版本的消费方读取 0.10.0 发出的消息，事件标识、类型、版本和内容都对")
-    void readsTheMessage() {
-        JsonNode fixture = fixture("rocketmq-message.json");
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("com.ddk.compat.Releases#versions")
+    @DisplayName("RocketMQ 消息：当前版本的消费方读取已发布版本发出的消息，事件标识、类型、版本和内容都对")
+    void readsTheMessage(String version) {
+        JsonNode fixture = fixture(version, "rocketmq-message.json");
         ShipmentTracker tracker = new ShipmentTracker();
         Inbox inbox = inbox();
         inbox.jdbc().execute(inbox.consumer().schema());
@@ -90,10 +93,11 @@ class EventDataCompatibilityTest {
         assertThat(tracker.received).singleElement().isEqualTo(new ReceivedEvent<>("evt-7", "shipment.dispatched", 2, EVENT));
     }
 
-    @Test
-    @DisplayName("已处理消息表：表结构与 0.10.0 相同；0.10.0 登记过的消息，当前版本认得是同一个消费方处理过的，不再处理")
-    void recognizesMessagesProcessedBefore() {
-        JsonNode fixture = fixture("processed-message-table.json");
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("com.ddk.compat.Releases#versions")
+    @DisplayName("已处理消息表：表结构与已发布版本相同；已发布版本 登记过的消息，当前版本认得是同一个消费方处理过的，不再处理")
+    void recognizesMessagesProcessedBefore(String version) {
+        JsonNode fixture = fixture(version, "processed-message-table.json");
         Inbox inbox = inbox();
         assertThat(inbox.consumer().schema()).isEqualTo(fixture.get("schema").asString());
         inbox.jdbc().execute(fixture.get("schema").asString());
@@ -101,7 +105,7 @@ class EventDataCompatibilityTest {
             inbox.jdbc().update("INSERT INTO ddk_processed_message (consumer, message_id, processed_at) VALUES (?, ?, ?)",
                     row.get("consumer").asString(), row.get("message_id").asString(), Timestamp.valueOf(row.get("processed_at").asString()));
         }
-        JsonNode message = fixture("rocketmq-message.json");
+        JsonNode message = fixture(version, "rocketmq-message.json");
         ShipmentTracker tracker = new ShipmentTracker();
 
         int handled = new IntegrationEventDispatcher(List.of(tracker), TRANSPORT, inbox.consumer())
@@ -111,10 +115,11 @@ class EventDataCompatibilityTest {
         assertThat(tracker.received).as("not handled again").isEmpty();
     }
 
-    @Test
-    @DisplayName("Outbox：0.10.0 记录的事件类型是类的全名，序列化内容当前版本读得回来，当前版本序列化出的也相同")
-    void readsAndWritesTheOutboxPayload() {
-        JsonNode fixture = fixture("outbox-publication.json");
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("com.ddk.compat.Releases#versions")
+    @DisplayName("Outbox：已发布版本记录的事件类型是类的全名，序列化内容当前版本读得回来，当前版本序列化出的也相同")
+    void readsAndWritesTheOutboxPayload(String version) {
+        JsonNode fixture = fixture(version, "outbox-publication.json");
 
         assertThat(fixture.get("event_type").asString()).isEqualTo(ShipmentDispatched.class.getName());
         assertThat(TRANSPORT.readValue(fixture.get("serialized_event").asString(), ShipmentDispatched.class)).isEqualTo(EVENT);
@@ -149,11 +154,7 @@ class EventDataCompatibilityTest {
         return properties;
     }
 
-    private static JsonNode fixture(String name) {
-        try (var in = new ClassPathResource("compat/0.10.0/" + name).getInputStream()) {
-            return FIXTURE.readTree(in);
-        } catch (java.io.IOException e) {
-            throw new IllegalStateException(e);
-        }
+    private static JsonNode fixture(String version, String name) {
+        return FIXTURE.readTree(Releases.read(version, name));
     }
 }

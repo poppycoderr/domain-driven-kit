@@ -1,17 +1,16 @@
 package com.ddk.projection.starter;
 
+import com.ddk.compat.Releases;
 import com.ddk.core.context.OperatorContext;
 import com.ddk.projection.starter.internal.PendingRefreshes;
 import com.ddk.projection.starter.internal.RefreshWorker;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.core.io.ClassPathResource;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -23,17 +22,18 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * 待刷新表的跨版本兼容：{@code compat/0.10.0/projection-pending-table.sql} 是 DDK 0.10.0 的建表语句、到期索引和它写下的一个标记
+ * 待刷新表的跨版本兼容：每个已发布版本的 {@code compat/<版本>/projection-pending-table.sql} 是那个版本的建表语句、到期索引和它写下的一个标记
  * （见仓库的 {@code compat/generator}）。当前版本不升级表结构就能用这张表，并按标记里的租户刷新。
  */
-@DisplayName("与 0.10.0 的待刷新表兼容")
+@DisplayName("与已发布版本的待刷新表兼容")
 class PendingTableCompatibilityTest {
 
-    @Test
-    @DisplayName("表结构和到期索引与 0.10.0 相同；0.10.0 写下的标记，当前版本以它的租户刷新并删除")
-    void processesAMarkWrittenBy010() throws IOException {
-        List<String> statements = statements();
-        DriverManagerDataSource dataSource = new DriverManagerDataSource("jdbc:h2:mem:pending-compat;DB_CLOSE_DELAY=-1", "sa", "");
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("com.ddk.compat.Releases#versions")
+    @DisplayName("表结构和到期索引与已发布版本相同；它写下的标记，当前版本以它的租户刷新并删除")
+    void processesAReleasedMark(String version) {
+        List<String> statements = statements(version);
+        DriverManagerDataSource dataSource = new DriverManagerDataSource("jdbc:h2:mem:pending-compat-" + version + ";DB_CLOSE_DELAY=-1", "sa", "");
         JdbcTemplate jdbc = new JdbcTemplate(dataSource);
         statements.forEach(jdbc::execute);
         PendingRefreshes pending = new PendingRefreshes(jdbc, new DataSourceTransactionManager(dataSource), "ddk_projection_pending",
@@ -64,8 +64,8 @@ class PendingTableCompatibilityTest {
         assertThat(pending.count("catalog")).isZero();
     }
 
-    private static List<String> statements() throws IOException {
-        String sql = new ClassPathResource("compat/0.10.0/projection-pending-table.sql").getContentAsString(StandardCharsets.UTF_8);
+    private static List<String> statements(String version) {
+        String sql = Releases.read(version, "projection-pending-table.sql");
         return Arrays.stream(sql.split(";\n")).map(String::strip).filter(statement -> !statement.isEmpty()).toList();
     }
 }

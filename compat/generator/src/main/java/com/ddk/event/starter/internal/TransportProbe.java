@@ -2,7 +2,7 @@ package com.ddk.event.starter.internal;
 
 import org.apache.rocketmq.common.message.Message;
 
-/** Reaches the package-private method that builds the RocketMQ message, exactly as 0.10.0 sends it. */
+/** Reaches the package-private method that builds the RocketMQ message, exactly as the released version sends it. */
 public final class TransportProbe {
 
     private TransportProbe() {

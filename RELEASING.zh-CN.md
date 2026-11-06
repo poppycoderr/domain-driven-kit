@@ -123,5 +123,5 @@ gpg --verify ddk-core-X.Y.Z.jar.asc ddk-core-X.Y.Z.jar
 ## 四、发布之后
 
 1. **下一个快照。** 用一个 PR 把所有模块、BOM 的 `ddk.version`、两份 archetype README 里的快照示例改成下一个 `-SNAPSHOT`，把根 pom 的 `api.baseline.version` 改成刚发布的版本，并清空 `api-check` 的放行列表。
-2. **兼容性 fixture。** 用 `-Dddk.version=X.Y.Z` 运行 `compat/generator`，把输出放到各模块的 `src/test/resources/compat/X.Y.Z/`，与之前版本的放在一起（见 `compat/README.md`）。
+2. **兼容性 fixture。** 和下一个快照放在同一个 PR 里：用 `-Dddk.version=X.Y.Z` 对已发布的构件运行 `compat/generator`，再用 `compat/install-fixtures.sh X.Y.Z` 把每个文件放到各模块的 `src/test/resources/compat/X.Y.Z/`，与之前版本的放在一起。兼容性测试对每个版本目录各跑一遍；`api.baseline.version` 指向的版本没有 fixture 时测试失败（见 `compat/README.md`）。
 3. **文档。** 用一个 PR 让两份 README（快速开始和版本列表）、两份 archetype README、两份路线图和路线图配图指向新版本；文档站的快速开始、首页和升级指南也一并更新。
