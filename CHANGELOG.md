@@ -12,6 +12,10 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-11-06
+
+Settling the contracts that 1.0 will freeze. COMPATIBILITY.md now names the data and wire formats a rolling upgrade depends on and what each kind of release may change on the platform, and drafts the 1.0 freeze checklist. Data that 0.10.0 wrote is read and written back the same way by tests, including the idempotency and rate-limit keys. Two behavior changes need attention when upgrading: the default scope of `@Idempotent` and `@RateLimit`, which changes their Redis keys, and cancellation while waiting for a lock. Projections converge in one more failure case and refresh right after the commit on MySQL, an application's cache invalidation publisher replaces DDK's, and `ddk-example-user` runs as a GraalVM native image in CI. The upgrade and the rollback were rehearsed with 0.10 and 0.11 instances side by side; the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) lists the steps.
+
 ### Breaking
 
 - The default scope of `@Idempotent` and `@RateLimit` names parameter types in full: `com.acme.OrderService#place(com.acme.PlaceOrderCommand)` instead of `...#place(PlaceOrderCommand)`. Overloads whose parameter types share a simple name, such as `submit(java.util.Date)` and `submit(java.sql.Date)`, used to share registrations and rate limits. The Redis keys change. For as long as old and new instances run side by side, they keep separate registrations and separate rate-limit quotas: a request registered by one version is not recognized as a duplicate by the other, and each version counts its own calls up to the limit. After the last old instance has stopped, a retry of a request that it registered still runs on the new version until that registration expires, at most one TTL later. Rolling back reads the old keys again, so registrations and counts that the old version wrote and that have not expired yet apply again. To keep the old keys, set `scope` on the annotation to the old value; the key stays the same only while the key prefix, the value of the `key` expression and, for `@RateLimit`, `limit` and `period` stay the same too
@@ -259,7 +263,8 @@ The first release: the DDD foundation on a Spring Boot 4.1 baseline.
 Starter implementation classes live in `com.ddk.<starter>.starter.internal` packages and are not public API: `CacheInvalidationListener`, `CacheInvalidationMessage`, `RedisCacheInvalidationPublisher`, `MicrometerCacheMetrics`, `JitteredTtlFunction`, `SpringDomainEventPublisher` and `TraceIdResponseFilter`. Generated projects check this with `DDK_INTERNALS_MUST_NOT_BE_USED`.
 - The springdoc dependency from `ddk-web-starter`; add it in the application when API docs are needed
 
-[Unreleased]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.10.0...HEAD
+[Unreleased]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.11.0...HEAD
+[0.11.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.7.0...v0.8.0
