@@ -1,23 +1,22 @@
 package com.ddk.cache.starter.internal;
 
+import com.ddk.compat.Releases;
 import com.ddk.cache.starter.config.DdkCacheProperties;
 import com.ddk.cache.starter.invalidation.CacheInvalidationPublisher;
 import com.ddk.cache.starter.metrics.CacheMetrics;
 import com.ddk.cache.starter.support.DdkCacheManager;
 import com.ddk.cache.starter.support.TwoLevelCache;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.core.convert.support.DefaultConversionService;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.connection.DefaultMessage;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ObjectNode;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,18 +26,19 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
- * 一级缓存失效广播的跨版本兼容：{@code compat/0.10.0/redis.json} 里的两条消息由 DDK 0.10.0 写出（见仓库的 {@code compat/generator}）。
+ * 一级缓存失效广播的跨版本兼容：每个已发布版本的 {@code compat/<版本>/redis.json} 里的两条消息由那个版本写出（见仓库的 {@code compat/generator}）。
  * 滚动发布时新旧实例在同一个频道上互发，当前版本要处理旧消息，发出的消息旧版本也要能处理。
  */
-@DisplayName("与 0.10.0 的缓存失效消息兼容")
+@DisplayName("与已发布版本的缓存失效消息兼容")
 class CacheMessageCompatibilityTest {
 
     private final JsonMapper mapper = JsonMapper.builder().build();
 
-    @Test
-    @DisplayName("当前版本处理 0.10.0 发出的删除和清空消息")
-    void handlesMessagesFrom010() throws IOException {
-        JsonNode fixture = fixture();
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("com.ddk.compat.Releases#versions")
+    @DisplayName("当前版本处理已发布版本发出的删除和清空消息")
+    void handlesTheReleasedMessages(String version) {
+        JsonNode fixture = fixture(version);
         DdkCacheManager manager = new DdkCacheManager(new DdkCacheProperties(), null, new DefaultConversionService(),
                 CacheInvalidationPublisher.NOOP, CacheMetrics.NOOP);
         CacheInvalidationListener listener = new CacheInvalidationListener(manager, mapper, "instance-b");
@@ -54,10 +54,11 @@ class CacheMessageCompatibilityTest {
         assertThat(cache.peekLocal("sku-2")).isNull();
     }
 
-    @Test
-    @DisplayName("当前版本发出的消息与 0.10.0 的字段和取值相同，只有发送实例的标识不同")
-    void publishesTheSameMessages() throws IOException {
-        JsonNode fixture = fixture();
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("com.ddk.compat.Releases#versions")
+    @DisplayName("当前版本发出的消息与已发布版本的字段和取值相同，只有发送实例的标识不同")
+    void publishesTheSameMessages(String version) {
+        JsonNode fixture = fixture(version);
         StringRedisTemplate template = mock(StringRedisTemplate.class);
         RedisCacheInvalidationPublisher publisher = new RedisCacheInvalidationPublisher(template, mapper, "ddk:cache:invalidation");
 
@@ -80,9 +81,7 @@ class CacheMessageCompatibilityTest {
         return new DefaultMessage("ddk:cache:invalidation".getBytes(StandardCharsets.UTF_8), body.getBytes(StandardCharsets.UTF_8));
     }
 
-    private JsonNode fixture() throws IOException {
-        try (InputStream in = new ClassPathResource("compat/0.10.0/redis.json").getInputStream()) {
-            return mapper.readTree(in);
-        }
+    private JsonNode fixture(String version) {
+        return mapper.readTree(Releases.read(version, "redis.json"));
     }
 }

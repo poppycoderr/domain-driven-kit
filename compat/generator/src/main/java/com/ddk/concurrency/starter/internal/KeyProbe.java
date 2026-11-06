@@ -5,7 +5,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.TreeMap;
 
-/** Reaches the package-private scope and key names of @Idempotent and @RateLimit, exactly as 0.10.0 computes them. */
+/** Reaches the package-private scope and key names of @Idempotent and @RateLimit, exactly as the released version computes them. */
 public final class KeyProbe {
 
     private KeyProbe() {

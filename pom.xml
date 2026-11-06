@@ -322,6 +322,16 @@
 
     <build>
         <plugins>
+            <!-- 跨版本 fixture 测试据此检查：API 基线指向的发布版本必须有 fixture（见 compat/README.md） -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <ddk.compat.baseline>${api.baseline.version}</ddk.compat.baseline>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
