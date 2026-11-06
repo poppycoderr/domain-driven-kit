@@ -524,6 +524,7 @@
                             <excludeArtifacts>
                                 <excludeArtifact>ddk-examples</excludeArtifact>
                                 <excludeArtifact>ddk-example-user</excludeArtifact>
+                                <excludeArtifact>ddk-example-inventory</excludeArtifact>
                                 <excludeArtifact>ddk-mall</excludeArtifact>
                             </excludeArtifacts>
                         </configuration>

@@ -131,7 +131,7 @@ Not in 0.11:
 
 - [ ] Freeze the verified core API and the support matrix above; strict semantic versioning from then on. What is frozen, what stays experimental and what is still to decide is in the [freeze checklist](./COMPATIBILITY.md#10-freeze-checklist-draft)
 - [x] Context semantics on virtual threads: operator, trace, lock ordering, cancellation and pool reuse, not only "it starts"
-- [x] GraalVM support declared per module, starting with a minimal example, instead of all starters at once: verified in CI with `ddk-example-user`, listed in [SUPPORT.md](./SUPPORT.md#graalvm-native-images)
+- [x] GraalVM support declared per module, starting with a minimal example, instead of all starters at once: verified in CI with `ddk-example-user`, and with `ddk-example-inventory` for the Redis-backed starters, projections and the publication registry; listed in [SUPPORT.md](./SUPPORT.md#graalvm-native-images)
 - [x] Known limits, rollback paths and maintenance responsibility written down: [SUPPORT.md](./SUPPORT.md), and a rollback section per release in the upgrade guide
 
 ## Candidate pool
