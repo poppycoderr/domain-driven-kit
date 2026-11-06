@@ -19,6 +19,8 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ### Added
 
+- Native images verified for the concurrency, Redis, cache and projection starters, and for listeners that run through Spring Modulith's JDBC publication registry: CI builds a second example, `ddk-example-inventory`, against Redis and smoke-tests it. [SUPPORT.md](./SUPPORT.md#graalvm-native-images) lists what is checked
+- `ddk-concurrency-starter` registers, ahead of time, the reflection that the key expressions of `@AggregateLock`, `@Idempotent` and `@RateLimit` need on a native image: the parameter types of the annotated methods, as for JSON binding. Applications no longer register them
 - GraalVM native images, verified module by module: `ddk-mybatis-starter` registers the reflection that MyBatis-Plus and the default snowflake ID generator need, and CI builds `ddk-example-user` as a native image and smoke-tests it. `ddk-core`, `ddk-mybatis`, the web, MyBatis and MCP starters, and in-application domain events are verified; [SUPPORT.md](./SUPPORT.md#graalvm-native-images) lists the rest
 
 ### Changed
@@ -27,6 +29,8 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ### Fixed
 
+- A native image that uses Spring Modulith's JDBC publication registry starts. The event starter wraps the event multicaster to check publications outside a transaction, and created that proxy class at runtime, which a native image cannot do; the class is now generated ahead of time
+- The cache starter's local level works on a native image: it registers the Caffeine classes that its configuration builds, and the invalidation message it sends
 - Projections converge when a refresh writes after losing its claim and then fails, for example when an external write went through but its response was lost. The failure used to release the claim without marking the entry again, so the read model could keep the stale snapshot with no mark left. Now any acknowledgement or failure from a worker that no longer owns the mark leaves a mark behind; a mark that still exists only gets a new generation, which keeps the attempts and back-off of the worker that holds it
 - On MySQL, a projection refresh starts right after the commit, instead of sometimes waiting for the next sweep (30 s by default). The pending table stores `available_at` without fractional seconds, and MySQL rounds them on insert, so a mark written in the second half of a second was due only in the next second and the wake-up after the commit did not see it. Marks are now written due at the start of their second. H2 and PostgreSQL were not affected
 - An application's own `CacheInvalidationPublisher` replaces the Redis one without failing startup. The Redis listener container used to require DDK's internal publisher, so a replacement made the context fail when Redis was present and a cache used its local level. DDK now subscribes to its channel only when it also publishes on it

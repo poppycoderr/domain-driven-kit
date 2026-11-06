@@ -32,15 +32,20 @@ How thoroughly each module is verified, and its known limits, is in the [support
 
 Native images are verified module by module, not promised for all of DDK at once. CI builds `ddk-example-user` with GraalVM CE 25.0.2 (`mvn -Pnative native:compile` from Spring Boot's parent) and runs `scripts/native-smoke.sh` against the executable. It checks the example's success paths and the listed error paths: a conditional query and an insert with a snowflake ID, a read by ID, paging filtered two ways with its total, an update, a disable and a delete, Bean Validation (`VALIDATION_ERROR`), a business error, a domain rule and a missing entity, an MCP tool call, and two domain event listeners after commit. It does not check optimistic-lock conflicts, rolled-back transactions or anything the example does not use, such as tenants, data scope, the outbox or Redis.
 
+CI also builds `ddk-example-inventory` against a Redis service and runs `scripts/native-smoke-inventory.sh`: a read through the two-level cache and its eviction by a write, a reservation under an aggregate lock with duplicate-submit protection and its duplicate rejected, a domain rule and Bean Validation, a rate limit reached, a projection refreshed after commit, and a listener that runs through Spring Modulith's JDBC publication registry with `IdempotentConsumer`. It runs one instance, so it does not check locks or cache invalidation across instances, a lock that times out, retries of failed refreshes or publications, or tenants.
+
 | Module | Native image |
 |---|---|
 | `ddk-core`, `ddk-mybatis`, `ddk-mybatis-starter`, `ddk-web-starter` | Verified in CI |
-| `ddk-event-starter` | Verified in CI for domain events inside the application; the outbox and RocketMQ delivery are not verified |
+| `ddk-event-starter` | Verified in CI for domain events inside the application, and for listeners run through Spring Modulith's JDBC publication registry with `IdempotentConsumer`. Externalizing events to RocketMQ is not verified |
+| `ddk-concurrency-starter` | Verified in CI against Redis: aggregate locks, duplicate-submit protection and rate limits. The parameter types that key expressions read are registered for reflection automatically |
+| `ddk-redis-starter`, `ddk-cache-starter` | Verified in CI: two-level cache reads, eviction, the invalidation message it publishes. The types an application stores in Redis are its own to register for reflection, for example with `@RegisterReflectionForBinding` |
+| `ddk-projection-starter` | Verified in CI: a mark written with the transaction and refreshed after commit, on H2 |
 | `ddk-mcp-starter` | Verified in CI: synchronous server over streamable HTTP, tool calls |
 | Archetypes | A project generated from 0.10.0 compiled and started once by hand; not in CI |
 | Every other module | Not verified. It may work; nothing tests it |
 
-`ddk-mybatis-starter` registers the reflection that MyBatis-Plus and the default ID generator need on a native image, so applications add nothing for it. A module moves up this table when CI exercises it.
+`ddk-mybatis-starter` registers the reflection that MyBatis-Plus and the default ID generator need on a native image, `ddk-cache-starter` the Caffeine classes of its local level, and `ddk-concurrency-starter` the parameters its key expressions read, so applications add nothing for them. A module moves up this table when CI exercises it.
 
 ## Rolling back an upgrade
 

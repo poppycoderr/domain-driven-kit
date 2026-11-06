@@ -72,11 +72,25 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
-  # GraalVM 原生镜像：编译 ddk-example-user，再对可执行文件跑冒烟测试。
-  # 这个示例覆盖 web、mybatis、event、mcp 四个 starter；声明为原生已验证的模块以它为准
+  # GraalVM 原生镜像：编译示例，再对可执行文件跑冒烟测试。ddk-example-user 覆盖 web、mybatis、event、mcp，
+  # ddk-example-inventory 覆盖并发、Redis、两级缓存、投影和发布登记；声明为原生已验证的模块以它们为准
   native:
     runs-on: ubuntu-latest
-    name: native image
+    name: native image (${{ matrix.example }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - example: ddk-example-user
+            smoke: scripts/native-smoke.sh
+          # 依赖 Redis 的 starter：并发、两级缓存、投影、Spring Modulith 的发布登记
+          - example: ddk-example-inventory
+            smoke: scripts/native-smoke-inventory.sh
+    services:
+      redis:
+        image: redis:7.4
+        ports:
+          - 6379:6379
     steps:
       - uses: actions/checkout@v4
 
@@ -89,13 +103,13 @@ jobs:
 
       # 测试已经在 test 任务里跑过，这里只构建示例用到的模块
       - name: Install the modules the example needs
-        run: mvn -B -ntp install -DskipTests -pl ddk-examples/ddk-example-user -am
+        run: mvn -B -ntp install -DskipTests -pl ddk-examples/${{ matrix.example }} -am
 
       - name: Build the native image
-        run: mvn -B -ntp -Pnative -DskipTests -pl ddk-examples/ddk-example-user native:compile
+        run: mvn -B -ntp -Pnative -DskipTests -pl ddk-examples/${{ matrix.example }} native:compile
 
       - name: Smoke test the native image
-        run: scripts/native-smoke.sh ddk-examples/ddk-example-user/target/ddk-example-user
+        run: ${{ matrix.smoke }} ddk-examples/${{ matrix.example }}/target/${{ matrix.example }}
 
   # 分支保护要求名为 build 的检查；矩阵任务的名字带 Java 版本，由这个汇总任务统一给出结果
   build:

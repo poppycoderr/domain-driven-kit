@@ -92,7 +92,7 @@ MAVEN_GPG_PASSPHRASE="$(cat <passphrase-file>)" \
 mvn -B -ntp -Prelease,central deploy
 ```
 
-The build signs every file, leaves out `ddk-examples`, `ddk-example-user` and `ddk-mall`, bundles the reactor into `ddk-dependencies/target/central-publishing/central-bundle.zip` and uploads it as the deployment `com.domaindrivenkit:X.Y.Z` (the profile sets `deploymentName`; the plugin's own default is `Deployment`). With `autoPublish=false` and `waitUntil=validated`, Maven returns once the Portal has validated the deployment; nothing is public yet.
+The build signs every file, leaves out `ddk-examples`, `ddk-example-user`, `ddk-example-inventory` and `ddk-mall`, bundles the reactor into `ddk-dependencies/target/central-publishing/central-bundle.zip` and uploads it as the deployment `com.domaindrivenkit:X.Y.Z` (the profile sets `deploymentName`; the plugin's own default is `Deployment`). With `autoPublish=false` and `waitUntil=validated`, Maven returns once the Portal has validated the deployment; nothing is public yet.
 
 ### Check, then publish
 
