@@ -79,7 +79,7 @@ Generate a four-layer service (`ddk-layer3-archetype` for three layers):
 mvn archetype:generate \
   -DarchetypeGroupId=com.domaindrivenkit \
   -DarchetypeArtifactId=ddk-layer4-archetype \
-  -DarchetypeVersion=0.10.0 \
+  -DarchetypeVersion=0.11.0 \
   -DgroupId=com.acme \
   -DartifactId=order-service \
   -Dpackage=com.acme.order \
@@ -95,7 +95,7 @@ To add DDK to an existing Spring Boot 4.1 project, import the BOM and leave out 
         <dependency>
             <groupId>com.domaindrivenkit</groupId>
             <artifactId>ddk-dependencies</artifactId>
-            <version>0.10.0</version>
+            <version>0.11.0</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -128,10 +128,10 @@ See the full guide: [Quick Start](https://domaindrivenkit.com/ddk/quickstart).
 Artifacts on Maven Central are signed with the DDK release key, fingerprint `02F5 D443 996C 2388 C803 9D6C AE07 FF4C 8842 56F0` ([public key](https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x02F5D443996C2388C8039D6CAE07FF4C884256F0)). Download a jar and its `.asc` from Maven Central, import the key and verify; `gpg` should report a good signature and this primary key fingerprint:
 
 ```bash
-curl -fsSO https://repo.maven.apache.org/maven2/com/domaindrivenkit/ddk-core/0.10.0/ddk-core-0.10.0.jar
-curl -fsSO https://repo.maven.apache.org/maven2/com/domaindrivenkit/ddk-core/0.10.0/ddk-core-0.10.0.jar.asc
+curl -fsSO https://repo.maven.apache.org/maven2/com/domaindrivenkit/ddk-core/0.11.0/ddk-core-0.11.0.jar
+curl -fsSO https://repo.maven.apache.org/maven2/com/domaindrivenkit/ddk-core/0.11.0/ddk-core-0.11.0.jar.asc
 gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys 02F5D443996C2388C8039D6CAE07FF4C884256F0
-gpg --verify ddk-core-0.10.0.jar.asc ddk-core-0.10.0.jar
+gpg --verify ddk-core-0.11.0.jar.asc ddk-core-0.11.0.jar
 ```
 
 The jars on [GitHub Releases](https://github.com/poppycoderr/domain-driven-kit/releases) are built by the release workflow and carry a build provenance attestation: `gh attestation verify <jar> --repo poppycoderr/domain-driven-kit`. The two are separate builds of the same tag, so take the jar and the `.asc` from the same place: a GitHub Release jar does not match a Maven Central signature.
@@ -287,10 +287,11 @@ Released so far:
 
 9. **v0.9 Reliability and the production path**: converging projections, safe idempotency, stable consumer identities, tenants in background work, event and projection operations, an [upgrade guide](https://domaindrivenkit.com/ddk/upgrade)
 10. **v0.10 Adoption and upgrades**: the `com.domaindrivenkit` groupId, a review of the public API and dependencies, build provenance on releases, signing for Maven Central, upgrade rehearsals
+11. **v0.11 Contracts before the freeze**: data and wire formats and the platform policy written down, fixtures of released data, an asserted upgrade and rollback rehearsal, a 1.0 freeze checklist draft
 
 Next:
 
-11. **v1.0 Freeze**: only what has been verified, with a support matrix
+12. **v1.0 Freeze**: only what has been verified, with a support matrix
 
 See [ROADMAP.md](./ROADMAP.md) for the full plan.
 

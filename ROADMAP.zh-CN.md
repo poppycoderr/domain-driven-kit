@@ -82,28 +82,18 @@ DDK 只有一个版本号，但各模块经受的验证并不一样。每个模�
 | Archetype（三层、四层） | 已验证 | 生成的项目在 CI 里构建和测试 | |
 | `ddk-mall` | 已验证，作为参考实现 | MySQL、Redis、RocketMQ、Elasticsearch | 支付渠道是模拟的；`secure` profile 用演示用户 |
 
-## 最新版本：0.10
+## 最新版本：0.11
 
-[0.10.0](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v0.10.0) 于 2026-10-22 发布，完成了「可采用与可升级」阶段。**目标：仓库之外的人不读源码，也能用上 DDK、在版本之间升级。**
+[0.11.0](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v0.11.0) 于 RELEASE_DATE 发布。**目标：把 1.0 要冻结的契约定下来，补上 2026 年 10 月冻结评审发现的可靠性缺口，并在一个真实项目上验证升级和回退。** 0.11 不新增 starter，也不扩大任何支持声明；具体变化见 [CHANGELOG](./CHANGELOG.md) 和[升级指南](https://domaindrivenkit.com/ddk/upgrade)。
 
-- [x] 干净环境构建：在仓库之外、本地 Maven 仓库为空的项目里，只靠安装脚本和 BOM，生成并验证两种 archetype
-- [x] 升级演练：一个 0.8 项目升级到 0.9、一个 0.9 项目升级到 0.10，都只看[升级指南](https://domaindrivenkit.com/ddk/upgrade)
-- [x] 公开 API 与依赖审查：自动配置统一命名为 `Ddk*AutoConfiguration`，`@Bean` 方法包级可见；Hutool 只由用到它的模块声明
-- [x] 分发准备：Maven 坐标定为 `com.domaindrivenkit`，以项目自己的域名为依据；每个发布产物都有构建来源证明；`central` profile 负责签名和打包，发布到 Maven 中央仓库成为一个决定，而不是一个项目
-- [x] CI 分成带名字的阶段（单元、装配与中间件测试、生成项目、API 兼容），有测试被跳过就失败；检查 BOM 和父 pom 的版本一致
-
-## 下一个版本：0.11
-
-**目标：把 1.0 要冻结的契约定下来，补上 2026 年 10 月冻结评审发现的可靠性缺口，并在一个真实项目上验证升级和回退。** 0.11 不新增 starter，也不扩大任何支持声明；具体变化见 CHANGELOG 的 [Unreleased](./CHANGELOG.md#unreleased) 和[升级指南](https://domaindrivenkit.com/ddk/upgrade)。
-
-契约，已在 `main`：
+契约：
 
 - [x] [COMPATIBILITY.zh-CN.md](./COMPATIBILITY.zh-CN.md) 列出滚动升级依赖的数据和传输格式，不只是 key 名和表名：Outbox 记录、消息头的取值、去重消费方的身份、Redis 值、缓存失效消息
 - [x] 同时写明每种版本可以做哪些平台变化：1.x 最低 Java 21、Spring Boot 4 系列、DDK 固定版本的库，以及出现在 DDK API 里的库类型
 - [x] 已发布的 0.10.0 写下的数据，当前代码能读，并且按同样的方式写回（[`compat/`](./compat/README.md)）：事件消息、Outbox 记录、两张表、Redis 值、缓存失效消息、锁 key
 - [x] 两项行为变化列在 **Breaking** 下并给出迁移步骤：`@Idempotent` 和 `@RateLimit` 的默认 scope 写全参数类型；等锁时被中断报 `CancellationException`
 
-可靠性，已在 `main`：
+可靠性：
 
 - [x] 失去领取的 worker 写入后又失败时，投影也能收敛
 - [x] 应用自己的 `CacheInvalidationPublisher` 可以替换 Redis 发布器
@@ -111,12 +101,12 @@ DDK 只有一个版本号，但各模块经受的验证并不一样。每个模�
 - [x] 事件维护在两个实例、真实 Redis 锁下测试
 - [x] GraalVM：CI 把 `ddk-example-user` 构建成原生镜像并做冒烟测试；支持情况按模块写在 [SUPPORT.zh-CN.md](./SUPPORT.zh-CN.md#graalvm-原生镜像)
 
-验收，发布 0.11.0 之前：
+验收：
 
 - [x] 防重复提交和限流 key 的跨版本 fixture，这是 0.11 唯一改变的持久格式：key 的结构不变，默认 scope 按 **Breaking** 里写的改变
 - [x] 升级与回退演练：用 Maven 中央仓库的 0.10.0 生成一个项目，升级到 0.11 再回退，0.10 和 0.11 的实例共用一个 MySQL 和一个 Redis 同时运行，检查 Redis key、两个版本同时运行期间各用一套的登记和额度、取消，以及两个版本共用的表和 Outbox 记录。步骤和结果见[升级指南](https://domaindrivenkit.com/ddk/upgrade)
 - [x] 1.0 冻结清单草案：冻结什么、哪些保持实验性、哪些还没定，见 [COMPATIBILITY.zh-CN.md](./COMPATIBILITY.zh-CN.md#10-冻结清单草案)
-- [ ] 候选版本通过 Java 21 和 25、生成项目、API 比较和原生镜像任务。发布之后把它的 fixture 加到 `compat/`，`api.baseline.version` 改为 0.11.0
+- [x] 候选版本通过 Java 21 和 25、生成项目、API 比较和原生镜像任务。发布之后把它的 fixture 加到 `compat/`，`api.baseline.version` 改为 0.11.0
 
 不在 0.11 里：
 
@@ -164,6 +154,7 @@ DDK 只有一个版本号，但各模块经受的验证并不一样。每个模�
 | 0.8 | 读模型投影、行级数据权限 |
 | 0.9 | 2026 年 10 月评审的可靠性修复、后台工作的租户、投影与事件运维、`ddk-mall` 的支付对账与 secure profile、升级指南 |
 | 0.10 | 可采用与可升级：groupId 改为 `com.domaindrivenkit`、公开 API 与依赖审查、发布来源证明与中央仓库签名、CI 分阶段 |
+| 0.11 | 冻结前的契约：COMPATIBILITY 里的数据与传输格式和平台政策、已发布数据的 fixture、带断言的升级与回退演练、1.0 冻结清单草案 |
 
 ## 明确不做
 

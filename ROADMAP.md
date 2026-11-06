@@ -82,28 +82,18 @@ DDK has one version number, but its modules are not equally proven. Each one has
 | Archetypes (three and four layers) | Verified | Generated projects are built and tested in CI | |
 | `ddk-mall` | Verified, as a reference | MySQL, Redis, RocketMQ, Elasticsearch | Simulated payment channel; demo users in the `secure` profile |
 
-## Latest release: 0.10
+## Latest release: 0.11
 
-[0.10.0](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v0.10.0), released on 2026-10-22, completes the adoption and upgrades stage. **Goal: someone outside this repository can use DDK and move between versions without reading its source.**
+[0.11.0](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v0.11.0), released on RELEASE_DATE. **Goal: settle the contracts that 1.0 will freeze, close the reliability gaps that the October 2026 freeze review found, and prove the upgrade and the way back on a real project.** 0.11 adds no starter and widens no support claim; what changed is in the [changelog](./CHANGELOG.md) and the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade).
 
-- [x] Clean-room build: a project outside the repository with an empty local Maven repository, using only the installer and the BOM; both archetypes generated and verified
-- [x] Upgrade rehearsals: a 0.8 project upgraded to 0.9, and a 0.9 project to 0.10, with nothing but the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade)
-- [x] Public API and dependency review: auto-configurations named `Ddk*AutoConfiguration` with package-private `@Bean` methods; Hutool declared only where it is used
-- [x] Distribution: Maven coordinates `com.domaindrivenkit`, a namespace backed by the project's own domain; build provenance on every release artifact; a `central` profile that signs and bundles a release, so publishing to Maven Central is a decision rather than a project
-- [x] CI in named stages (unit, wiring and middleware tests, generated projects, API compatibility) that fails when a test is skipped; the BOM checked against the parent pom
-
-## Next release: 0.11
-
-**Goal: settle the contracts that 1.0 will freeze, close the reliability gaps that the October 2026 freeze review found, and prove the upgrade and the way back on a real project.** 0.11 adds no starter and widens no support claim; what changes is listed under [Unreleased](./CHANGELOG.md#unreleased) in the changelog and in the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade).
-
-Contracts, on `main`:
+Contracts:
 
 - [x] [COMPATIBILITY.md](./COMPATIBILITY.md) names the data and wire formats that a rolling upgrade depends on, not only key and table names: outbox rows, the values of the message headers, the identity of idempotent consumers, Redis values and the cache invalidation message
 - [x] It also says which platform changes each kind of release may make: Java 21 as the minimum for 1.x, the Spring Boot 4 line, the libraries DDK pins, and the library types that appear in DDK's API
 - [x] Data written by the released 0.10.0 is read, and written back the same way, by the current code ([`compat/`](./compat/README.md)): event messages, outbox rows, both tables, Redis values, cache invalidation messages and lock keys
 - [x] Two behavior changes are listed under **Breaking** with migration steps: the default scope of `@Idempotent` and `@RateLimit` names parameter types in full, and an interrupt while waiting for a lock is reported as `CancellationException`
 
-Reliability, on `main`:
+Reliability:
 
 - [x] Projections converge when a worker that lost its claim writes and then fails
 - [x] An application's own `CacheInvalidationPublisher` replaces the Redis one
@@ -111,12 +101,12 @@ Reliability, on `main`:
 - [x] Event maintenance tested on two instances against a real Redis lock
 - [x] GraalVM: `ddk-example-user` built as a native image and smoke-tested in CI; support declared per module in [SUPPORT.md](./SUPPORT.md#graalvm-native-images)
 
-Acceptance, before 0.11.0 is released:
+Acceptance:
 
 - [x] Cross-version fixtures for the idempotency and rate-limit keys, the one stored format that 0.11 changes: the key structure is unchanged, the default scope changes as listed under **Breaking**
 - [x] An upgrade and rollback rehearsal on a project generated from 0.10.0 on Maven Central, with 0.10 and 0.11 instances side by side on one MySQL and one Redis: Redis keys, the separate registrations and quotas while both versions run, cancellation, and the tables and outbox rows both versions share. Steps and results are in the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade)
 - [x] A draft of the 1.0 freeze checklist: what freezes, what stays experimental, what is still open, in [COMPATIBILITY.md](./COMPATIBILITY.md#10-freeze-checklist-draft)
-- [ ] The release candidate passes Java 21 and 25, generated projects, the API check and the native image job. After the release, its fixtures are added under `compat/` and `api.baseline.version` moves to 0.11.0
+- [x] The release candidate passes Java 21 and 25, generated projects, the API check and the native image job. After the release, its fixtures are added under `compat/` and `api.baseline.version` moves to 0.11.0
 
 Not in 0.11:
 
@@ -164,6 +154,7 @@ No order and no dates. An item moves into a release when there is a concrete nee
 | 0.8 | Projections, row-level data scope |
 | 0.9 | Reliability fixes from the October 2026 review, tenants in background work, projection and event operations, payment recovery and a secure profile in `ddk-mall`, an upgrade guide |
 | 0.10 | Adoption and upgrades: the `com.domaindrivenkit` groupId, the public API and dependency review, release provenance and Central signing, CI in named stages |
+| 0.11 | Contracts before the freeze: data and wire formats and the platform policy in COMPATIBILITY.md, fixtures of released data, an asserted upgrade and rollback rehearsal, a draft of the 1.0 freeze checklist |
 
 ## Non-goals
 
