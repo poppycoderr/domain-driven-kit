@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.domaindrivenkit</groupId>
+        <artifactId>ddk-examples</artifactId>
+        <version>0.12.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>ddk-example-inventory</artifactId>
+    <name>DDK Example - Inventory</name>
+    <description>Stock reservations on Redis-backed starters, checked on the JVM and as a GraalVM native image</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.domaindrivenkit</groupId>
+            <artifactId>ddk-web-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.domaindrivenkit</groupId>
+            <artifactId>ddk-concurrency-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.domaindrivenkit</groupId>
+            <artifactId>ddk-cache-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.domaindrivenkit</groupId>
+            <artifactId>ddk-projection-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.domaindrivenkit</groupId>
+            <artifactId>ddk-event-starter</artifactId>
+        </dependency>
+        <!-- 事件先登记再交给监听器：Spring Modulith 的 JDBC 发布登记 -->
+        <dependency>
+            <groupId>org.springframework.modulith</groupId>
+            <artifactId>spring-modulith-starter-jdbc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.domaindrivenkit</groupId>
+            <artifactId>ddk-archguard-starter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.domaindrivenkit</groupId>
+            <artifactId>ddk-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

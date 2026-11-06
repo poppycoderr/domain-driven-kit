@@ -92,7 +92,7 @@ MAVEN_GPG_PASSPHRASE="$(cat <口令文件>)" \
 mvn -B -ntp -Prelease,central deploy
 ```
 
-构建会给每个文件签名，排除 `ddk-examples`、`ddk-example-user`、`ddk-mall`，把整个 reactor 打成 `ddk-dependencies/target/central-publishing/central-bundle.zip`，以部署名称 `com.domaindrivenkit:X.Y.Z` 上传（由 profile 里的 `deploymentName` 设定；插件自己的默认名称是 `Deployment`）。因为 `autoPublish=false`、`waitUntil=validated`，Maven 在 Portal 校验完部署后返回，此时还没有任何东西公开。
+构建会给每个文件签名，排除 `ddk-examples`、`ddk-example-user`、`ddk-example-inventory`、`ddk-mall`，把整个 reactor 打成 `ddk-dependencies/target/central-publishing/central-bundle.zip`，以部署名称 `com.domaindrivenkit:X.Y.Z` 上传（由 profile 里的 `deploymentName` 设定；插件自己的默认名称是 `Deployment`）。因为 `autoPublish=false`、`waitUntil=validated`，Maven 在 Portal 校验完部署后返回，此时还没有任何东西公开。
 
 ### 检查，再发布
 

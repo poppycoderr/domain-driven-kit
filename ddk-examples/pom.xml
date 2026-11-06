@@ -19,6 +19,7 @@
 
     <modules>
         <module>ddk-example-user</module>
+        <module>ddk-example-inventory</module>
         <module>ddk-mall</module>
     </modules>
 </project>

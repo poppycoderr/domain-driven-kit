@@ -12,6 +12,16 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ## [Unreleased]
 
+### Added
+
+- Native images verified for the concurrency, Redis, cache and projection starters, and for listeners that run through Spring Modulith's JDBC publication registry: CI builds a second example, `ddk-example-inventory`, against Redis and smoke-tests it. [SUPPORT.md](./SUPPORT.md#graalvm-native-images) lists what is checked
+- `ddk-concurrency-starter` registers, ahead of time, the reflection that the key expressions of `@AggregateLock`, `@Idempotent` and `@RateLimit` need on a native image: the parameter types of the annotated methods, as for JSON binding. Applications no longer register them
+
+### Fixed
+
+- A native image that uses Spring Modulith's JDBC publication registry starts. The event starter wraps the event multicaster to check publications outside a transaction, and created that proxy class at runtime, which a native image cannot do; the class is now generated ahead of time
+- The cache starter's local level works on a native image: it registers the Caffeine classes that its configuration builds, and the invalidation message it sends
+
 ## [0.11.0] - 2026-11-10
 
 Settling the contracts that 1.0 will freeze. COMPATIBILITY.md now names the data and wire formats a rolling upgrade depends on and what each kind of release may change on the platform, and drafts the 1.0 freeze checklist. Data that 0.10.0 wrote is read and written back the same way by tests, including the idempotency and rate-limit keys. Two behavior changes need attention when upgrading: the default scope of `@Idempotent` and `@RateLimit`, which changes their Redis keys, and cancellation while waiting for a lock. Projections converge in one more failure case and refresh right after the commit on MySQL, an application's cache invalidation publisher replaces DDK's, and `ddk-example-user` runs as a GraalVM native image in CI. The upgrade and the rollback were rehearsed with 0.10 and 0.11 instances side by side; the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) lists the steps.
