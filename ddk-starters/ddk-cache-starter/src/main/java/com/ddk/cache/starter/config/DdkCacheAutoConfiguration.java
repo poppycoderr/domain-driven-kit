@@ -1,6 +1,7 @@
 package com.ddk.cache.starter.config;
 
 import com.ddk.cache.starter.internal.CacheInvalidationListener;
+import com.ddk.cache.starter.internal.CacheRuntimeHints;
 import com.ddk.cache.starter.internal.JitteredTtlFunction;
 import com.ddk.cache.starter.internal.MicrometerCacheMetrics;
 import com.ddk.cache.starter.internal.RedisCacheInvalidationPublisher;
@@ -25,6 +26,7 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.BatchStrategies;
@@ -64,6 +66,7 @@ import java.util.function.Function;
 @ConditionalOnProperty(prefix = DdkCacheProperties.PREFIX, name = "enabled", matchIfMissing = true)
 @EnableConfigurationProperties(DdkCacheProperties.class)
 @EnableCaching
+@ImportRuntimeHints(CacheRuntimeHints.class)
 public class DdkCacheAutoConfiguration {
 
     /**
