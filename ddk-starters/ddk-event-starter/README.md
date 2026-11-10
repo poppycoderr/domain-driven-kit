@@ -11,6 +11,22 @@ aggregate.registerEvent(e) ──► repository save ──► DomainEventPublis
                             sent to Kafka / AMQP / JMS / Spring Messaging after commit
 ```
 
+## In 30 seconds
+
+1. Add the dependency:
+
+   ```xml
+   <dependency>
+       <groupId>com.domaindrivenkit</groupId>
+       <artifactId>ddk-event-starter</artifactId>
+   </dependency>
+   ```
+
+2. In an aggregate, call `registerEvent(new OrderPlacedEvent(...))`; save it through a `GenericRepositoryImpl` repository inside a `@Transactional` service method.
+3. Check it: a `@TransactionalEventListener(phase = AFTER_COMMIT)` method receives the event once the transaction commits, and not at all when it rolls back.
+
+Integration events (`@IntegrationEvent`) also need Spring Modulith's `event_publication` table: let Modulith create it with `spring.modulith.events.jdbc.schema-initialization.enabled=true`, or create it in your migrations.
+
 ## Usage
 
 ```xml
@@ -347,3 +363,16 @@ With Micrometer present, `ddk.event.publications{status}` reports how many publi
 | `ddk.event.maintenance.delete-completed-after` | `7d` | Delete completed publications older than this; `0` keeps them |
 | `ddk.event.maintenance.inbox-retention` | `7d` | Delete processed message records older than this; `0` keeps them. Longer than any redelivery or resubmission window |
 | `spring.modulith.events.*` | Spring Modulith | Registry schema, republishing on restart, completion mode, staleness |
+
+## Common errors
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `X was published outside a transaction and will not be delivered` | An integration event was published with no transaction, so Modulith cannot record it | Publish from the `@Transactional` method that changes the data; `ddk.event.outside-transaction=warn` only logs |
+| SQL error that `event_publication` does not exist | Modulith's table was never created | Turn on `spring.modulith.events.jdbc.schema-initialization.enabled` or add the table to your migrations |
+| `@IntegrationEvent on X has a blank target` or `must have version >= 1` | The annotation is incomplete | Give it a target and a version of 1 or more |
+| `Integration event contract ... is declared by both A and B` | Two event classes claim the same contract | Give each its own contract name, or remove the duplicate |
+| `X must declare a group and a source` | An `IntegrationEventConsumer` is missing its group or source | Implement both |
+| `X is idempotent but the message has no ddk-event-id header` | The message was not produced by DDK, or a bridge dropped the header | Send through DDK, or keep the `ddk-event-id` header when forwarding |
+| Startup fails: `ddk.event.rocketmq.name-server must not be empty` | The RocketMQ consumer is on without a name server | Set `ddk.event.rocketmq.name-server` |
+| `ddk.event.publications{status="failed"}` stays above zero | Deliveries failed and were not resubmitted | See [Operations](#operations): turn on `ddk.event.maintenance` or resubmit through Modulith |

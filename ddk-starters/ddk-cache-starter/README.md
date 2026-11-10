@@ -12,6 +12,28 @@ A two-level cache behind the standard Spring Cache annotations: Caffeine (L1, pe
   write or evict L2 → L1 → broadcast "evict key" to other instances' L1
 ```
 
+## In 30 seconds
+
+1. Add the dependency and point Spring Boot at Redis:
+
+   ```xml
+   <dependency>
+       <groupId>com.domaindrivenkit</groupId>
+       <artifactId>ddk-cache-starter</artifactId>
+   </dependency>
+   ```
+
+   ```yaml
+   spring:
+     data:
+       redis:
+         host: localhost
+         port: 6379
+   ```
+
+2. Put `@Cacheable("dictionary")` on a read method. `@EnableCaching` is already applied.
+3. Check it: call the method twice; the second call does not run the method, and `redis-cli --scan --pattern 'ddk:cache:dictionary::*'` shows the entry.
+
 ## Why a Cache, not a CacheManager
 
 `CompositeCacheManager` routes by cache name: the first manager that knows a name serves every request, and Caffeine knows every name. Redis would never be reached. Layered lookup has to happen inside a single `Cache`, which is what `TwoLevelCache` does.
@@ -77,3 +99,13 @@ With Micrometer on the classpath:
 | `ddk.cache.remote.errors` | `cache`, `operation` = `get` / `put` / `evict` / `clear` |
 
 Keys are never used as tags.
+
+## Common errors
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Startup logs `No RedisConnectionFactory found, DDK cache runs with the local level only` | No Redis connection is configured, so only the local level (L1) works and nothing is shared between instances | Configure `spring.data.redis.*`, or accept local-only caching in that environment |
+| Logs `L2 cache [...] get failed, falling back` | Redis failed during an operation; the cache falls back instead of failing the call | Check Redis; the warning repeats while it is down |
+| Another instance serves an old value for a while | L1 is on and the invalidation broadcast was missed or turned off | Keep `ddk.cache.local.broadcast-evict=true`; `local-ttl` bounds how long a missed invalidation can last |
+| Startup fails: `ttl jitter must be within [0, 1]` | `ddk.cache.ttl-jitter` is out of range | Use a ratio such as `0.1` |
+| A value cached with `@Cacheable` cannot be read through `RedisTemplate` | The cache uses its own serialization | Read cached values through the cache |

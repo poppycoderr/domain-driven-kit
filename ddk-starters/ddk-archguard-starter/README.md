@@ -2,6 +2,21 @@
 
 Executable architecture rules for DDD projects, built on ArchUnit. Layering written in a document is a suggestion; written as a test it fails the build.
 
+## In 30 seconds
+
+1. Add the dependency with `test` scope; the version comes from the `ddk-dependencies` BOM:
+
+   ```xml
+   <dependency>
+       <groupId>com.domaindrivenkit</groupId>
+       <artifactId>ddk-archguard-starter</artifactId>
+       <scope>test</scope>
+   </dependency>
+   ```
+
+2. Write the `ArchitectureTest` shown under [Usage](#usage), importing your application's root package.
+3. Check it: reference a `*Mapper` from a controller and run `mvn test`. The test fails with a report that names the class, the rule and how to fix it.
+
 ## Usage
 
 ```xml
@@ -92,3 +107,13 @@ Every rule passes on projects where a layer has no classes yet, so a freshly gen
 ## Custom package names
 
 Layers are matched by package name. If your packages differ, copy the rule from `CommonArchRules` and change its `definedBy(...)` patterns.
+
+## Common errors
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Rule '...' failed to check any classes` | The imported package matches no class, often a typo in `importPackages(...)` | Import your application's root package |
+| Violations in classes of a library, such as `com.ddk.core.domain` | Jars were imported along with your code | Add `ImportOption.Predefined.DO_NOT_INCLUDE_JARS` |
+| Violations in test classes | Tests were imported; they often reach across layers to set up a scenario | Add `ImportOption.Predefined.DO_NOT_INCLUDE_TESTS` |
+| `DDK_INTERNALS_MUST_NOT_BE_USED` fails | Your code uses a class from a `com.ddk.*.internal` package, which can change in any release | Use the public type the starter documents, or declare your own bean |
+| A wiring class that has to name implementation classes breaks the layering rule | Wiring belongs outside the layers | Put it in a `@Configuration` class in a package outside the layers, such as `config`, and keep business logic out of it |

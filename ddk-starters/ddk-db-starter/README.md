@@ -2,6 +2,22 @@
 
 Registers several JDBC data sources from configuration. Each source gets its own `DataSource`, transaction manager and `JdbcTemplate`; one of them is primary.
 
+## In 30 seconds
+
+1. Add the dependency:
+
+   ```xml
+   <dependency>
+       <groupId>com.domaindrivenkit</groupId>
+       <artifactId>ddk-db-starter</artifactId>
+   </dependency>
+   ```
+
+2. Configure the sources under `ddk.datasource.sources.<name>` as shown under [Usage](#usage), and name the primary one when there are several.
+3. Check it: the beans `<name>DataSource`, `<name>TransactionManager` and `<name>JdbcTemplate` exist for each source, for example in `/actuator/beans`.
+
+This starter is experimental: it has wiring tests only.
+
 ## Usage
 
 ```xml
@@ -61,3 +77,13 @@ public void record(@Qualifier("auditJdbcTemplate") JdbcTemplate audit) { ... }
 - Runs before Spring Boot's `DataSourceAutoConfiguration`, so Boot's single data source, transaction manager and `JdbcTemplate` back off.
 - Startup fails immediately when several sources have no `primary`, when `primary` names no source, or when a source has no `url`.
 - This starter does not route between data sources at runtime, and MyBatis-Plus binds to the primary data source only.
+
+## Common errors
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `ddk.datasource.primary must be set when more than one data source is configured, candidates: [...]` | Several sources and no primary | Set `ddk.datasource.primary` to one of the names |
+| `ddk.datasource.primary '...' does not match any configured data source` | A typo in the primary's name | Use one of the listed candidates |
+| `ddk.datasource.sources.<name>.url must be set` | A source has no URL | Set its `url` |
+| MyBatis-Plus queries go to the wrong database | MyBatis-Plus binds only to the primary data source | Configure your own `SqlSessionFactory` for the other sources |
+| A write to a non-primary source is not rolled back | The transaction used the primary's transaction manager | Name it: `@Transactional(transactionManager = "<name>TransactionManager")` |
