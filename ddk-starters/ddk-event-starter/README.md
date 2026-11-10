@@ -289,7 +289,14 @@ public boolean runInEventTenant() {
 
 ## Idempotent consumers
 
-Delivery is at least once, so a consumer can see the same message twice. `IdempotentConsumer` runs a handler only once per consumer and message ID:
+Delivery is at least once, so a consumer can see the same message twice. `IdempotentConsumer` runs a handler only once per consumer and message ID.
+
+> **It relies on two things, and skips messages silently when they do not hold.**
+>
+> - **Message IDs are unique across tenants.** The key is the consumer and the message ID, without the tenant. If two tenants publish events with the same ID, for example order numbers that each tenant counts from 1, the second one is taken for a duplicate and never handled. Use a globally unique value, such as a UUID, as the event's `id()`.
+> - **Messages come from a source the consumer trusts.** The tenant header is not signed, so whoever can write to the topic can use any ID and any tenant.
+>
+> The once-only guarantee covers the handler's writes in the same database transaction, for as long as the record is kept. Side effects outside the database can happen twice.
 
 ```java
 @KafkaListener(topics = "user-events")
@@ -381,4 +388,5 @@ To make each count cheaper, keep completed publications short-lived with `ddk.ev
 | `X must declare a group and a source` | An `IntegrationEventConsumer` is missing its group or source | Implement both |
 | `X is idempotent but the message has no ddk-event-id header` | The message was not produced by DDK, or a bridge dropped the header | Send through DDK, or keep the `ddk-event-id` header when forwarding |
 | Startup fails: `ddk.event.rocketmq.name-server must not be empty` | The RocketMQ consumer is on without a name server | Set `ddk.event.rocketmq.name-server` |
+| An idempotent consumer skips a message it never handled | Another message with the same ID was handled first, typically an event of another tenant whose ID is only unique per tenant | Use globally unique event IDs, such as UUIDs; see [Idempotent consumers](#idempotent-consumers) |
 | `ddk.event.publications{status="failed"}` stays above zero | Deliveries failed and were not resubmitted | See [Operations](#operations): turn on `ddk.event.maintenance` or resubmit through Modulith |
