@@ -21,6 +21,7 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 - A native image that uses Spring Modulith's JDBC publication registry starts. The event starter wraps the event multicaster to check publications outside a transaction, and created that proxy class at runtime, which a native image cannot do; the class is now generated ahead of time
 - The cache starter's local level works on a native image: it registers the Caffeine classes that its configuration builds, and the invalidation message it sends
+- Projects generated from the archetypes compile Lombok annotations on JDK 23 and later. Since JDK 23, javac no longer runs annotation processors it finds on the classpath, so `@RequiredArgsConstructor` and the like did nothing and compilation failed with `variable ... not initialized in the default constructor`. The generated `pom.xml` now lists Lombok under the compiler's `annotationProcessorPaths`, and the archetype tests check it. In a project generated earlier, add the same `maven-compiler-plugin` configuration (see the archetype `pom.xml`); list any other annotation processor you use there too, because only the listed ones run
 
 ## [0.11.0] - 2026-11-10
 
