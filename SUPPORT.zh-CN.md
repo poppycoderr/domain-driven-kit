@@ -10,7 +10,7 @@ DDK 由一个人维护：[@poppycoderr](https://github.com/poppycoderr)，AI 编
 
 ## 哪些版本会得到修复
 
-只有最新的次版本线会得到修复，以补丁版本发布。目前是 **0.10.x**。更早的版本线不再修复，需要修复时请升级到最新版本线，按[升级指南](https://domaindrivenkit.com/ddk/upgrade)一次升一个次版本。
+只有最新的次版本线会得到修复，以补丁版本发布。目前是 **0.11.x**。更早的版本线不再修复，需要修复时请升级到最新版本线，按[升级指南](https://domaindrivenkit.com/ddk/upgrade)一次升一个次版本。
 
 ## 测试过的环境
 

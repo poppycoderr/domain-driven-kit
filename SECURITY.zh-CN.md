@@ -10,7 +10,7 @@
 
 ## 支持的版本
 
-安全修复以最新次版本线（目前是 0.10.x）的补丁版本发布，同时发布到 Maven 中央仓库和 GitHub Release，并附 [GitHub 安全公告](https://github.com/poppycoderr/domain-driven-kit/security/advisories)。更早的版本线不再修复，请升级到最新版本线。
+安全修复以最新次版本线（目前是 0.11.x）的补丁版本发布，同时发布到 Maven 中央仓库和 GitHub Release，并附 [GitHub 安全公告](https://github.com/poppycoderr/domain-driven-kit/security/advisories)。更早的版本线不再修复，请升级到最新版本线。
 
 ## 校验下载的构件
 

@@ -10,7 +10,7 @@ Include the DDK version, the affected module, how to reproduce it and what an at
 
 ## Supported versions
 
-Security fixes are released as patch releases of the newest minor line (today 0.10.x), on Maven Central and as a GitHub Release, with a [GitHub security advisory](https://github.com/poppycoderr/domain-driven-kit/security/advisories). Older lines get no fixes; upgrade to the newest line.
+Security fixes are released as patch releases of the newest minor line (today 0.11.x), on Maven Central and as a GitHub Release, with a [GitHub security advisory](https://github.com/poppycoderr/domain-driven-kit/security/advisories). Older lines get no fixes; upgrade to the newest line.
 
 ## Verifying what you download
 
