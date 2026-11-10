@@ -29,6 +29,10 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 - `ddk.event.publications` is sampled in the background instead of being counted on every scrape. Spring Modulith's `event_publication` table has no index on `status`, so each count scans the table; every scrape used to run four of them on every instance. A sample now runs every `ddk.event.metrics.publications.interval` (1 minute by default), so the database load no longer follows the scrape rate, and a value can be up to one interval old. A failed sample keeps the previous values; after three failed samples in a row the gauges report NaN. Metric names and tags are unchanged
 - `ddk-db-starter` is no longer experimental. Its tests now run against PostgreSQL 17 and MySQL 8.4 as two data sources of one application: each source reaches its own database, the configured one is primary, and each transaction manager commits and rolls back only its own source. The 1.0 freeze covers it like the other starters
 
+### Deprecated
+
+- `ddk-seata-starter`. 1.0 removes it from `ddk-dependencies` and stops publishing it: it has wiring tests only, Seata's runtime is not verified on Spring Boot 4, and global transactions go against the outbox and eventual consistency that DDK builds on. Its auto-configuration logs a warning at startup. To keep using it, pin 0.12.x or copy its three classes into your project
+
 ### Fixed
 
 - A native image that uses Spring Modulith's JDBC publication registry starts. The event starter wraps the event multicaster to check publications outside a transaction, and created that proxy class at runtime, which a native image cannot do; the class is now generated ahead of time

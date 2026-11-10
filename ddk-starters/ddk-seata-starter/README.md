@@ -1,5 +1,7 @@
 # DDK Seata Starter
 
+> **Deprecated since 0.12.0.** 1.0 removes this starter from the BOM and stops publishing it. To keep using it, pin 0.12.x or copy its three classes into your project.
+
 Seata distributed transactions for DDK services, plus one DDK addition: outbound HTTP calls carry the global transaction ID (XID), so a downstream service joins the same global transaction.
 
 ```text
@@ -28,7 +30,7 @@ Seata binds the XID from inbound requests but adds nothing to outbound ones. Wit
 2. Configure Seata with its own `seata.*` properties, and build HTTP clients from the injected `RestClient.Builder` or `RestTemplateBuilder`.
 3. Check it: inside a `@GlobalTransactional` method, the outgoing HTTP request carries the `TX_XID` header and the downstream service joins the same global transaction.
 
-This starter is experimental: it has wiring tests only, and Seata's runtime has not been verified on Spring Boot 4.
+**Deprecated since 0.12.0; 1.0 will not publish it.** It has wiring tests only, Seata's runtime has not been verified on Spring Boot 4, and global transactions go against the outbox and eventual consistency that DDK builds on. To keep using it, pin 0.12.x or copy its three classes into your project.
 
 ## Usage
 

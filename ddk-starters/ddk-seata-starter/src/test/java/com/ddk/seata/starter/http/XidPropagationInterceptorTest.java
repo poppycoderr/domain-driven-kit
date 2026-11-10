@@ -13,6 +13,7 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
+@SuppressWarnings("removal")
 class XidPropagationInterceptorTest {
 
     private final RestClient.Builder builder = RestClient.builder().requestInterceptor(new XidPropagationInterceptor());

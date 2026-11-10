@@ -3,6 +3,9 @@ package com.ddk.seata.starter.config;
 import org.apache.seata.core.context.RootContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.http.converter.autoconfigure.HttpMessageConvertersAutoConfiguration;
 import org.springframework.boot.restclient.RestTemplateBuilder;
@@ -22,6 +25,8 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
  * 只覆盖 DDK 自己的装配。Seata 的 {@code GlobalTransactionScanner} 依赖 spring.factories 里的
  * {@code ApplicationContextInitializer}，{@code ApplicationContextRunner} 不执行它，所以这里不加载 Seata 自身的自动配置。
  */
+@SuppressWarnings("removal")
+@ExtendWith(OutputCaptureExtension.class)
 class DdkSeataAutoConfigurationTest {
 
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
@@ -32,6 +37,13 @@ class DdkSeataAutoConfigurationTest {
     @AfterEach
     void unbind() {
         RootContext.unbind();
+    }
+
+    @Test
+    void warnsThatTheStarterIsDeprecated(CapturedOutput output) {
+        runner.run(context -> assertThat(context).hasNotFailed());
+
+        assertThat(output).contains("ddk-seata-starter is deprecated since 0.12.0");
     }
 
     @Test

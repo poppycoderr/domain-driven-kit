@@ -2,6 +2,8 @@ package com.ddk.seata.starter.config;
 
 import com.ddk.seata.starter.http.XidPropagationInterceptor;
 import org.apache.seata.core.context.RootContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -21,12 +23,23 @@ import org.springframework.web.client.RestTemplate;
  * 应用自己 {@code new RestTemplate()} 得到的实例不受影响。
  *
  * @author Elijah Du
+ *
+ * @deprecated 0.12.0 起弃用，1.0 不再发布本 starter，也会把它移出 {@code ddk-dependencies}。Seata 的运行时没有在 Spring Boot 4 上验证过，
+ * 全局事务也和 DDK 推荐的发件箱加最终一致性方向相反。需要时固定在 0.12.x，或者把这个 starter 的三个类复制到项目里。
  */
+@Deprecated(since = "0.12.0", forRemoval = true)
+@SuppressWarnings("removal")
 @AutoConfiguration
 @ConditionalOnClass(RootContext.class)
 @ConditionalOnProperty(prefix = "seata", name = "enabled", havingValue = "true", matchIfMissing = true)
 @EnableConfigurationProperties(DdkSeataProperties.class)
 public class DdkSeataAutoConfiguration {
+
+    private static final Logger log = LoggerFactory.getLogger(DdkSeataAutoConfiguration.class);
+
+    public DdkSeataAutoConfiguration() {
+        log.warn("ddk-seata-starter is deprecated since 0.12.0 and will not be published with 1.0: pin 0.12.x or copy its classes into your project");
+    }
 
     @Configuration(proxyBeanMethods = false)
     @ConditionalOnClass(RestClient.class)
