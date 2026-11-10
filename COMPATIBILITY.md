@@ -79,7 +79,7 @@ An existing rule in `CommonArchRules` does not become stricter in a minor releas
 ## What is not stable
 
 - **`*.internal` packages.** Implementation classes that only auto-configuration creates. Generated projects check this with `DDK_INTERNALS_MUST_NOT_BE_USED`.
-- **Experimental modules:** `ddk-db-starter` and `ddk-seata-starter`. They are tested at the wiring level only (see the [support matrix](./ROADMAP.md#support-status)) and may change in any release. A module leaves this list when it is verified against the real system.
+- **Experimental modules:** `ddk-seata-starter`. It is tested at the wiring level only (see the [support matrix](./ROADMAP.md#support-status)) and may change in any release. A module leaves this list when it is verified against the real system, as `ddk-db-starter` did in 0.12.
 - **Examples** (`ddk-examples/*`): reference code, not a library.
 - **Log messages, metric tag sets beyond the documented ones, and exception messages.** Write code against exception types and error codes, not message text.
 - **Generated project templates.** A new release of an archetype generates a different skeleton; projects generated earlier are not changed.
@@ -110,7 +110,7 @@ The behavior that 1.0 freezes is the documented one, not more:
 
 | Part | Why | Leaves the list when |
 |---|---|---|
-| `ddk-db-starter`, `ddk-seata-starter` | Wiring tests only; Seata's runtime is not verified on Spring Boot 4 | It is tested against the real system in CI |
+| `ddk-seata-starter` | Wiring tests only; Seata's runtime is not verified on Spring Boot 4 | It is tested against the real system in CI |
 | GraalVM native images beyond the modules [SUPPORT.md](./SUPPORT.md#graalvm-native-images) lists as verified | Only `ddk-example-user` runs as a native image in CI | CI exercises the module natively |
 | How the documented metrics are computed | The metric names and documented tags are stable. Counting event publications scans `event_publication`, which is a known cost on large tables | |
 | Everything under [What is not stable](#what-is-not-stable) | | |

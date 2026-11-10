@@ -16,7 +16,7 @@ Registers several JDBC data sources from configuration. Each source gets its own
 2. Configure the sources under `ddk.datasource.sources.<name>` as shown under [Usage](#usage), and name the primary one when there are several.
 3. Check it: the beans `<name>DataSource`, `<name>TransactionManager` and `<name>JdbcTemplate` exist for each source, for example in `/actuator/beans`.
 
-This starter is experimental: it has wiring tests only.
+Its tests run against PostgreSQL and MySQL side by side, one data source each, in addition to the wiring tests on H2.
 
 ## Usage
 
