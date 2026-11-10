@@ -86,7 +86,7 @@ An existing rule in `CommonArchRules` does not become stricter in a minor releas
 
 ## 1.0 freeze checklist (draft)
 
-A draft for the 1.0 decision, written after the 0.10 → 0.11 rehearsal. It says, for each part of the contract above, what 1.0 would freeze, what checks it, and what is still to decide. Nothing here is a promise until 1.0 is released; until then [Before 1.0](#before-10) applies.
+A draft for the 1.0 decision, written after the 0.10 → 0.11 rehearsal. It says, for each part of the contract above, what 1.0 would freeze, what checks it, and what was decided. Nothing here is a promise until 1.0 is released; until then [Before 1.0](#before-10) applies.
 
 ### Frozen in 1.0
 
@@ -115,20 +115,23 @@ The behavior that 1.0 freezes is the documented one, not more:
 | How the documented metrics are computed | The metric names and documented tags are stable. Counting event publications scans `event_publication`, which is a known cost on large tables | |
 | Everything under [What is not stable](#what-is-not-stable) | | |
 
-### To decide before 1.0
+### Decided for 1.0
 
-| Question | Why it has to be decided first |
-|---|---|
-| Release 1.0 right after 0.11, or after 0.11 has been used for a while | 0.11 is the first release that changes stored data since the `com.domaindrivenkit` coordinates. A maintainer decision, not a technical gate |
-| The HTTP answer to a cancelled request: 500 `SYSTEM_ERROR` as now, or a code of its own | `CommonError` codes and statuses freeze in 1.0; adding a code later is compatible, changing the status of an existing one is not |
-| Whether the processed message table's key includes the tenant | It is keyed by consumer and event ID. Freezing the table freezes that; a key with the tenant later needs a migration and a rolling-upgrade path |
-| Whether the ArchGuard exemption for `@Configuration` classes outside the layers stays as wide | An existing rule cannot become stricter in 1.x. A narrower exemption after 1.0 can only come as a new rule |
-| DB and Seata starters in the 1.0 release, marked experimental, or left out | Shipping them in a 1.0 BOM invites use; leaving them out is a break for current users |
+The questions that this draft left open, as the maintainer decided them on 2026-11-10. The changes they need land in 0.12, so that 1.0 itself only freezes.
+
+| Question | Decision | Done in |
+|---|---|---|
+| When to release 1.0 | After 0.12, not right after 0.11. 0.12 makes the changes below while a minor release may still break; 1.0 adds no code, only the freeze, the rehearsal and the documentation | the roadmap |
+| The HTTP answer to a cancelled request | A code of its own: `CommonError.REQUEST_CANCELLED` with 503, instead of 500 `SYSTEM_ERROR`. The request was fine and can be retried, and it no longer counts as a server fault | 0.12, listed under **Breaking** |
+| Whether the processed message table's key includes the tenant | No: the key stays `(consumer, message_id)`. Event IDs unique across tenants and a trusted source stay premises of `IdempotentConsumer`, now stated in its Javadoc and README where it is used | 0.12, documentation |
+| How wide the ArchGuard exemption for `@Configuration` classes outside the layers stays | As wide as it is. A new, optional rule, `WIRING_CLASSES_ONLY_WIRE`, keeps those classes to `@Bean` methods and supertype overrides and stops them from calling mappers; generated projects check it | 0.12 |
+| DB and Seata starters | `ddk-db-starter` is tested on PostgreSQL and MySQL and is no longer experimental; 1.0 freezes it with the other starters. `ddk-seata-starter` is deprecated in 0.12, and 1.0 neither publishes it nor lists it in the BOM | 0.12 deprecates Seata; 1.0 removes it |
 
 ### Before tagging 1.0
 
-- [ ] The decisions above are made and written into this page
-- [ ] 0.11.0 is released and its fixtures are added under `compat/`; `api.baseline.version` is 0.11.0
+- [x] The decisions above are made and written into this page
+- [x] 0.11.0 is released and its fixtures are added under `compat/`; `api.baseline.version` is 0.11.0
+- [ ] 0.12.0 carries the changes the decisions need, is released, and its fixtures and API baseline follow the same way
 - [ ] An upgrade and rollback rehearsal from 0.11 to the 1.0 candidate, the same way as from 0.10 to 0.11
 - [ ] The candidate passes Java 21 and 25, generated projects, the API check and the native image job
 - [ ] This section's "draft" is removed, and the [support matrix](./ROADMAP.md#support-status) matches this page

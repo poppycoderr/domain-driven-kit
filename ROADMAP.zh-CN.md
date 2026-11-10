@@ -115,11 +115,24 @@ DDK 只有一个版本号，但各模块经受的验证并不一样。每个模�
 - 事件发布指标在 `event_publication` 上按状态计数，而这张表的 `status` 没有索引，每次采集都扫表。事件 starter 的 README 给出了实测开销和应对办法；降低开销是之后的性能项
 - 消费端去重不变：它依赖跨租户唯一的事件 ID，以及来自消费方信任的来源的消息。租户消息头没有签名
 
+## 下一个版本：0.12
+
+**目标：趁次版本还允许破坏性变化，完成 1.0 的几个决定需要的改动，并让 DDK 更容易上手。** 决定了什么、为什么，见[冻结清单](./COMPATIBILITY.zh-CN.md#10-已经决定的)；1.0 在 0.12 之后发布，本身不再加代码。
+
+- [x] 依赖 Redis 的 starter、投影和发布登记在原生镜像下验证，CI 里加入 `ddk-example-inventory`
+- [x] 事件发布指标改为后台采样，开销不再随采集频率增长
+- [x] 被取消的请求返回 503 `REQUEST_CANCELLED`，不再是 500 `SYSTEM_ERROR`
+- [x] 去重消费的前提写在使用它的地方；去重表的主键不变
+- [x] 新增一条可选的 ArchGuard 规则，让层外的 `@Configuration` 类只做装配，生成的项目默认检查
+- [x] `ddk-db-starter` 在 PostgreSQL 和 MySQL 上测试，不再是实验性模块；`ddk-seata-starter` 弃用
+- [x] 生成的项目在 JDK 23 及以上能编译 Lombok
+- [x] 每个 starter 的 README 都有 30 秒上手和常见错误；贡献指南、Issue 和 PR 模板
+
 ## 1.0：冻结
 
 **目标：只冻结经过验证的部分。**
 
-- [ ] 冻结经过验证的核心 API 和上面的支持矩阵，此后严格遵守语义化版本。冻结哪些、哪些保持实验性、哪些还要决定，见[冻结清单](./COMPATIBILITY.zh-CN.md#10-冻结清单草案)
+- [ ] 冻结经过验证的核心 API 和上面的支持矩阵，此后严格遵守语义化版本。冻结哪些、哪些保持实验性、为它作了哪些决定，见[冻结清单](./COMPATIBILITY.zh-CN.md#10-冻结清单草案)
 - [x] 虚拟线程上的上下文语义：操作者、链路、加锁顺序、取消、线程池复用，而不只是「能启动」
 - [x] GraalVM 按模块声明支持，从一个最小示例开始，不要求所有 starter 一起支持：CI 用 `ddk-example-user` 验证，依赖 Redis 的 starter、投影和发布登记用 `ddk-example-inventory` 验证，清单见 [SUPPORT.zh-CN.md](./SUPPORT.zh-CN.md#graalvm-原生镜像)
 - [x] 写清已知限制、回滚路径和维护责任：[SUPPORT.zh-CN.md](./SUPPORT.zh-CN.md)，以及升级指南里每个版本的回退一节
@@ -132,12 +145,10 @@ DDK 只有一个版本号，但各模块经受的验证并不一样。每个模�
 |---|---|
 | Nacos（配置）与 Sentinel（流量控制） | 两者都经由 Spring Cloud Alibaba，它跟随 Spring Cloud，Spring Cloud 又跟随 Spring Boot。2026-10-12 查到还没有面向 Spring Boot 4.1 的 Spring Cloud 正式版。开始做时重新核对上游兼容范围，并做组合测试 |
 | S3 兼容的对象存储 | 文件引用作为值对象，领域层不接触 SDK |
-| 降低事件发布指标的开销 | 每次采集都按状态对 `event_publication` 计数，会扫表；实测开销和应对办法见事件 starter 的 README。需要一种不依赖 Spring Modulith 表结构的做法 |
 | 投影的 Elasticsearch 辅助功能 | 索引管理、重建时切换别名 |
 | 一行命令创建项目、在线项目生成器 | `jbang ddk@poppycoderr new my-app`，类似 Spring Initializr 的页面；等安装脚本的版本选择稳定之后 |
 | `ddk-mall` 的预置 Grafana 看板 | 基于投影、事件和缓存的指标 |
-| 每个 starter 页面的 30 秒上手、常见错误的清晰提示 | 文档工作 |
-| 社区 | Issue 和 PR 模板、`good first issue` 标签、Discussions、每次发布配一篇设计文章 |
+| 社区 | Discussions、每次发布配一篇设计文章；模板和 `good first issue` 已在 0.12 完成 |
 
 ## 历史
 
