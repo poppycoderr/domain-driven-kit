@@ -115,11 +115,24 @@ Not in 0.11:
 - The event publication metrics count by status on `event_publication`, which has no index on `status`, so each scrape scans the table. The event starter's README gives the measured cost and the workarounds; reducing it is a later performance item
 - Deduplication of consumed events is unchanged: it relies on event IDs that are unique across tenants and on messages from a source the consumer trusts. The tenant header is not signed
 
+## Next: 0.12
+
+**Goal: make the changes that the 1.0 decisions need while a minor release may still break, and make DDK easier to start with.** What was decided and why is in the [freeze checklist](./COMPATIBILITY.md#decided-for-10); 1.0 follows 0.12 and adds no code of its own.
+
+- [x] Native images verified for the Redis-backed starters, projections and the publication registry, with `ddk-example-inventory` in CI
+- [x] Publication metrics sampled in the background, so that their cost no longer follows the scrape rate
+- [x] A cancelled request answered with 503 `REQUEST_CANCELLED` instead of 500 `SYSTEM_ERROR`
+- [x] The premises of idempotent consumers stated where they are used; the processed message table keeps its key
+- [x] An optional ArchGuard rule that keeps `@Configuration` classes outside the layers to wiring, checked in generated projects
+- [x] `ddk-db-starter` tested on PostgreSQL and MySQL and no longer experimental; `ddk-seata-starter` deprecated
+- [x] Generated projects compile Lombok on JDK 23 and later
+- [x] A 30-second start and the common errors in every starter's README; a contributing guide and issue and pull request templates
+
 ## 1.0: freeze
 
 **Goal: freeze only what has been verified.**
 
-- [ ] Freeze the verified core API and the support matrix above; strict semantic versioning from then on. What is frozen, what stays experimental and what is still to decide is in the [freeze checklist](./COMPATIBILITY.md#10-freeze-checklist-draft)
+- [ ] Freeze the verified core API and the support matrix above; strict semantic versioning from then on. What is frozen, what stays experimental and what was decided for it is in the [freeze checklist](./COMPATIBILITY.md#10-freeze-checklist-draft)
 - [x] Context semantics on virtual threads: operator, trace, lock ordering, cancellation and pool reuse, not only "it starts"
 - [x] GraalVM support declared per module, starting with a minimal example, instead of all starters at once: verified in CI with `ddk-example-user`, and with `ddk-example-inventory` for the Redis-backed starters, projections and the publication registry; listed in [SUPPORT.md](./SUPPORT.md#graalvm-native-images)
 - [x] Known limits, rollback paths and maintenance responsibility written down: [SUPPORT.md](./SUPPORT.md), and a rollback section per release in the upgrade guide
@@ -132,12 +145,10 @@ No order and no dates. An item moves into a release when there is a concrete nee
 |---|---|
 | Nacos (configuration) and Sentinel (traffic control) | Both come through Spring Cloud Alibaba, which follows Spring Cloud, which follows Spring Boot. On 2026-10-12 there was no GA Spring Cloud release for Spring Boot 4.1. Check the upstream compatibility range again when starting, and test the combination |
 | S3-compatible object storage | File references as value objects; the domain never touches the SDK |
-| Cheaper event publication metrics | Each scrape counts `event_publication` by status, which scans the table; measured cost and workarounds in the event starter's README. Needs a way that does not depend on Spring Modulith's schema |
 | Elasticsearch helpers for projections | Index management and alias switching on rebuild |
 | One-command project creation and an online generator | `jbang ddk@poppycoderr new my-app`, a Spring Initializr-like page; after the installer's version selection has settled |
 | Preset Grafana dashboards for `ddk-mall` | On top of the projection, event and cache metrics |
-| A 30-second start on every starter's page, clearer errors for common mistakes | Documentation work |
-| Community | Issue and PR templates, `good first issue` labels, Discussions, a design article per release |
+| Community | Discussions, a design article per release; templates and `good first issue` landed in 0.12 |
 
 ## History
 
