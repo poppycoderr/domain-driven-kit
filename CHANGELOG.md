@@ -12,7 +12,7 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ## [Unreleased]
 
-## [0.11.0] - 2026-11-06
+## [0.11.0] - 2026-11-10
 
 Settling the contracts that 1.0 will freeze. COMPATIBILITY.md now names the data and wire formats a rolling upgrade depends on and what each kind of release may change on the platform, and drafts the 1.0 freeze checklist. Data that 0.10.0 wrote is read and written back the same way by tests, including the idempotency and rate-limit keys. Two behavior changes need attention when upgrading: the default scope of `@Idempotent` and `@RateLimit`, which changes their Redis keys, and cancellation while waiting for a lock. Projections converge in one more failure case and refresh right after the commit on MySQL, an application's cache invalidation publisher replaces DDK's, and `ddk-example-user` runs as a GraalVM native image in CI. The upgrade and the rollback were rehearsed with 0.10 and 0.11 instances side by side; the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) lists the steps.
 
