@@ -84,7 +84,7 @@ DDK 只有一个版本号，但各模块经受的验证并不一样。每个模�
 
 ## 最新版本：0.11
 
-[0.11.0](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v0.11.0) 于 RELEASE_DATE 发布。**目标：把 1.0 要冻结的契约定下来，补上 2026 年 10 月冻结评审发现的可靠性缺口，并在一个真实项目上验证升级和回退。** 0.11 不新增 starter，也不扩大任何支持声明；具体变化见 [CHANGELOG](./CHANGELOG.md) 和[升级指南](https://domaindrivenkit.com/ddk/upgrade)。
+[0.11.0](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v0.11.0) 于 2026-11-10 发布。**目标：把 1.0 要冻结的契约定下来，补上 2026 年 10 月冻结评审发现的可靠性缺口，并在一个真实项目上验证升级和回退。** 0.11 不新增 starter，也不扩大任何支持声明；具体变化见 [CHANGELOG](./CHANGELOG.md) 和[升级指南](https://domaindrivenkit.com/ddk/upgrade)。
 
 契约：
 
