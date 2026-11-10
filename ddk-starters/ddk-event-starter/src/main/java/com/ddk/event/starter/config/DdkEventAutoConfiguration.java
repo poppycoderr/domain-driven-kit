@@ -154,12 +154,14 @@ public class DdkEventAutoConfiguration {
 
     @Configuration(proxyBeanMethods = false)
     @ConditionalOnClass({MeterRegistry.class, EventPublicationRepository.class})
+    @ConditionalOnProperty(prefix = DdkEventProperties.PREFIX + ".metrics.publications", name = "enabled", matchIfMissing = true)
     static class PublicationMetricsConfiguration {
 
         @Bean
         @ConditionalOnMissingBean
-        PublicationMetrics ddkPublicationMetrics(ObjectProvider<MeterRegistry> registry, ObjectProvider<EventPublicationRepository> repository) {
-            return new PublicationMetrics(registry, repository);
+        PublicationMetrics ddkPublicationMetrics(ObjectProvider<MeterRegistry> registry, ObjectProvider<EventPublicationRepository> repository,
+                DdkEventProperties properties) {
+            return new PublicationMetrics(registry, repository, properties.getMetrics().getPublications());
         }
     }
 

@@ -338,7 +338,11 @@ every ddk.event.maintenance.interval (1m)
 - **Replay window.** Resubmission and broker redelivery can bring a message back. `inbox-retention` must be longer than the longest time in which that can happen. Otherwise an idempotent consumer handles the message again after its record was purged. The default is 7 days.
 - Each step fails on its own. A broken step is logged, and the others and the next round still run.
 
-With Micrometer present, `ddk.event.publications{status}` reports how many publications are `published`, `processing`, `failed` or `resubmitted`. Completed ones are not counted, but they are scanned: each scrape runs four `COUNT ... WHERE status = ?` queries through Spring Modulith, and its `event_publication` table has no index on `status`. Measured with one million rows, each query took about 45 ms on PostgreSQL 17 and about 0.23 s on MySQL 8.4. Keep completed publications short-lived with `ddk.event.maintenance` (`delete-completed-after`), or add an index on `status` to the table. Alert when `failed` stays above zero, or `published` keeps growing.
+With Micrometer present, `ddk.event.publications{status}` reports how many publications are `published`, `processing`, `failed` or `resubmitted`, and `ddk.event.publications.sample.age` how many seconds ago they were counted. Completed ones are not counted, but they are scanned: Spring Modulith's `event_publication` table has no index on `status`, so each `COUNT ... WHERE status = ?` reads the whole table. Measured with one million rows, each count took about 45 ms on PostgreSQL 17 and about 0.23 s on MySQL 8.4.
+
+So the counts are not taken when the metrics are scraped. A background thread samples them every `ddk.event.metrics.publications.interval` (1 minute by default), four counts per sample, and the gauges report the last sample: the database load no longer grows with the scrape rate, and a value can be up to one interval old. When a sample fails, the gauges keep the previous one; after three failed samples in a row they report NaN until a sample succeeds, so watch `sample.age` as well. Every instance samples on its own, and all of them count the same shared table.
+
+To make each count cheaper, keep completed publications short-lived with `ddk.event.maintenance` (`delete-completed-after`), or add an index on `status` to the table in your own migrations. Alert when `failed` stays above zero, or `published` keeps growing.
 
 ## Configuration
 
@@ -355,6 +359,8 @@ With Micrometer present, `ddk.event.publications{status}` reports how many publi
 | `ddk.event.rocketmq.consumer.orderly` | `true` | Orderly consumption; `false` consumes concurrently and redelivers failed messages individually |
 | `ddk.event.outside-transaction` | `fail` | What to do when an integration event is published outside a transaction: `fail` throws where it is published, `warn` logs, `ignore` stays silent |
 | `ddk.event.local-delivery.enabled` | `false` | Deliver integration events in-process to the consumers of the same application; development and tests only |
+| `ddk.event.metrics.publications.enabled` | `true` | Register `ddk.event.publications` and sample the counts in the background |
+| `ddk.event.metrics.publications.interval` | `1m` | Time between two samples, at least `1s`; the first sample is taken after this interval or 5 s, whichever is shorter |
 | `ddk.event.maintenance.enabled` | `false` | Run the scheduled maintenance described in [Operations](#operations) |
 | `ddk.event.maintenance.interval` | `1m` | Time between two rounds |
 | `ddk.event.maintenance.resubmit-failed` | `true` | Resubmit failed publications |

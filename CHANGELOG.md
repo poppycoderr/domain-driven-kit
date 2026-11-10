@@ -16,6 +16,11 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 - Native images verified for the concurrency, Redis, cache and projection starters, and for listeners that run through Spring Modulith's JDBC publication registry: CI builds a second example, `ddk-example-inventory`, against Redis and smoke-tests it. [SUPPORT.md](./SUPPORT.md#graalvm-native-images) lists what is checked
 - `ddk-concurrency-starter` registers, ahead of time, the reflection that the key expressions of `@AggregateLock`, `@Idempotent` and `@RateLimit` need on a native image: the parameter types of the annotated methods, as for JSON binding. Applications no longer register them
+- `ddk.event.publications.sample.age`, the seconds since the publication counts were last sampled, and the properties `ddk.event.metrics.publications.enabled` and `ddk.event.metrics.publications.interval`
+
+### Changed
+
+- `ddk.event.publications` is sampled in the background instead of being counted on every scrape. Spring Modulith's `event_publication` table has no index on `status`, so each count scans the table; every scrape used to run four of them on every instance. A sample now runs every `ddk.event.metrics.publications.interval` (1 minute by default), so the database load no longer follows the scrape rate, and a value can be up to one interval old. A failed sample keeps the previous values; after three failed samples in a row the gauges report NaN. Metric names and tags are unchanged
 
 ### Fixed
 

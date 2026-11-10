@@ -38,7 +38,8 @@ import static org.awaitility.Awaitility.await;
         "ddk.event.maintenance.interval=200ms",
         "ddk.event.maintenance.resubmit-min-age=100ms",
         "ddk.event.maintenance.delete-completed-after=1s",
-        "ddk.event.maintenance.inbox-retention=1s"
+        "ddk.event.maintenance.inbox-retention=1s",
+        "ddk.event.metrics.publications.interval=1s"
 })
 class EventMaintenanceIntegrationTest {
 
