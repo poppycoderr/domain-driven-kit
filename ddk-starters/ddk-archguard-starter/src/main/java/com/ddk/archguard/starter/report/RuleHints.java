@@ -29,11 +29,11 @@ final class RuleHints {
         HINTS.put(CommonArchRules.LAYERED_ARCHITECTURE_RULE, new Hint("LAYERED_ARCHITECTURE_RULE",
                 "依赖方向应为 adapter → application → domain，infrastructure 只实现 domain.acl 中的接口。"
                         + "控制器里的仓储调用移到应用服务；应用服务与领域层对 *RepositoryImpl、*Mapper、*PO 的引用改为 domain.acl 中的接口。"
-                        + "确实需要手工装配时，写成分层之外的 @Configuration 类。",
+                        + "确实需要手工装配时，写成分层之外的 @Configuration 类，里面只放 @Bean 方法。",
                 "Dependencies point adapter → application → domain, and infrastructure only implements the interfaces in domain.acl. "
                         + "Move repository calls out of controllers into application services; in the application and domain layers, "
                         + "replace references to *RepositoryImpl, *Mapper and *PO with the interfaces in domain.acl. "
-                        + "Wiring that has to name implementations belongs in a @Configuration class outside the layers."));
+                        + "Wiring that has to name implementations belongs in a @Configuration class outside the layers, with @Bean methods only."));
         HINTS.put(CommonArchRules.THREE_LAYER_ARCHITECTURE_RULE, new Hint("THREE_LAYER_ARCHITECTURE_RULE",
                 "依赖方向应为 adapter → business，infrastructure 只实现 business.acl 中的接口。"
                         + "业务层与适配层对 *RepositoryImpl、*Mapper、*PO 的引用改为 business.acl 中的接口。",
@@ -61,6 +61,10 @@ final class RuleHints {
         HINTS.put(CommonArchRules.SCHEDULED_JOBS_MUST_BE_LOCKED, new Hint("SCHEDULED_JOBS_MUST_BE_LOCKED",
                 "给 @Scheduled 方法加上 @SchedulerLock(name = \"唯一的任务名\")，让多实例下同一轮只有一个实例执行。",
                 "Add @SchedulerLock(name = \"a unique job name\") to the @Scheduled method, so only one instance runs each round."));
+        HINTS.put(CommonArchRules.WIRING_CLASSES_ONLY_WIRE, new Hint("WIRING_CLASSES_ONLY_WIRE",
+                "层外的 @Configuration 类只做装配：把业务方法移到应用服务里，查库移到基础设施层的实现类里；@Bean 方法只创建对象并把依赖传进去。",
+                "Keep @Configuration classes outside the layers to wiring: move business methods into an application service and queries into an "
+                        + "infrastructure implementation; a @Bean method only creates objects and passes their dependencies in."));
         HINTS.put(CommonArchRules.DDK_INTERNALS_MUST_NOT_BE_USED, new Hint("DDK_INTERNALS_MUST_NOT_BE_USED",
                 "改用 DDK 公开 API：覆盖对应的 Bean，或实现公开的扩展接口（如 CacheMetrics、CacheInvalidationPublisher），"
                         + "不要引用 com.ddk..internal.. 中的类型。",

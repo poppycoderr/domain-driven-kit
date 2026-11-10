@@ -22,6 +22,7 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 - `ddk-concurrency-starter` registers, ahead of time, the reflection that the key expressions of `@AggregateLock`, `@Idempotent` and `@RateLimit` need on a native image: the parameter types of the annotated methods, as for JSON binding. Applications no longer register them
 - `ddk.event.publications.sample.age`, the seconds since the publication counts were last sampled, and the properties `ddk.event.metrics.publications.enabled` and `ddk.event.metrics.publications.interval`
 - `CommonError.REQUEST_CANCELLED`, answered with 503, and a `503` response in the error contract that the web starter adds to the API docs
+- `CommonArchRules.WIRING_CLASSES_ONLY_WIRE`, an optional rule: a `@Configuration` class outside the layers, which the layering rules exempt, may only declare `@Bean` methods or override supertype methods, and may not call a mapper of the infrastructure layer. Projects generated from the archetypes check it; existing projects can add it to their architecture test. The existing rules are unchanged
 
 ### Changed
 
