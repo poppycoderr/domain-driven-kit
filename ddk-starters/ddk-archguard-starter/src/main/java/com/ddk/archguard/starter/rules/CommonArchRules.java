@@ -2,9 +2,14 @@ package com.ddk.archguard.starter.rules;
 
 import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.properties.CanBeAnnotated;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.CompositeArchRule;
 import com.tngtech.archunit.library.Architectures;
+
+import java.util.stream.Stream;
 
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
@@ -199,4 +204,43 @@ public final class CommonArchRules {
             .should().beAnnotatedWith("net.javacrumbs.shedlock.spring.annotation.SchedulerLock")
             .because("without a lock, a scheduled job runs once on every instance")
             .allowEmptyShould(true);
+
+    /**
+     * 分层之外的 {@code @Configuration} 类只做装配：非私有方法要么是 {@code @Bean} 方法，要么重写父类或接口的方法
+     * （例如 {@code WebMvcConfigurer.addInterceptors}）；也不调用基础设施层里 MyBatis Mapper（类名以 {@code Mapper} 结尾）的方法。
+     * <p>
+     * 分层规则对这类类整体豁免，是为了让它们能同时看到应用服务和实现类，而不是让它们承载业务逻辑。没有这条规则时，
+     * 把代码挪进层外的 {@code @Configuration} 类就能绕开全部分层约束。这条规则是可选的，不改变已有规则：
+     * archetype 生成的项目默认启用，已有项目可以自行加上。按注解的类名判断，本模块不依赖 Spring。
+     */
+    public static final ArchRule WIRING_CLASSES_ONLY_WIRE = CompositeArchRule
+            .of(methods()
+                    .that().areDeclaredInClassesThat(WIRING)
+                    .and().areNotPrivate()
+                    .and(DescribedPredicate.not(overridingASupertypeMethod()))
+                    .should().beAnnotatedWith("org.springframework.context.annotation.Bean")
+                    .allowEmptyShould(true))
+            .and(noClasses()
+                    .that(WIRING)
+                    .should().callMethodWhere(callingAMapper())
+                    .allowEmptyShould(true))
+            .as("@Configuration classes outside the layers only wire: they declare @Bean methods or override supertype methods, "
+                    + "and do not call mappers")
+            .because("they are exempt from the layering rules so that they can name implementations, not so that they can hold business logic");
+
+    private static DescribedPredicate<JavaMethod> overridingASupertypeMethod() {
+        return DescribedPredicate.describe("override a method of a supertype", method -> {
+            String[] parameters = method.getRawParameterTypes().stream().map(JavaClass::getName).toArray(String[]::new);
+            JavaClass owner = method.getOwner();
+            return Stream.concat(owner.getAllRawSuperclasses().stream(), owner.getAllRawInterfaces().stream())
+                    .anyMatch(type -> type.tryGetMethod(method.getName(), parameters).isPresent());
+        });
+    }
+
+    private static DescribedPredicate<JavaMethodCall> callingAMapper() {
+        return DescribedPredicate.describe("calls a method of a mapper in the infrastructure layer", call -> {
+            JavaClass target = call.getTargetOwner();
+            return target.getSimpleName().endsWith("Mapper") && (target.getPackageName() + ".").contains(".infrastructure.");
+        });
+    }
 }

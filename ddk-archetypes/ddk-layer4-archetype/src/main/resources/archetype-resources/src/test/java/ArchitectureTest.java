@@ -24,6 +24,7 @@ class ArchitectureTest {
                 CommonArchRules.DOMAIN_MUST_NOT_DEPEND_ON_FRAMEWORKS,
                 CommonArchRules.DOMAIN_MUST_NOT_DEPEND_ON_OUTER_LAYERS,
                 CommonArchRules.DDK_INTERNALS_MUST_NOT_BE_USED,
-                CommonArchRules.SCHEDULED_JOBS_MUST_RESIDE_IN_ADAPTER);
+                CommonArchRules.SCHEDULED_JOBS_MUST_RESIDE_IN_ADAPTER,
+                CommonArchRules.WIRING_CLASSES_ONLY_WIRE);
     }
 }

@@ -92,6 +92,7 @@ Both layering rules make one exception: a class annotated with Spring's `@Config
 | `DOMAIN_MUST_NOT_DEPEND_ON_OUTER_LAYERS` | `..domain..` does not depend on application, adapter or infrastructure packages |
 | `DDK_INTERNALS_MUST_NOT_BE_USED` | Application code does not depend on `com.ddk..internal..`, which holds starter implementation details that may change in any release |
 | `SCHEDULED_JOBS_MUST_RESIDE_IN_ADAPTER` | `@Scheduled` and `@XxlJob` methods are declared in `..adapter..` classes, so a job is one more entry point that goes through application services |
+| `WIRING_CLASSES_ONLY_WIRE` | Optional, on in generated projects: a `@Configuration` class outside the layers, which the layering rules exempt so that it can name implementations, only wires. Its non-private methods are `@Bean` methods or override a supertype method (such as `WebMvcConfigurer.addInterceptors`), and it calls no method of a `*Mapper` in `..infrastructure..` |
 | `SCHEDULED_JOBS_MUST_BE_LOCKED` | Optional, for projects using ShedLock: every `@Scheduled` method also carries `@SchedulerLock`, so no job silently runs on every instance |
 | `MCP_TOOLS_MUST_RESIDE_IN_ADAPTER` | `@McpTool` methods are declared in `..adapter..` classes, so tools reach the domain only through application services |
 
@@ -117,3 +118,4 @@ Layers are matched by package name. If your packages differ, copy the rule from 
 | Violations in test classes | Tests were imported; they often reach across layers to set up a scenario | Add `ImportOption.Predefined.DO_NOT_INCLUDE_TESTS` |
 | `DDK_INTERNALS_MUST_NOT_BE_USED` fails | Your code uses a class from a `com.ddk.*.internal` package, which can change in any release | Use the public type the starter documents, or declare your own bean |
 | A wiring class that has to name implementation classes breaks the layering rule | Wiring belongs outside the layers | Put it in a `@Configuration` class in a package outside the layers, such as `config`, and keep business logic out of it |
+| `WIRING_CLASSES_ONLY_WIRE` fails | A `@Configuration` class outside the layers holds a business method or queries a mapper while wiring | Move the method into an application service and the query into an infrastructure implementation; a `@Bean` method only creates objects |

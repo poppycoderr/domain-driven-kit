@@ -22,6 +22,7 @@ class ArchitectureTest {
         ArchGuard.check(classes,
                 CommonArchRules.THREE_LAYER_ARCHITECTURE_RULE,
                 CommonArchRules.DDK_INTERNALS_MUST_NOT_BE_USED,
-                CommonArchRules.SCHEDULED_JOBS_MUST_RESIDE_IN_ADAPTER);
+                CommonArchRules.SCHEDULED_JOBS_MUST_RESIDE_IN_ADAPTER,
+                CommonArchRules.WIRING_CLASSES_ONLY_WIRE);
     }
 }

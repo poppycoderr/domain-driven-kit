@@ -131,4 +131,17 @@ class CommonArchRulesTest {
         passes(CommonArchRules.SCHEDULED_JOBS_MUST_RESIDE_IN_ADAPTER, "empty");
         passes(CommonArchRules.SCHEDULED_JOBS_MUST_BE_LOCKED, "empty");
     }
+
+    @Test
+    void wiringClassesOnlyWire() {
+        passes(CommonArchRules.WIRING_CLASSES_ONLY_WIRE, "configonly.valid");
+        fails(CommonArchRules.WIRING_CLASSES_ONLY_WIRE, "configonly.businessmethod", "ReportConfiguration.dailyTotal");
+        fails(CommonArchRules.WIRING_CLASSES_ONLY_WIRE, "configonly.mappercall", "CacheConfiguration.initialOrderCount");
+    }
+
+    @Test
+    void wiringClassesStayExemptFromTheLayeringRule() {
+        passes(CommonArchRules.LAYERED_ARCHITECTURE_RULE, "configonly.valid");
+        passes(CommonArchRules.LAYERED_ARCHITECTURE_RULE, "configonly.mappercall");
+    }
 }
