@@ -79,7 +79,7 @@ An existing rule in `CommonArchRules` does not become stricter in a minor releas
 ## What is not stable
 
 - **`*.internal` packages.** Implementation classes that only auto-configuration creates. Generated projects check this with `DDK_INTERNALS_MUST_NOT_BE_USED`.
-- **Experimental modules:** `ddk-seata-starter`. It is tested at the wiring level only (see the [support matrix](./ROADMAP.md#support-status)) and may change in any release. A module leaves this list when it is verified against the real system, as `ddk-db-starter` did in 0.12.
+- **Experimental modules:** `ddk-seata-starter`, deprecated since 0.12.0 and not published with 1.0. It is tested at the wiring level only (see the [support matrix](./ROADMAP.md#support-status)) and may change in any release. A module leaves this list when it is verified against the real system, as `ddk-db-starter` did in 0.12.
 - **Examples** (`ddk-examples/*`): reference code, not a library.
 - **Log messages, metric tag sets beyond the documented ones, and exception messages.** Write code against exception types and error codes, not message text.
 - **Generated project templates.** A new release of an archetype generates a different skeleton; projects generated earlier are not changed.
