@@ -1,0 +1,28 @@
+name: Feature request
+description: Suggest a change or an addition.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What you are trying to do and what gets in the way today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you propose
+      description: The API, configuration or behavior you have in mind.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What you do instead today
+      description: Workarounds, other libraries, code in your own project.
+  - type: checkboxes
+    id: compatibility
+    attributes:
+      label: Compatibility
+      description: See COMPATIBILITY.md for what has to stay compatible between releases.
+      options:
+        - label: This changes a `ddk.*` property, a message header, a table, a Redis key or an error code
