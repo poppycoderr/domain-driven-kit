@@ -306,7 +306,9 @@ See [ROADMAP.md](./ROADMAP.md) for the full plan.
 
 ## Contributing
 
-Issues and PRs are welcome. The most useful contributions right now are:
+Issues and PRs are welcome; [CONTRIBUTING.md](./CONTRIBUTING.md) explains how. For a first contribution, pick an issue labelled [`good first issue`](https://github.com/poppycoderr/domain-driven-kit/labels/good%20first%20issue). Each starter's README starts with **In 30 seconds** and ends with **Common errors**, the place to look when a starter does not behave as expected.
+
+The most useful contributions right now are:
 
 - Starter auto-configuration fixes
 - Tests and runnable examples

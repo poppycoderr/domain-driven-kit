@@ -306,7 +306,9 @@ com.ddk.core
 
 ## 贡献
 
-欢迎提交 issue 或 PR。当前项目仍在持续完善中，优先接受这几类贡献：
+欢迎提交 issue 或 PR，做法见 [CONTRIBUTING.md](./CONTRIBUTING.md)。第一次贡献可以从标着 [`good first issue`](https://github.com/poppycoderr/domain-driven-kit/labels/good%20first%20issue) 的 issue 开始。每个 starter 的 README 开头是 **In 30 seconds**（30 秒上手），结尾是 **Common errors**（常见错误），starter 表现不符合预期时先看那里。
+
+当前项目仍在持续完善中，优先接受这几类贡献：
 
 - 修复 starter 装配和配置问题
 - 补测试和最小可运行示例
