@@ -84,7 +84,7 @@ DDK has one version number, but its modules are not equally proven. Each one has
 
 ## Latest release: 0.11
 
-[0.11.0](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v0.11.0), released on RELEASE_DATE. **Goal: settle the contracts that 1.0 will freeze, close the reliability gaps that the October 2026 freeze review found, and prove the upgrade and the way back on a real project.** 0.11 adds no starter and widens no support claim; what changed is in the [changelog](./CHANGELOG.md) and the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade).
+[0.11.0](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v0.11.0), released on 2026-11-10. **Goal: settle the contracts that 1.0 will freeze, close the reliability gaps that the October 2026 freeze review found, and prove the upgrade and the way back on a real project.** 0.11 adds no starter and widens no support claim; what changed is in the [changelog](./CHANGELOG.md) and the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade).
 
 Contracts:
 
