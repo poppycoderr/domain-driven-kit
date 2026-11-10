@@ -37,6 +37,12 @@ public enum CommonError implements ErrorCode {
 
     /** 兜底：未被任何处理器识别的异常。对外不暴露原始异常信息 */
     SYSTEM_ERROR("服务器内部错误"),
+
+    /**
+     * 请求还没完成就被取消了：处理它的线程被中断，例如应用正在关闭，或者调用方取消了任务。
+     * 请求本身没有错，调用方可以稍后重试，通常会落到另一个实例上
+     */
+    REQUEST_CANCELLED("请求被取消，请稍后重试"),
     ;
 
     private final String message;

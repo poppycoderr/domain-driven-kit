@@ -12,11 +12,16 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ## [Unreleased]
 
+### Breaking
+
+- A request whose thread is interrupted, which `AggregateLocks` and `@AggregateLock` report as `CancellationException` since 0.11.0, is answered by `BaseExceptionHandler` with 503 and the new error code `REQUEST_CANCELLED` instead of 500 and `SYSTEM_ERROR`. It happens, for example, when the application shuts down while a request waits for a lock: the request itself was fine and can be retried, usually on another instance, and it no longer counts as a server error in 5xx-by-code alerts on `SYSTEM_ERROR`. An MCP tool reports `REQUEST_CANCELLED` too. To keep the old response, declare an `@ExceptionHandler(CancellationException.class)` in your own `@RestControllerAdvice` that returns 500 with `ApiResponse.ofFail(CommonError.SYSTEM_ERROR)`
+
 ### Added
 
 - Native images verified for the concurrency, Redis, cache and projection starters, and for listeners that run through Spring Modulith's JDBC publication registry: CI builds a second example, `ddk-example-inventory`, against Redis and smoke-tests it. [SUPPORT.md](./SUPPORT.md#graalvm-native-images) lists what is checked
 - `ddk-concurrency-starter` registers, ahead of time, the reflection that the key expressions of `@AggregateLock`, `@Idempotent` and `@RateLimit` need on a native image: the parameter types of the annotated methods, as for JSON binding. Applications no longer register them
 - `ddk.event.publications.sample.age`, the seconds since the publication counts were last sampled, and the properties `ddk.event.metrics.publications.enabled` and `ddk.event.metrics.publications.interval`
+- `CommonError.REQUEST_CANCELLED`, answered with 503, and a `503` response in the error contract that the web starter adds to the API docs
 
 ### Changed
 

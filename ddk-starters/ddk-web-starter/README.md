@@ -23,6 +23,7 @@ Web-layer defaults for Spring MVC: global exception handling into `ApiResponse`,
 | `BusinessException` | 400 | the business error code, message filled from its arguments |
 | `ConcurrentUpdateException`, `AggregateBusyException`, `DuplicateRequestException` | 409 | `CONCURRENT_UPDATE`, `AGGREGATE_BUSY`, `DUPLICATE_REQUEST` |
 | `RateLimitedException` | 429 | `RATE_LIMITED` |
+| `CancellationException`, for example a thread interrupted while it waits for an aggregate lock during shutdown | 503 | `REQUEST_CANCELLED`; the request itself was fine and can be retried |
 | `SystemException` | 500 | the system error code |
 | `BindException` (including `@Valid` bodies), `ConstraintViolationException`, `TypeMismatchException` | 400 | `VALIDATION_ERROR`, naming each field |
 | `HttpMessageNotReadableException` (broken JSON) | 400 | `MALFORMED_REQUEST` |
@@ -30,7 +31,7 @@ Web-layer defaults for Spring MVC: global exception handling into `ApiResponse`,
 | anything else | 500 | `SYSTEM_ERROR`, with a generic message; the stack trace goes to the log |
 
 - **Jackson.** A `JsonMapperBuilderCustomizer`, so `spring.jackson.*` still applies. Dates are ISO-8601 strings, unknown request fields are ignored, and `Long` / `long` are written as JSON strings, because snowflake IDs above 2^53 lose precision in JavaScript.
-- **Error contract in the API docs.** With springdoc on the classpath, every operation gets `400`, `409` and `500` responses with the `ApiErrorResponse` schema, and `components.schemas.ErrorCode` lists every error code: `CommonError` plus the `ErrorCode` enums in your application's packages.
+- **Error contract in the API docs.** With springdoc on the classpath, every operation gets `400`, `409`, `500` and `503` responses with the `ApiErrorResponse` schema, and `components.schemas.ErrorCode` lists every error code: `CommonError` plus the `ErrorCode` enums in your application's packages.
 - **Operator of the request.** Declare an `OperatorResolver` bean and the starter sets `OperatorContext` for each request and clears it afterwards. The MyBatis starter's audit fields and multi-tenancy read it from there.
 - **CORS** is off until `ddk.web.cors.enabled=true`.
 

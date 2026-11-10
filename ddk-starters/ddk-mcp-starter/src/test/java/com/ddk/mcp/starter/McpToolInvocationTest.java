@@ -82,6 +82,15 @@ class McpToolInvocationTest {
     }
 
     @Test
+    void cancelledCallsReportRequestCancelled(CapturedOutput output) {
+        McpSchema.CallToolResult result = call("reserve_stock", Map.of());
+
+        assertThat(result.isError()).isTrue();
+        assertThat(text(result)).contains("REQUEST_CANCELLED").doesNotContain("ddk:lock");
+        assertThat(output).contains("MCP tool [reserve_stock] -> REQUEST_CANCELLED in");
+    }
+
+    @Test
     void everyCallIsAudited(CapturedOutput output) {
         call("get_order", Map.of("id", 404));
 
@@ -135,6 +144,11 @@ class McpToolInvocationTest {
         @McpTool(name = "get_order", description = "Get an order")
         public String get(@McpToolParam(description = "Order id") @Positive long id) {
             throw new BusinessException(OrderError.ORDER_NOT_FOUND, id);
+        }
+
+        @McpTool(name = "reserve_stock", description = "Reserve stock")
+        public String reserveStock() {
+            throw new java.util.concurrent.CancellationException("Interrupted while waiting for lock [ddk:lock:stock:1]");
         }
 
         @McpTool(name = "sync_inventory", description = "Sync inventory")

@@ -56,6 +56,7 @@ The server listens on `/mcp` over streamable HTTP.
 | Streamable HTTP by default | Spring AI falls back to the deprecated SSE transport when `spring.ai.mcp.server.protocol` is unset; DDK sets `STREAMABLE` at the lowest precedence, so any explicit value wins |
 | Argument validation | Bean Validation constraints on `@McpTool` parameters are checked before the tool runs, without `@Validated` on the class. Failures return `VALIDATION_ERROR: id: must be greater than 0` |
 | Error codes | `BusinessException` and `SystemException` become tool errors that start with their code, e.g. `USER_NOT_FOUND: 用户不存在：42`, so the model can decide whether to retry |
+| Cancellation | A tool whose thread is interrupted, for example while it waits for an aggregate lock during shutdown, returns `REQUEST_CANCELLED: 请求被取消，请稍后重试` |
 | No leaked internals | Any other exception returns `SYSTEM_ERROR: 服务器内部错误`; the original message and stack trace go to the log only |
 | Audit log | One line per call: `MCP tool [get_user] -> USER_NOT_FOUND in 3 ms`. Argument values are not logged |
 
