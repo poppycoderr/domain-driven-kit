@@ -47,6 +47,11 @@ public class DdkEventProperties {
     private Maintenance maintenance = new Maintenance();
 
     /**
+     * 指标。
+     */
+    private Metrics metrics = new Metrics();
+
+    /**
      * 集成事件在事务之外发布时怎么办。这样的事件不会被投递：{@code fail} 在发布处抛出异常，{@code warn} 只记一条警告，
      * {@code ignore} 保持沉默。
      */
@@ -107,6 +112,38 @@ public class DdkEventProperties {
                     || deleteCompletedAfter.isNegative() || inboxRetention.isNegative()) {
                 throw new IllegalStateException("Invalid ddk.event.maintenance settings: interval and resubmit-min-age must be positive, "
                         + "resubmit-batch-size at least 1, and the retention periods zero or positive");
+            }
+        }
+    }
+
+    @Data
+    public static class Metrics {
+
+        /**
+         * 发布记录按状态的数量 {@code ddk.event.publications}。
+         */
+        private Publications publications = new Publications();
+    }
+
+    @Data
+    public static class Publications {
+
+        /**
+         * 是否注册这组 gauge。关闭后既不注册也不查询发布记录表。
+         */
+        private boolean enabled = true;
+
+        /**
+         * 两次采样之间的间隔。每次采样按状态各查一次发布记录表，采集时只读最近一次的结果，所以数值最多晚这么久。
+         */
+        private Duration interval = Duration.ofMinutes(1);
+
+        /**
+         * @throws IllegalStateException 间隔短于 1 秒
+         */
+        public void validate() {
+            if (interval.compareTo(Duration.ofSeconds(1)) < 0) {
+                throw new IllegalStateException("Invalid ddk.event.metrics.publications.interval " + interval + ": it must be at least 1s");
             }
         }
     }

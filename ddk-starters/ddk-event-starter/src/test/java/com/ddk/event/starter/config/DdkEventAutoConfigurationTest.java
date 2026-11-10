@@ -10,6 +10,7 @@ import com.ddk.event.starter.internal.SpringDomainEventPublisher;
 import org.junit.jupiter.api.DisplayName;
 import com.ddk.event.starter.internal.EventMaintenance;
 import com.ddk.event.starter.internal.MaintenanceLock;
+import com.ddk.event.starter.internal.PublicationMetrics;
 import net.javacrumbs.shedlock.core.LockProvider;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
@@ -180,6 +181,15 @@ class DdkEventAutoConfigurationTest {
                 .withBean(LockProvider.class, () -> configuration -> java.util.Optional.empty())
                 .run(context -> assertThat(context.getBean(MaintenanceLock.class).distributed()).isTrue());
         runner.withPropertyValues("ddk.event.maintenance.enabled=true", "ddk.event.maintenance.resubmit-batch-size=0")
+                .run(context -> assertThat(context).hasFailed());
+    }
+
+    @Test
+    void publicationMetricsAreOnByDefaultAndCanBeTurnedOff() {
+        runner.run(context -> assertThat(context).hasSingleBean(PublicationMetrics.class));
+        runner.withPropertyValues("ddk.event.metrics.publications.enabled=false")
+                .run(context -> assertThat(context).doesNotHaveBean(PublicationMetrics.class));
+        runner.withPropertyValues("ddk.event.metrics.publications.interval=10ms")
                 .run(context -> assertThat(context).hasFailed());
     }
 }
