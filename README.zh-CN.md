@@ -166,7 +166,7 @@ DDK 由个人维护，目前处于 0.x 阶段：次版本可能包含破坏性�
 | `ddk-cache-starter` | Caffeine（L1）+ Redis（L2）两级缓存，跨实例失效广播，Redis 故障降级 | 可用，含 Redis 集成测试 |
 | `ddk-archguard-starter` | DDD 分层与领域层纯度的 ArchUnit 规则 | 可用 |
 | `ddk-dependencies` | BOM，下游 import 后无需再写版本号 | 可用 |
-| `ddk-db-starter` | 按名字注册多数据源，连接池参数可配，主数据源启动期校验 | 实验性：只有装配测试 |
+| `ddk-db-starter` | 按名字注册多数据源，连接池参数可配，主数据源启动期校验 | 可用，在 PostgreSQL 和 MySQL 上测试 |
 | `ddk-tracer-starter` | 链路追踪，traceId 写入响应头 | 可用 |
 | `ddk-seata-starter` | 分布式事务，出站 HTTP 调用传播 XID | 实验性：只有装配测试 |
 | `ddk-archetypes` | 三层 / 四层 Maven archetype，生成即带架构守卫测试 | 可用，含生成项目的集成测试 |

@@ -166,7 +166,7 @@ DDK is maintained by one person and is in its 0.x series: a minor release may co
 | `ddk-cache-starter` | Caffeine (L1) + Redis (L2) two-level cache with cross-instance invalidation and Redis failure fallback | Usable, with Redis integration tests |
 | `ddk-archguard-starter` | ArchUnit rules for layering and domain purity | Usable |
 | `ddk-dependencies` | BOM, so downstream projects stop writing versions | Usable |
-| `ddk-db-starter` | Named data sources with configurable pools and a validated primary | Experimental: wiring tests only |
+| `ddk-db-starter` | Named data sources with configurable pools and a validated primary | Usable, tested on PostgreSQL and MySQL |
 | `ddk-tracer-starter` | Distributed tracing with the trace ID in a response header | Usable |
 | `ddk-seata-starter` | Distributed transactions with XID propagation on outbound HTTP calls | Experimental: wiring tests only |
 | `ddk-archetypes` | Three- and four-layer Maven archetypes with architecture tests in every generated project | Usable, with integration tests on generated projects |

@@ -77,7 +77,7 @@ DDK has one version number, but its modules are not equally proven. Each one has
 | MCP starter | In-process verified | A real MCP client over streamable HTTP | Synchronous server only; authorization is the application's |
 | ArchGuard starter | Verified | ArchUnit fixtures for every rule | |
 | Tracer starter | In-process verified | Trace context across HTTP and messages | Export to a tracing backend is checked by hand only |
-| DB starter (several data sources) | Wiring only | H2 | Outbox, inbox and pending tables are atomic only with the data source of the business transaction |
+| DB starter (several data sources) | Verified | H2, PostgreSQL 17 and MySQL 8.4 side by side | Outbox, inbox and pending tables are atomic only with the data source of the business transaction |
 | Seata starter | Wiring only | | Seata's runtime is not verified on Spring Boot 4 |
 | Archetypes (three and four layers) | Verified | Generated projects are built and tested in CI | |
 | `ddk-mall` | Verified, as a reference | MySQL, Redis, RocketMQ, Elasticsearch | Simulated payment channel; demo users in the `secure` profile |

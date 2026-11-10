@@ -79,7 +79,7 @@ CI 在每次改动时检查这一点：japicmp 把每个模块与上一个发布
 ## 不稳定的部分
 
 - **`*.internal` 包。** 只由自动配置创建的实现类。生成的项目用 `DDK_INTERNALS_MUST_NOT_BE_USED` 检查这一点。
-- **实验性模块：** `ddk-db-starter` 和 `ddk-seata-starter`。它们只经过装配层面的测试（见[支持状态](./ROADMAP.zh-CN.md#支持状态)），任何版本都可能改变。对真实系统验证之后才会移出这个列表。
+- **实验性模块：** `ddk-seata-starter`。它只经过装配层面的测试（见[支持状态](./ROADMAP.zh-CN.md#支持状态)），任何版本都可能改变。对真实系统验证之后才会移出这个列表，`ddk-db-starter` 在 0.12 移出。
 - **示例**（`ddk-examples/*`）：参考代码，不是库。
 - **日志内容、文档之外的指标标签、异常消息。** 代码要依据异常类型和错误码，而不是消息文本。
 - **生成项目的模板。** archetype 的新版本会生成不同的骨架；之前生成的项目不受影响。
@@ -110,7 +110,7 @@ CI 在每次改动时检查这一点：japicmp 把每个模块与上一个发布
 
 | 部分 | 原因 | 什么时候移出 |
 |---|---|---|
-| `ddk-db-starter`、`ddk-seata-starter` | 只有装配测试；Seata 的运行时没有在 Spring Boot 4 上验证 | 在 CI 里对真实系统测试之后 |
+| `ddk-seata-starter` | 只有装配测试；Seata 的运行时没有在 Spring Boot 4 上验证 | 在 CI 里对真实系统测试之后 |
 | [SUPPORT.zh-CN.md](./SUPPORT.zh-CN.md#graalvm-原生镜像) 列为已验证之外的模块的 GraalVM 原生镜像 | CI 里只有 `ddk-example-user` 以原生镜像运行 | CI 以原生方式覆盖该模块之后 |
 | 文档里的指标怎么计算 | 指标名和文档写明的标签是稳定的。统计事件发布会扫 `event_publication`，大表上的开销是已知问题 | |
 | [不稳定的部分](#不稳定的部分)里的全部内容 | | |
