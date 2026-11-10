@@ -66,6 +66,7 @@ public final class ErrorContractOpenApiCustomizer implements GlobalOpenApiCustom
         addIfAbsent(responses, "400", "业务规则拒绝或请求不合法。`code` 是具体的业务错误码，参数校验失败时为 `VALIDATION_ERROR`，请求体无法解析时为 `MALFORMED_REQUEST`");
         addIfAbsent(responses, "409", "冲突：`CONCURRENT_UPDATE` 数据已被其他操作修改，`AGGREGATE_BUSY` 聚合正被其他操作处理，`DUPLICATE_REQUEST` 重复提交");
         addIfAbsent(responses, "500", "系统故障。`code` 为 `SYSTEM_ERROR` 或应用定义的系统错误码，不包含内部细节");
+        addIfAbsent(responses, "503", "请求在完成前被取消，例如实例正在关闭：`REQUEST_CANCELLED`。请求本身没有错，可以重试");
     }
 
     private static void addIfAbsent(ApiResponses responses, String status, String description) {

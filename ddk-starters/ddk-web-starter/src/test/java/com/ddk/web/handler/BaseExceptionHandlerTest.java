@@ -1,5 +1,6 @@
 package com.ddk.web.handler;
 
+import com.ddk.core.exception.CommonError;
 import com.ddk.core.exception.AggregateBusyException;
 import com.ddk.core.exception.BusinessException;
 import com.ddk.core.exception.DuplicateRequestException;
@@ -220,11 +221,12 @@ class BaseExceptionHandlerTest {
     }
 
     @Test
-    @DisplayName("等锁时被取消的操作没有专门的映射：落到兜底处理，500 + SYSTEM_ERROR，不是 409")
-    void cancellationFallsBackTo500() throws Exception {
+    @DisplayName("等锁时被取消的操作 -> 503 + REQUEST_CANCELLED：不是锁冲突的 409，也不是系统故障的 500，消息里不带锁名")
+    void cancellationBecomes503() throws Exception {
         mvc.perform(get("/t/cancelled"))
-                .andExpect(status().isInternalServerError())
-                .andExpect(jsonPath("$.code").value("SYSTEM_ERROR"));
+                .andExpect(status().isServiceUnavailable())
+                .andExpect(jsonPath("$.code").value("REQUEST_CANCELLED"))
+                .andExpect(jsonPath("$.message").value(CommonError.REQUEST_CANCELLED.getMessage()));
     }
 
     @Test

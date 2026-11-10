@@ -15,6 +15,7 @@ import org.springframework.ai.mcp.annotation.McpTool;
 import org.springframework.core.annotation.AnnotatedElementUtils;
 import org.springframework.util.StringUtils;
 
+import java.util.concurrent.CancellationException;
 import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -61,6 +62,10 @@ public class McpToolInvocationInterceptor implements MethodInterceptor {
                 log.error("MCP tool [{}] failed with [{}]: {}", tool, e.getErrorCode().getCode(), e.getMessage(), e);
             }
             throw new McpToolException(e.getErrorCode().getCode() + ": " + e.getMessage());
+        } catch (CancellationException e) {
+            audit(tool, CommonError.REQUEST_CANCELLED.getCode(), start);
+            log.warn("MCP tool [{}] was cancelled: {}", tool, e.getMessage());
+            throw new McpToolException(CommonError.REQUEST_CANCELLED.getCode() + ": " + CommonError.REQUEST_CANCELLED.getMessage());
         } catch (RuntimeException e) {
             audit(tool, CommonError.SYSTEM_ERROR.getCode(), start);
             log.error("MCP tool [{}] failed unexpectedly: {}", tool, e.getMessage(), e);

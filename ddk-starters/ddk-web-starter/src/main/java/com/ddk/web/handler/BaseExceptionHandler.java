@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
+import java.util.concurrent.CancellationException;
 import java.util.stream.Collectors;
 
 /**
@@ -77,6 +78,16 @@ public class BaseExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleRateLimited(RateLimitedException e) {
         log.warn("RateLimitedException: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(ApiResponse.ofFail(e.getErrorCode(), e.getArgs()));
+    }
+
+    /**
+     * 请求被取消：处理线程在等待中被中断，例如等聚合锁时应用开始关闭。请求本身没有错，用 503，调用方可以重试。
+     * 不清除线程的中断标志，让容器和线程池照常收尾。
+     */
+    @ExceptionHandler(CancellationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleCancellation(CancellationException e) {
+        log.warn("Request cancelled: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(ApiResponse.ofFail(CommonError.REQUEST_CANCELLED));
     }
 
     /**
