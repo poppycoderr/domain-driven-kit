@@ -7,6 +7,28 @@ instance A  @Scheduled fires ──► lock ddk:job-lock:<app>:<job>  acquired  
 instance B  @Scheduled fires ──► lock ddk:job-lock:<app>:<job>  held by A ──► skip this round
 ```
 
+## In 30 seconds
+
+1. Add the dependency and point Spring Boot at Redis (or see [Without Redis](#without-redis)):
+
+   ```xml
+   <dependency>
+       <groupId>com.domaindrivenkit</groupId>
+       <artifactId>ddk-job-starter</artifactId>
+   </dependency>
+   ```
+
+   ```yaml
+   spring:
+     data:
+       redis:
+         host: localhost
+         port: 6379
+   ```
+
+2. Add `@Scheduled(cron = "...")` and `@SchedulerLock(name = "closeExpiredOrders")` to a method in `adapter.job`. No `@EnableScheduling` is needed.
+3. Check it: start two instances. Each round runs on one of them, and `redis-cli --scan --pattern 'ddk:job-lock:*'` shows the lock while it is held.
+
 ## Usage
 
 ```xml
@@ -92,3 +114,13 @@ Locks then live in the memory of the current process. Jobs with the same name st
 
 - It is not a distributed scheduler: no sharding, no retries, no console, no manual trigger. For those, use a scheduling platform.
 - XXL-Job has no DDK starter. XXL-Job is licensed under GPL-3.0 and DDK under Apache-2.0, so DDK does not link against it. Configure `XxlJobSpringExecutor` in your application as its documentation describes; `SCHEDULED_JOBS_MUST_RESIDE_IN_ADAPTER` covers `@XxlJob` methods as well.
+
+## Common errors
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| A job runs on every instance | The method has `@Scheduled` but no `@SchedulerLock` | Add `@SchedulerLock(name = ...)`; the optional rule `CommonArchRules.SCHEDULED_JOBS_MUST_BE_LOCKED` makes forgetting it a build failure |
+| A locked job fails every time it fires in a local environment | No Redis connection, so there is no `LockProvider` | Set `ddk.job.lock.store=local` for that single-instance environment |
+| The job's first query fails with `Multi-tenancy is enabled but OperatorContext has no tenant` | A job starts with no operator | Run it per tenant with `OperatorContext.runAs(...)`, see [Tenants](#tenants) |
+| The same round runs twice on two instances | The job took longer than `lockAtMostFor`, or the clocks differ | Raise `at-most-for`, set `at-least-for`, and keep the job safe to run twice |
+| `SCHEDULED_JOBS_MUST_RESIDE_IN_ADAPTER` fails | The job class is outside `adapter.job` | Move it there and let it call an application service |

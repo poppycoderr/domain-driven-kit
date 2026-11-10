@@ -11,6 +11,20 @@ HTTP request
 
 A caller reporting a problem can hand over the header value, and the whole call chain is one search away in the tracing backend.
 
+## In 30 seconds
+
+1. Add the dependency:
+
+   ```xml
+   <dependency>
+       <groupId>com.domaindrivenkit</groupId>
+       <artifactId>ddk-tracer-starter</artifactId>
+   </dependency>
+   ```
+
+2. Optionally point the exporter at a collector with `management.opentelemetry.tracing.export.otlp.endpoint`, as shown under [Usage](#usage).
+3. Check it: every HTTP response carries an `X-Trace-Id` header, and the same ID appears in the log lines of that request.
+
 ## Usage
 
 ```xml
@@ -64,3 +78,12 @@ An application that declares its own `TaskDecorator` keeps it; DDK then register
 - The filter is registered only in servlet web applications that have a `Tracer` bean.
 - The header is set before the rest of the filter chain runs, because headers added after the response is committed are silently dropped.
 - Requests without an active span, for example when the observation filter is disabled, get no header.
+
+## Common errors
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Only some requests show up in the tracing backend | Spring Boot samples 10% of traces by default | Set `management.tracing.sampling.probability` |
+| The browser cannot read `X-Trace-Id` | CORS hides response headers it does not list | Add it to `ddk.web.cors.exposed-headers` |
+| Work in an `@Async` method or a thread pool starts a new trace | The pool was created by the application, so it is not decorated | Use the executor Spring Boot creates, or set Micrometer's `ContextPropagatingTaskDecorator` on your own pool |
+| The exporter logs connection errors | No collector at the OTLP endpoint | Start one, or point `management.opentelemetry.tracing.export.otlp.endpoint` at it |

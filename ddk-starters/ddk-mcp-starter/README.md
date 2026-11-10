@@ -8,6 +8,20 @@ AI agent ──MCP──► adapter.mcp.*Tools ──► application service ─
                       └─ DDK: validate arguments · map exceptions to error codes · hide internals · audit log
 ```
 
+## In 30 seconds
+
+1. Add the dependency:
+
+   ```xml
+   <dependency>
+       <groupId>com.domaindrivenkit</groupId>
+       <artifactId>ddk-mcp-starter</artifactId>
+   </dependency>
+   ```
+
+2. Put a method annotated with `@McpTool` on a bean in the adapter layer, as shown under [Usage](#usage).
+3. Check it: connect an MCP client, such as the MCP Inspector, to `http://localhost:8080/mcp` over streamable HTTP; `tools/list` shows the tool.
+
 ## Usage
 
 ```xml
@@ -69,3 +83,13 @@ The starter does not decide who may call which tool; see [Not covered](#not-cove
 - **Authentication and authorization**: secure `/mcp` with Spring Security like any other endpoint
 - **Reactive servers**: only the servlet (WebMVC) stack is supported
 - **Tool argument values in logs**: deliberately omitted; add your own logging where the data is not sensitive
+
+## Common errors
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| The tool does not appear in `tools/list` | The class is not a Spring bean, or the method is not annotated with `@McpTool` | Annotate the class with `@Component` and the method with `@McpTool` |
+| An old client cannot connect | DDK defaults to streamable HTTP; older clients only speak SSE | Upgrade the client, or set `spring.ai.mcp.server.protocol` explicitly |
+| A tool returns `SYSTEM_ERROR: 服务器内部错误` | An unexpected exception; the details are only in the log | Read the log; throw `BusinessException` with an error code for expected failures |
+| A tool returns `VALIDATION_ERROR: ...` | A Bean Validation constraint on a parameter failed | Send a valid argument; the message names the parameter |
+| A tool sees no operator or tenant | The server is asynchronous (`spring.ai.mcp.server.type=ASYNC`) and runs tools on other threads | Use the default synchronous server |

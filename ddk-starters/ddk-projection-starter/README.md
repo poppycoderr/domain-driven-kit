@@ -11,6 +11,20 @@ commit
        load the order as it is now -> write it to the read model -> remove the row
 ```
 
+## In 30 seconds
+
+1. Add the dependency:
+
+   ```xml
+   <dependency>
+       <groupId>com.domaindrivenkit</groupId>
+       <artifactId>ddk-projection-starter</artifactId>
+   </dependency>
+   ```
+
+2. Implement `Projection` as a bean (see [Refresh, not apply](#refresh-not-apply)), and call `projections.markDirty("order-search", orderId)` in the transaction that changes the aggregate.
+3. Check it: after the commit the read model holds the new state, and the mark in `ddk_projection_pending` is gone. The table is created at startup unless `ddk.projection.initialize-schema=false`.
+
 ## Refresh, not apply
 
 A projection does not apply each event's change to the read model. It regenerates one entry from the current state of the write model:
@@ -205,3 +219,14 @@ Upgrade with the old instances stopped. Marks that 0.8 instances write while the
 - **High write rates.** One background thread per instance refreshes entries one at a time. There is no parallelism and no batching of writes to the read store.
 - **The read store itself.** The starter does not talk to Elasticsearch or any other store; `refresh` does, with whatever client the application uses.
 - **A mark that keeps failing is retried forever**, at most every `max-retry-delay`. There is no dead-letter state; find such marks with `Projections.failures` or the `ddk.projection.failing` gauge, see [Operations](#operations).
+
+## Common errors
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `Pending refresh table ... does not exist. Create it with: ...` | `initialize-schema` is off and the table is missing | Run the statements in the message, or add them to your migrations |
+| `Pending refresh table ... has the structure of DDK 0.8 or an earlier 0.9 snapshot` | The table predates the current schema | Follow the upgrade steps in the message and in [Configuration](#configuration) |
+| `No projection named X. Known projections: [...]` | `markDirty` or a rebuild used a name no bean returns from `name()` | Use one of the listed names |
+| `Two projections are named X` | Two beans return the same `name()` | Give each projection its own name |
+| `ddk.projection.retry-delay (...) must not exceed ddk.projection.max-retry-delay (...)` | The retry settings contradict each other | Raise `max-retry-delay` or lower `retry-delay` |
+| Marks pile up and `attempts` keeps growing | `refresh` fails for those entries | Check the log and the failed refreshes, see [Operations](#operations) |
