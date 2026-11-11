@@ -88,10 +88,12 @@ public class DdkWebAutoConfiguration {
     WebMvcConfigurer ddkCorsConfigurer(DdkWebProperties properties) {
         DdkWebProperties.Cors cors = properties.getCors();
 
-        if (cors.isAllowCredentials() && cors.getAllowedOrigins().contains("*")) {
-            throw new IllegalStateException(
-                    "ddk.web.cors 同时设置了 allow-credentials=true 和 allowed-origins=*。"
-                            + "这会让任意站点带着用户的凭证调用你的接口，请显式列出来源。");
+        if (cors.isAllowCredentials()) {
+            cors.getAllowedOrigins().stream().filter(DdkWebAutoConfiguration::matchesAnyHost).findFirst().ifPresent(origin -> {
+                throw new IllegalStateException(
+                        "ddk.web.cors 同时设置了 allow-credentials=true 和匹配任意主机的来源 " + origin + "。"
+                                + "这会让任意站点带着用户的凭证调用你的接口，请显式列出来源。");
+            });
         }
         if (cors.getAllowedOrigins().isEmpty()) {
             log.warn("ddk.web.cors.enabled=true 但没有配置 allowed-origins，跨域不会对任何来源生效");
@@ -120,5 +122,22 @@ public class DdkWebAutoConfiguration {
     @ConditionalOnMissingBean
     OperatorContextFilter ddkOperatorContextFilter(OperatorResolver resolver) {
         return new OperatorContextFilter(resolver);
+    }
+
+    /**
+     * 来源模式的主机部分是否只由通配符组成，例如 {@code *}、{@code https://*}、{@code *://*}、{@code https://*:8080}。
+     * 来源写的是 {@code allowedOriginPatterns}，所以只拦字面量 {@code *} 不够；{@code https://*.example.com} 这类限定了域名的模式不受影响。
+     */
+    static boolean matchesAnyHost(String origin) {
+        String host = origin;
+        int scheme = host.indexOf("://");
+        if (scheme >= 0) {
+            host = host.substring(scheme + 3);
+        }
+        int port = host.indexOf(':');
+        if (port >= 0) {
+            host = host.substring(0, port);
+        }
+        return !host.isEmpty() && host.chars().allMatch(c -> c == '*' || c == '.');
     }
 }

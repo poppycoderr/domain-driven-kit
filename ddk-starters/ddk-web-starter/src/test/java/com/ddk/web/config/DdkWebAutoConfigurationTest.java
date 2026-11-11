@@ -97,6 +97,30 @@ class DdkWebAutoConfigurationTest {
     }
 
     @Test
+    @DisplayName("allow-credentials 配合匹配任意主机的来源模式时同样启动失败：https://*、*://*、带端口的 https://*:8080")
+    void rejectsAnyHostPatternsWithCredentials() {
+        for (String origin : new String[] {"https://*", "*://*", "https://*:8080", "http://*.*"}) {
+            runner.withPropertyValues(
+                            "ddk.web.cors.enabled=true",
+                            "ddk.web.cors.allowed-origins=" + origin,
+                            "ddk.web.cors.allow-credentials=true")
+                    .run(context -> assertThat(context).as(origin).hasFailed()
+                            .getFailure().rootCause()
+                            .hasMessageContaining(origin));
+        }
+    }
+
+    @Test
+    @DisplayName("限定了域名的通配模式可以和 allow-credentials 一起用")
+    void acceptsDomainPatternsWithCredentials() {
+        runner.withPropertyValues(
+                        "ddk.web.cors.enabled=true",
+                        "ddk.web.cors.allowed-origins=https://*.example.com,http://localhost:*",
+                        "ddk.web.cors.allow-credentials=true")
+                .run(context -> assertThat(context).hasNotFailed().hasBean("ddkCorsConfigurer"));
+    }
+
+    @Test
     @DisplayName("allow-credentials 配合 allowed-origins=* 时启动失败，而不是留到运行期被浏览器拒绝")
     void rejectsWildcardOriginWithCredentials() {
         runner.withPropertyValues(
