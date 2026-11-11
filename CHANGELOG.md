@@ -29,6 +29,7 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 - The cache starter's README states two limits it did not mention: an eviction that fails while Redis is unreachable leaves the old value in Redis until the L2 TTL ends it, so the L1 TTL bounds staleness only when the eviction reached Redis; and cache keys do not include the tenant, so with multi-tenancy the key has to carry it
 - With `ddk.web.cors.allow-credentials=true`, startup now also fails for origin patterns whose host is only wildcards, such as `https://*`, `*://*` or `https://*:8080`. Only the literal `*` was rejected before, although the origins are applied as patterns, so these let any site call the API with the user's credentials. Patterns that fix the domain, such as `https://*.example.com`, still work
 - The error contract in the API docs includes `429` with `RATE_LIMITED`, which `@RateLimit` answers with
+- The cache's level 2 no longer falls back to JDK serialization when the Redis starter's allow-listed serializer is missing, for example because the application excluded the Redis starter's auto-configuration. It used to, silently: anyone who could write to Redis could then make the application instantiate any class, and the values were binary instead of JSON. It now builds the same allow-listed JSON serializer, trusting the application's packages, and logs a warning
 
 ### Security
 

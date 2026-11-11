@@ -87,7 +87,7 @@ ddk:
 - **A failed write to L2 is not retried.** When `@CacheEvict` or `@CachePut` runs while Redis is unreachable, the local level is updated but the old value stays in Redis. Once Redis is back, every instance reads that old value again, until the L2 TTL ends it. So the staleness bound is the L1 TTL only when the invalidation reached Redis; when it failed, it is the L2 TTL. For caches where that matters, keep the L2 TTL short and alert on `ddk.cache.remote.errors{operation="evict"}`.
 - **Keys do not include the tenant.** A cache hit returns the value without running the method, so the SQL with its tenant condition never runs. With multi-tenancy, put the tenant into the key yourself, for example `@Cacheable(cacheNames = "skus", key = "T(com.ddk.core.context.OperatorContext).required().tenantId() + ':' + #skuId")`, or use a cache only for data that all tenants share.
 - **Without a `RedisConnectionFactory` bean, every cache runs on L1 only** and the application still starts.
-- **Values in L2 use the Redis starter's serializer**, including its deserialization type allow-list (`ddk.redis.trusted-packages`).
+- **Values in L2 use the Redis starter's serializer**, including its deserialization type allow-list (`ddk.redis.trusted-packages`). When that serializer is missing, for example because the application excluded the Redis starter's auto-configuration, the cache builds one the same way that trusts the application's own packages, and logs a warning; it never falls back to JDK serialization.
 - **`clear()` uses `SCAN`**, not `KEYS`.
 - **`@Cacheable(sync = true)` loads once per key per instance.**
 

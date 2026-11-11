@@ -9,12 +9,15 @@ import com.ddk.cache.starter.invalidation.CacheInvalidationPublisher;
 import com.ddk.cache.starter.metrics.CacheMetrics;
 import com.ddk.cache.starter.support.DdkCacheManager;
 import com.ddk.redis.starter.config.DdkRedisAutoConfiguration;
+import com.ddk.redis.starter.serializer.RedisJsonMapper;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfigurationPackages;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -26,9 +29,9 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportRuntimeHints;
 import org.springframework.data.redis.cache.BatchStrategies;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
@@ -37,6 +40,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import tools.jackson.databind.ObjectMapper;
@@ -44,6 +48,7 @@ import tools.jackson.databind.json.JsonMapper;
 
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -81,18 +86,35 @@ public class DdkCacheAutoConfiguration {
                                         @Qualifier(DdkRedisAutoConfiguration.VALUE_SERIALIZER_BEAN_NAME)
                                         ObjectProvider<RedisSerializer<Object>> valueSerializer,
                                         ObjectProvider<CacheInvalidationPublisher> publisher,
-                                        ObjectProvider<CacheMetrics> metrics) {
+                                        ObjectProvider<CacheMetrics> metrics,
+                                        BeanFactory beanFactory) {
         RedisConnectionFactory factory = connectionFactory.getIfAvailable();
         Function<String, Cache> remote = null;
         if (factory == null) {
             log.warn("No RedisConnectionFactory found, DDK cache runs with the local level only");
         } else {
-            remote = redisCacheFactory(factory, properties, valueSerializer.getIfAvailable(RedisSerializer::java));
+            remote = redisCacheFactory(factory, properties, valueSerializer(valueSerializer, beanFactory));
         }
         return new DdkCacheManager(properties, remote,
                 RedisCacheConfiguration.defaultCacheConfig().getConversionService(),
                 publisher.getIfAvailable(() -> CacheInvalidationPublisher.NOOP),
                 metrics.getIfAvailable(() -> CacheMetrics.NOOP));
+    }
+
+    /**
+     * 值的序列化器用 Redis starter 注册的那个，与 {@code RedisTemplate} 共用同一份反序列化白名单。拿不到时（例如应用排除了
+     * Redis starter 的自动配置）按同样的方式建一个只信任应用包的，而不是退回不设限的 JDK 序列化：那样任何能写 Redis 的人都能让应用实例化任意类，
+     * 值的格式也会从 JSON 变成二进制。
+     */
+    static RedisSerializer<Object> valueSerializer(ObjectProvider<RedisSerializer<Object>> registered, BeanFactory beanFactory) {
+        RedisSerializer<Object> serializer = registered.getIfAvailable();
+        if (serializer != null) {
+            return serializer;
+        }
+        List<String> trusted = AutoConfigurationPackages.has(beanFactory) ? AutoConfigurationPackages.get(beanFactory) : List.of();
+        log.warn("No {} bean found, so the cache's level 2 uses an allow-listed JSON serializer that trusts the application's packages {} only; "
+                + "ddk.redis.trusted-packages does not apply", DdkRedisAutoConfiguration.VALUE_SERIALIZER_BEAN_NAME, trusted);
+        return new GenericJacksonJsonRedisSerializer(RedisJsonMapper.create(trusted));
     }
 
     private static Function<String, Cache> redisCacheFactory(RedisConnectionFactory factory,
