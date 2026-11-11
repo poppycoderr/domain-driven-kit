@@ -65,7 +65,8 @@ class WebOpenApiIntegrationTest {
                 .andExpect(jsonPath("$.paths['/orders/{id}'].get.responses['409'].description", containsString("AGGREGATE_BUSY")))
                 .andExpect(jsonPath("$.paths['/orders/{id}'].get.responses['500'].content['application/json'].schema['$ref']")
                         .value("#/components/schemas/ApiErrorResponse"))
-                .andExpect(jsonPath("$.paths['/orders/{id}'].get.responses['503'].description", containsString("REQUEST_CANCELLED")));
+                .andExpect(jsonPath("$.paths['/orders/{id}'].get.responses['503'].description", containsString("REQUEST_CANCELLED")))
+                .andExpect(jsonPath("$.paths['/orders/{id}'].get.responses['429'].description", containsString("RATE_LIMITED")));
     }
 
     @Test

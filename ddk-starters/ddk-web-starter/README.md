@@ -31,7 +31,7 @@ Web-layer defaults for Spring MVC: global exception handling into `ApiResponse`,
 | anything else | 500 | `SYSTEM_ERROR`, with a generic message; the stack trace goes to the log |
 
 - **Jackson.** A `JsonMapperBuilderCustomizer`, so `spring.jackson.*` still applies. Dates are ISO-8601 strings, unknown request fields are ignored, and `Long` / `long` are written as JSON strings, because snowflake IDs above 2^53 lose precision in JavaScript.
-- **Error contract in the API docs.** With springdoc on the classpath, every operation gets `400`, `409`, `500` and `503` responses with the `ApiErrorResponse` schema, and `components.schemas.ErrorCode` lists every error code: `CommonError` plus the `ErrorCode` enums in your application's packages.
+- **Error contract in the API docs.** With springdoc on the classpath, every operation gets `400`, `409`, `429`, `500` and `503` responses with the `ApiErrorResponse` schema, and `components.schemas.ErrorCode` lists every error code: `CommonError` plus the `ErrorCode` enums in your application's packages.
 - **Operator of the request.** Declare an `OperatorResolver` bean and the starter sets `OperatorContext` for each request and clears it afterwards. The MyBatis starter's audit fields and multi-tenancy read it from there.
 - **CORS** is off until `ddk.web.cors.enabled=true`.
 
@@ -60,7 +60,7 @@ Your own `BaseExceptionHandler` bean replaces DDK's. The auto-configuration is `
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Startup fails: `ddk.web.cors 同时设置了 allow-credentials=true 和 allowed-origins=*` | Any site could call the API with the user's credentials | List the origins explicitly |
+| Startup fails: `ddk.web.cors 同时设置了 allow-credentials=true 和匹配任意主机的来源 ...` | An origin pattern whose host is only wildcards, such as `*`, `https://*` or `*://*`, together with credentials: any site could call the API with the user's credentials | List the origins, or use patterns that fix the domain, such as `https://*.example.com` |
 | The frontend receives IDs as strings | `write-long-as-string` is on by default, for every `Long` field | Parse them as strings, or set `ddk.web.write-long-as-string=false` if no ID exceeds 2^53 |
 | The API docs show only `200` responses | springdoc is not on the classpath, or `ddk.web.openapi=false` | Add `springdoc-openapi-starter-webmvc-ui`; the BOM manages its version |
 | A request returns `500 SYSTEM_ERROR` with no detail | An exception that DDK does not map; the response hides it on purpose | Read the stack trace in the log; throw `BusinessException` with an error code for expected failures |
