@@ -40,7 +40,21 @@ public class OperatorTenantLineHandler implements TenantLineHandler {
                     + "OperatorContext.runAs(...), list the table in ddk.mybatis.tenant.ignore-tables, or mark the mapper method with "
                     + "@InterceptorIgnore(tenantLine = \"true\")");
         }
-        return numericId ? new LongValue(Long.parseLong(tenantId)) : new StringValue(tenantId);
+        return numericId ? new LongValue(Long.parseLong(tenantId)) : new StringValue(checkedForSql(tenantId));
+    }
+
+    /**
+     * 字符串租户直接写进 SQL 字面量，JSqlParser 的 {@link StringValue} 不转义。单引号会结束字面量，MySQL 默认还把反斜杠当转义符，
+     * 只转义引号不够，所以含这些字符和控制字符的租户值一律拒绝。租户值可能来自网关透传的请求头或没有签名的消息头。
+     */
+    private static String checkedForSql(String tenantId) {
+        for (int i = 0; i < tenantId.length(); i++) {
+            char c = tenantId.charAt(i);
+            if (c == '\'' || c == '\\' || Character.isISOControl(c)) {
+                throw new IllegalStateException("Tenant id contains a quote, a backslash or a control character and cannot be used in SQL");
+            }
+        }
+        return tenantId;
     }
 
     @Override
