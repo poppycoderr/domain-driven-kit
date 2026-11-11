@@ -12,6 +12,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.cache.autoconfigure.CacheAutoConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.core.ResolvableType;
+import org.springframework.data.redis.serializer.RedisSerializer;
+import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
+import org.springframework.beans.factory.support.StaticListableBeanFactory;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
@@ -162,5 +166,27 @@ class DdkCacheAutoConfigurationTest {
         public int calls() {
             return calls.get();
         }
+    }
+
+    @Test
+    void usesTheRegisteredAllowListedSerializer() {
+        RedisSerializer<Object> registered = RedisSerializer.json();
+        StaticListableBeanFactory beans = new StaticListableBeanFactory();
+        beans.addBean("ddkRedisValueSerializer", registered);
+
+        assertThat(DdkCacheAutoConfiguration.valueSerializer(beans.getBeanProvider(serializerType()), beans)).isSameAs(registered);
+    }
+
+    @Test
+    void neverFallsBackToJdkSerialization() {
+        StaticListableBeanFactory beans = new StaticListableBeanFactory();
+
+        assertThat(DdkCacheAutoConfiguration.valueSerializer(beans.getBeanProvider(serializerType()), beans))
+                .isInstanceOf(GenericJacksonJsonRedisSerializer.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static ResolvableType serializerType() {
+        return ResolvableType.forClassWithGenerics(RedisSerializer.class, Object.class);
     }
 }
