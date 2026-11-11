@@ -84,7 +84,7 @@ DDK 只有一个版本号，但各模块经受的验证并不一样。每个模�
 
 ## 最新版本：0.12
 
-[0.12.0](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v0.12.0) 于 RELEASE_DATE 发布。**目标：趁次版本还允许破坏性变化，完成 1.0 的几个决定需要的改动，并让 DDK 更容易上手。** 决定了什么、为什么，见[冻结清单](./COMPATIBILITY.zh-CN.md#10-已经决定的)；1.0 在 0.12 之后发布，本身不再加代码。
+[0.12.0](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v0.12.0) 于 2026-11-10 发布。**目标：趁次版本还允许破坏性变化，完成 1.0 的几个决定需要的改动，并让 DDK 更容易上手。** 决定了什么、为什么，见[冻结清单](./COMPATIBILITY.zh-CN.md#10-已经决定的)；1.0 在 0.12 之后发布，本身不再加代码。
 
 - [x] 依赖 Redis 的 starter、投影和发布登记在原生镜像下验证，CI 里加入 `ddk-example-inventory`
 - [x] 事件发布指标改为后台采样，开销不再随采集频率增长

@@ -84,7 +84,7 @@ DDK has one version number, but its modules are not equally proven. Each one has
 
 ## Latest release: 0.12
 
-[0.12.0](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v0.12.0), released on RELEASE_DATE. **Goal: make the changes that the 1.0 decisions need while a minor release may still break, and make DDK easier to start with.** What was decided and why is in the [freeze checklist](./COMPATIBILITY.md#decided-for-10); 1.0 follows 0.12 and adds no code of its own.
+[0.12.0](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v0.12.0), released on 2026-11-10. **Goal: make the changes that the 1.0 decisions need while a minor release may still break, and make DDK easier to start with.** What was decided and why is in the [freeze checklist](./COMPATIBILITY.md#decided-for-10); 1.0 follows 0.12 and adds no code of its own.
 
 - [x] Native images verified for the Redis-backed starters, projections and the publication registry, with `ddk-example-inventory` in CI
 - [x] Publication metrics sampled in the background, so that their cost no longer follows the scrape rate
