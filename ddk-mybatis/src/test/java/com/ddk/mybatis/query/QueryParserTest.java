@@ -1,6 +1,8 @@
 package com.ddk.mybatis.query;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.ddk.core.exception.BusinessException;
+import com.ddk.core.exception.CommonError;
 import com.ddk.core.page.PageQuery;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -108,5 +110,26 @@ class QueryParserTest {
     @DisplayName("没有排序时不产生 ORDER BY")
     void noSortNoOrderBy() {
         assertFalse(sqlOf(QueryParser.parse(new UserQuery())).contains("ORDER BY"));
+    }
+
+    @Test
+    @DisplayName("排序字段只接受标识符：带括号、空格、引号或注释的表达式不会进入 ORDER BY")
+    void rejectsSortFieldsThatAreNotIdentifiers() {
+        for (String field : List.of("(select 1 from no_such_table)", "id desc, (select 1)", "id;drop table t", "id--", "user.name", "id'")) {
+            UserQuery query = new UserQuery();
+            query.addSort(field, "ASC");
+
+            BusinessException e = assertThrows(BusinessException.class, () -> QueryParser.parse(query), field);
+            assertEquals(CommonError.VALIDATION_ERROR, e.getErrorCode(), field);
+        }
+    }
+
+    @Test
+    @DisplayName("空的排序字段被跳过，不产生 ORDER BY")
+    void skipsEmptySortFields() {
+        UserQuery query = new UserQuery();
+        query.addSort("", "ASC");
+
+        assertFalse(sqlOf(QueryParser.parse(query)).contains("ORDER BY"));
     }
 }

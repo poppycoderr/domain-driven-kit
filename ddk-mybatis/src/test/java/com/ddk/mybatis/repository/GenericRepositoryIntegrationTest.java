@@ -5,6 +5,8 @@ import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInt
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import com.ddk.core.domain.DomainEvent;
 import com.ddk.core.domain.DomainEventPublisher;
+import com.ddk.core.exception.BusinessException;
+import com.ddk.core.exception.CommonError;
 import com.ddk.core.mapper.MapperProvider;
 import com.ddk.core.page.PageResponse;
 import com.ddk.core.repository.ConcurrentUpdateException;
@@ -325,6 +327,18 @@ class GenericRepositoryIntegrationTest {
         assertTrue(repository.existsById(saved.id().value()));
         assertFalse(repository.existsById(999_999L));
         assertFalse(repository.existsById(null), "null 标识直接返回 false，不去查库");
+    }
+
+    @Test
+    @DisplayName("分页查询里的排序表达式不会到达数据库，按参数校验失败处理")
+    void sortExpressionsNeverReachTheDatabase() {
+        persistedUser("user1", 1);
+        UserPageQuery query = new UserPageQuery();
+        query.addSort("(select 1 from no_such_table)", "ASC");
+
+        BusinessException e = assertThrows(BusinessException.class, () -> repository.page(query));
+
+        assertEquals(CommonError.VALIDATION_ERROR, e.getErrorCode());
     }
 
     @Test
