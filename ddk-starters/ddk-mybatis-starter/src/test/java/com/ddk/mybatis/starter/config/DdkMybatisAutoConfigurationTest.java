@@ -9,6 +9,9 @@ import com.ddk.core.mapper.MissingMapperException;
 import com.ddk.core.mapper.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.context.annotation.Bean;
@@ -20,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DisplayName("MyBatis starter 自动装配")
+@ExtendWith(OutputCaptureExtension.class)
 class DdkMybatisAutoConfigurationTest {
 
     private final ApplicationContextRunner runner = new ApplicationContextRunner()
@@ -87,5 +91,20 @@ class DdkMybatisAutoConfigurationTest {
         runner.withBean(IdentifierGenerator.class, () -> param -> 42L)
                 .run(context -> assertThat(context.getBean(IdentifierGenerator.class).nextId(null))
                         .isEqualTo(42L));
+    }
+
+    @Test
+    void warnsWhenTheSnowflakeIdentityIsDerived(CapturedOutput output) {
+        runner.run(context -> assertThat(context.getBean(IdentifierGenerator.class).nextId(null)).isNotNull());
+
+        assertThat(output).contains("ddk.mybatis.worker-id and ddk.mybatis.datacenter-id are not both set");
+    }
+
+    @Test
+    void staysQuietWhenTheSnowflakeIdentityIsConfigured(CapturedOutput output) {
+        runner.withPropertyValues("ddk.mybatis.worker-id=3", "ddk.mybatis.datacenter-id=4")
+                .run(context -> assertThat(context.getBean(IdentifierGenerator.class).nextId(null)).isNotNull());
+
+        assertThat(output).doesNotContain("are not both set");
     }
 }

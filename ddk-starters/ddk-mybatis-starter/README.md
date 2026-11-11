@@ -102,7 +102,7 @@ Statements on the listed tables get `(dept_id IN (...) OR create_by = ?)`. `Data
 | `ddk.mybatis.overflow` | `false` | Go back to the first page when the page number is past the end |
 | `ddk.mybatis.optimistic-locker` | `true` | Optimistic locking interceptor |
 | `ddk.mybatis.block-attack` | `true` | Full-table guard |
-| `ddk.mybatis.worker-id`, `ddk.mybatis.datacenter-id` | none | Snowflake worker and data center IDs (0–31), set both; set them explicitly with several instances |
+| `ddk.mybatis.worker-id`, `ddk.mybatis.datacenter-id` | none | Snowflake worker and data center IDs (0–31), set both, unique per instance. Without them the identity is derived from the MAC address and the process ID; in containers, where the process ID is usually 1, only 32 identities remain, and two of seven instances collide with a probability of about one half. Startup logs a warning when they are not set |
 | `ddk.mybatis.tenant.enabled` | `false` | Multi-tenancy |
 | `ddk.mybatis.tenant.column` | `tenant_id` | Tenant column |
 | `ddk.mybatis.tenant.numeric-id` | `true` | `false` compares the tenant as a string |
@@ -127,4 +127,5 @@ Statements on the listed tables get `(dept_id IN (...) OR create_by = ?)`. `Data
 | Pages are smaller than requested | `max-page-size` cuts larger pages silently | Raise `ddk.mybatis.max-page-size` or page through the results |
 | Wrong SQL for `LIMIT` / `OFFSET` on PostgreSQL or H2 | `db-type` is still `mysql` | Set `ddk.mybatis.db-type` |
 | `ConcurrentUpdateException` on an update you expected to succeed | The aggregate was loaded before another write, or the row is outside the operator's data scope, which also updates 0 rows | Reload and retry, or check the operator's data scope |
+| Now and then a duplicate key error on insert, only with several instances | Two instances derived the same snowflake identity (the startup warning says so) and generated the same ID in the same millisecond | Set `ddk.mybatis.worker-id` and `ddk.mybatis.datacenter-id`, unique per instance, for example from the pod ordinal |
 | `MapperProvider` bean not found when the application starts | Only `ddk-mybatis` is on the classpath | Depend on `ddk-mybatis-starter` |
