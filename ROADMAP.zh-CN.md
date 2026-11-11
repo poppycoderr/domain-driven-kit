@@ -26,7 +26,7 @@
   护栏        ArchGuard 规则 · AGENTS.md / Skills · 生成项目即带架构测试
   领域        ddk-core：聚合 · 值对象 · 领域事件 · 规约 · 仓储契约
   可靠性      Outbox · 幂等 · 分布式锁 · 限流          ← 按聚合 / 命令语义封装
-  集成        MyBatis-Plus · Redis · RocketMQ/Kafka · ShedLock · Elasticsearch · Seata
+  集成        MyBatis-Plus · Redis · RocketMQ/Kafka · ShedLock · Elasticsearch
   AI          Spring AI · MCP：应用服务即工具，受同一套校验与权限约束
   平台        Spring Boot 4 · Jackson 3 · JSpecify · 虚拟线程 · OpenTelemetry
 ```
@@ -78,7 +78,6 @@ DDK 只有一个版本号，但各模块经受的验证并不一样。每个模�
 | ArchGuard starter | 已验证 | 每条规则都有 ArchUnit 正反例 | |
 | Tracer starter | 进程内验证 | 跨 HTTP 和消息的链路上下文 | 导出到追踪后端只做过手工验证 |
 | DB starter（多数据源） | 已验证 | H2；PostgreSQL 17 和 MySQL 8.4 同时作为两个数据源 | 发件箱、去重表、待刷新表只有和业务事务用同一个数据源时才是原子的 |
-| Seata starter | 仅装配，已弃用 | | Seata 的运行时没有在 Spring Boot 4 上验证；1.0 不再发布 |
 | Archetype（三层、四层） | 已验证 | 生成的项目在 CI 里构建和测试 | |
 | `ddk-mall` | 已验证，作为参考实现 | MySQL、Redis、RocketMQ、Elasticsearch | 支付渠道是模拟的；`secure` profile 用演示用户 |
 

@@ -79,7 +79,7 @@ An existing rule in `CommonArchRules` does not become stricter in a minor releas
 ## What is not stable
 
 - **`*.internal` packages.** Implementation classes that only auto-configuration creates. Generated projects check this with `DDK_INTERNALS_MUST_NOT_BE_USED`.
-- **Experimental modules:** `ddk-seata-starter`, deprecated since 0.12.0 and not published with 1.0. It is tested at the wiring level only (see the [support matrix](./ROADMAP.md#support-status)) and may change in any release. A module leaves this list when it is verified against the real system, as `ddk-db-starter` did in 0.12.
+- **Experimental modules:** none at present. A module that is tested at the wiring level only is listed here, may change in any release, and leaves the list when it is verified against the real system, as `ddk-db-starter` did in 0.12. `ddk-seata-starter`, the other one, was deprecated in 0.12 and removed in 1.0.
 - **Examples** (`ddk-examples/*`): reference code, not a library.
 - **Log messages, metric tag sets beyond the documented ones, and exception messages.** Write code against exception types and error codes, not message text.
 - **Generated project templates.** A new release of an archetype generates a different skeleton; projects generated earlier are not changed.
@@ -110,7 +110,6 @@ The behavior that 1.0 freezes is the documented one, not more:
 
 | Part | Why | Leaves the list when |
 |---|---|---|
-| `ddk-seata-starter` | Wiring tests only; Seata's runtime is not verified on Spring Boot 4 | It is tested against the real system in CI |
 | GraalVM native images beyond the modules [SUPPORT.md](./SUPPORT.md#graalvm-native-images) lists as verified | CI runs `ddk-example-user` and `ddk-example-inventory` as native images, which cover the modules SUPPORT.md lists | CI exercises the module natively |
 | How the documented metrics are computed | The metric names and documented tags are stable. Event publications are counted in the background at an interval, and each count still scans `event_publication`, a known cost on large tables | |
 | Everything under [What is not stable](#what-is-not-stable) | | |

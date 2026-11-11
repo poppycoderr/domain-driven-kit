@@ -38,7 +38,7 @@
 - 🗄️ **Safe persistence**: a generic MyBatis-Plus repository with optimistic locking; missing or duplicate mappers fail at startup
 - ⚡ **Two-level cache**: Caffeine + Redis with cross-instance invalidation, Redis failure fallback and a deserialization allow-list
 - 🤖 **AI-agent ready**: generated projects ship `AGENTS.md`, `CLAUDE.md` and Claude Code Skills; architecture failures come with a report agents can act on; use cases can be exposed as MCP tools
-- 🧩 **Thirteen Spring Boot starters** under one `ddk.*` namespace: web, MyBatis, Redis, cache, data sources, tracing, Seata, domain events, MCP, concurrency control, scheduled jobs, read-model projections, ArchGuard
+- 🧩 **Twelve Spring Boot starters** under one `ddk.*` namespace: web, MyBatis, Redis, cache, data sources, tracing, domain events, MCP, concurrency control, scheduled jobs, read-model projections, ArchGuard
 - 🚀 **Start in minutes**: Maven archetypes and a runnable example, built and tested in CI on Java 21 and 25
 
 ## Why DDK
@@ -168,7 +168,6 @@ DDK is maintained by one person and is in its 0.x series: a minor release may co
 | `ddk-dependencies` | BOM, so downstream projects stop writing versions | Usable |
 | `ddk-db-starter` | Named data sources with configurable pools and a validated primary | Usable, tested on PostgreSQL and MySQL |
 | `ddk-tracer-starter` | Distributed tracing with the trace ID in a response header | Usable |
-| `ddk-seata-starter` | Distributed transactions with XID propagation on outbound HTTP calls | Deprecated since 0.12.0, not published with 1.0; wiring tests only |
 | `ddk-archetypes` | Three- and four-layer Maven archetypes with architecture tests in every generated project | Usable, with integration tests on generated projects |
 | `ddk-examples` | `ddk-example-user`: a runnable four-layer user registration example. [`ddk-mall`](./ddk-examples/ddk-mall): a reference application where order, inventory and payment contexts work together through integration events, using every starter side by side | Usable |
 
@@ -244,7 +243,6 @@ domain-driven-kit
 │   ├── ddk-cache-starter
 │   ├── ddk-db-starter
 │   ├── ddk-tracer-starter
-│   ├── ddk-seata-starter
 │   ├── ddk-event-starter
 │   ├── ddk-mcp-starter
 │   ├── ddk-concurrency-starter

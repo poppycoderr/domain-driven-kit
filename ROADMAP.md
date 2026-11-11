@@ -26,7 +26,7 @@ Three observations decide what DDK does and does not do:
   Guardrails   ArchGuard rules · AGENTS.md / Skills · generated projects ship architecture tests
   Domain       ddk-core: aggregates · value objects · domain events · specifications · repositories
   Reliability  outbox · idempotency · distributed locks · rate limits   ← keyed by aggregate / command
-  Integration  MyBatis-Plus · Redis · RocketMQ/Kafka · ShedLock · Elasticsearch · Seata
+  Integration  MyBatis-Plus · Redis · RocketMQ/Kafka · ShedLock · Elasticsearch
   AI           Spring AI · MCP: application services as tools, under the same validation and permissions
   Platform     Spring Boot 4 · Jackson 3 · JSpecify · virtual threads · OpenTelemetry
 ```
@@ -78,7 +78,6 @@ DDK has one version number, but its modules are not equally proven. Each one has
 | ArchGuard starter | Verified | ArchUnit fixtures for every rule | |
 | Tracer starter | In-process verified | Trace context across HTTP and messages | Export to a tracing backend is checked by hand only |
 | DB starter (several data sources) | Verified | H2, PostgreSQL 17 and MySQL 8.4 side by side | Outbox, inbox and pending tables are atomic only with the data source of the business transaction |
-| Seata starter | Wiring only, deprecated | | Seata's runtime is not verified on Spring Boot 4; not published with 1.0 |
 | Archetypes (three and four layers) | Verified | Generated projects are built and tested in CI | |
 | `ddk-mall` | Verified, as a reference | MySQL, Redis, RocketMQ, Elasticsearch | Simulated payment channel; demo users in the `secure` profile |
 
