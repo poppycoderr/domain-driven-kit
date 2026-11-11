@@ -130,8 +130,8 @@ The questions that this draft left open, as the maintainer decided them on 2026-
 
 - [x] The decisions above are made and written into this page
 - [x] 0.11.0 is released and its fixtures are added under `compat/`; `api.baseline.version` is 0.11.0
-- [ ] 0.12.0 carries the changes the decisions need, is released, and its fixtures and API baseline follow the same way
-- [ ] An upgrade and rollback rehearsal from 0.11 to the 1.0 candidate, the same way as from 0.10 to 0.11
+- [x] 0.12.0 carries the changes the decisions need, is released, and its fixtures and API baseline follow the same way; `ddk-seata-starter` is removed
+- [ ] An upgrade and rollback rehearsal from 0.12 to the 1.0 candidate, on a project generated from 0.12.0, the same way as from 0.11 to 0.12
 - [ ] The candidate passes Java 21 and 25, generated projects, the API check and the native image job
 - [ ] This section's "draft" is removed, and the [support matrix](./ROADMAP.md#support-status) matches this page
 
