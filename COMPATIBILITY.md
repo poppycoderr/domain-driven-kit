@@ -40,7 +40,7 @@ Public and protected members of the published modules, outside `*.internal` pack
 | `ddk-core` | Domain model (`AggregateRoot`, `Entity`, `Identifier`, `ValueObject`, `DomainEvent`, `AbstractDomainEvent`, `DomainEventPublisher`, `IntegrationEvent`, `Specification`), `GenericRepository` and `ConcurrentUpdateException`, paging (`PageQuery`, `PageResponse`, `Sort`), exceptions and `ErrorCode` / `CommonError`, `ApiResponse`, `OperatorContext` / `Operator` / `DataScope`, the mapper registry (`MapperProvider`, `ObjectMapper`, `EnhancedMapper`, `MapperConfiguration`, `EnumMapper`, `IEnum`), `IdentifierJacksonModule` |
 | `ddk-mybatis` | `GenericRepositoryImpl`, `MybatisPlusPageAdapter`, `@Query`, `Operator`, `QueryParser` |
 | `ddk-test` | `DdkAssertions`, `AggregateAssert`, `BusinessRuleAssert`, `DdkContainers` and its container types |
-| Starters | The types applications inject, implement, annotate with or catch: `@AggregateLock`, `AggregateLocks`, `@Idempotent`, `@RateLimit`; `IntegrationEventConsumer`, `ReceivedEvent`, `EventContract`, `IntegrationEventDispatcher`, `IdempotentConsumer`; `Projection`, `Projections`, `FailedRefresh`; `DataScopeResolver`; `OperatorResolver`, `BaseExceptionHandler`; `CacheSettings`, `DdkCacheManager`, `TwoLevelCache`, `CacheInvalidationPublisher`, `CacheMetrics`; `RedisJsonMapper`; `CommonArchRules`, `ArchGuard`, `ArchGuardReport`, `Violation` |
+| Starters | The types applications inject, implement, annotate with or catch: `@AggregateLock`, `AggregateLocks`, `@Idempotent`, `@RateLimit`; `IntegrationEventConsumer`, `ReceivedEvent`, `EventContract`, `IntegrationEventDispatcher`, `IdempotentConsumer`; `Projections`; `DataScopeResolver`; `OperatorResolver`, `BaseExceptionHandler`; `CacheSettings`, `DdkCacheManager`, `TwoLevelCache`, `CacheInvalidationPublisher`, `CacheMetrics`; `RedisJsonMapper`; `CommonArchRules`, `ArchGuard`, `ArchGuardReport`, `Violation` |
 
 Adding a method with a default implementation, or an annotation element with a default, is compatible. Changing a parameter list is not; a new parameter comes as a new overload. A new overload is binary compatible, but it can make an existing call with `null` arguments ambiguous at compile time, so each one is reviewed for that.
 
@@ -111,6 +111,9 @@ The behavior that 1.0 freezes is the documented one, not more:
 | Part | Why | Leaves the list when |
 |---|---|---|
 | GraalVM native images beyond the modules [SUPPORT.md](./SUPPORT.md#graalvm-native-images) lists as verified | CI runs `ddk-example-user` and `ddk-example-inventory` as native images, which cover the modules SUPPORT.md lists | CI exercises the module natively |
+| `ddk-mcp-starter` (preview) | The MCP specification had an incompatible revision on 2026-07-28 (stateless protocol, no protocol-level sessions), and Spring AI follows it. The starter's behavior can change with them in a 1.x minor release | A specification version is settled and the starter is tested against it |
+| `ddk-tracer-starter` (preview) | It follows Spring Boot's OpenTelemetry support, whose properties moved in 4.1, and export to a tracing backend is checked by hand only | Export is tested in CI |
+| The projection SPI (preview): `Projection` and `FailedRefresh` | Few implementations so far, all in this repository. `Projections`, which applications call to mark changes, and the pending table stay frozen | Projects outside this repository have implemented it |
 | How the documented metrics are computed | The metric names and documented tags are stable. Event publications are counted in the background at an interval, and each count still scans `event_publication`, a known cost on large tables | |
 | Everything under [What is not stable](#what-is-not-stable) | | |
 
@@ -120,6 +123,8 @@ The questions that this draft left open, as the maintainer decided them on 2026-
 
 | Question | Decision | Done in |
 |---|---|---|
+| A public candidate period | Yes: 1.0.0-RC1 on Maven Central for at least four weeks, and 1.0 only after two or three projects outside this repository have tried it and their reports are handled. Decided on 2026-11-11, after an independent review | the roadmap, the checklist below |
+| How much 1.0 freezes | Less than all of it: the MCP and tracer starters and the projection SPI are previews in 1.0, listed above, and may change in a 1.x minor release | this page |
 | When to release 1.0 | After 0.12, not right after 0.11. 0.12 makes the changes below while a minor release may still break; 1.0 adds no code, only the freeze, the rehearsal and the documentation | the roadmap |
 | The HTTP answer to a cancelled request | A code of its own: `CommonError.REQUEST_CANCELLED` with 503, instead of 500 `SYSTEM_ERROR`. The request was fine and can be retried, and it no longer counts as a server fault | 0.12, listed under **Breaking** |
 | Whether the processed message table's key includes the tenant | No: the key stays `(consumer, message_id)`. Event IDs unique across tenants and a trusted source stay premises of `IdempotentConsumer`, now stated in its Javadoc and README where it is used | 0.12, documentation |
@@ -133,6 +138,7 @@ The questions that this draft left open, as the maintainer decided them on 2026-
 - [x] 0.12.0 carries the changes the decisions need, is released, and its fixtures and API baseline follow the same way; `ddk-seata-starter` is removed
 - [ ] An upgrade and rollback rehearsal from 0.12 to the 1.0 candidate, on a project generated from 0.12.0, the same way as from 0.11 to 0.12
 - [ ] The candidate passes Java 21 and 25, generated projects, the API check and the native image job
+- [ ] 1.0.0-RC1 is on Maven Central for at least four weeks, two or three projects outside this repository have tried it, and their reports are handled
 - [ ] This section's "draft" is removed, and the [support matrix](./ROADMAP.md#support-status) matches this page
 
 ## Before 1.0

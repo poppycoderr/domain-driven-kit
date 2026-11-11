@@ -73,10 +73,10 @@ DDK has one version number, but its modules are not equally proven. Each one has
 | Concurrency starter | Verified | Redis | Idempotency is per TTL window, not exactly-once |
 | Job starter | Verified | Redis lock; in-process lock | |
 | Event starter | Verified | H2, PostgreSQL 17, RocketMQ, Spring Modulith JDBC registry | Kafka, AMQP and JMS go through Modulith's own modules and are not tested by DDK; local delivery is development only |
-| Projection starter | Verified | H2, MySQL 8.4, PostgreSQL 17; Elasticsearch through `ddk-mall` | No Elasticsearch-specific helpers |
-| MCP starter | In-process verified | A real MCP client over streamable HTTP | Synchronous server only; authorization is the application's |
+| Projection starter | Verified | H2, MySQL 8.4, PostgreSQL 17; Elasticsearch through `ddk-mall` | No Elasticsearch-specific helpers; the `Projection` SPI is a preview in 1.0 |
+| MCP starter | In-process verified | A real MCP client over streamable HTTP | Synchronous server only; authorization is the application's; a preview in 1.0 |
 | ArchGuard starter | Verified | ArchUnit fixtures for every rule | |
-| Tracer starter | In-process verified | Trace context across HTTP and messages | Export to a tracing backend is checked by hand only |
+| Tracer starter | In-process verified | Trace context across HTTP and messages | Export to a tracing backend is checked by hand only; a preview in 1.0 |
 | DB starter (several data sources) | Verified | H2, PostgreSQL 17 and MySQL 8.4 side by side | Outbox, inbox and pending tables are atomic only with the data source of the business transaction |
 | Archetypes (three and four layers) | Verified | Generated projects are built and tested in CI | |
 | `ddk-mall` | Verified, as a reference | MySQL, Redis, RocketMQ, Elasticsearch | Simulated payment channel; demo users in the `secure` profile |
@@ -99,6 +99,7 @@ DDK has one version number, but its modules are not equally proven. Each one has
 **Goal: freeze only what has been verified.**
 
 - [ ] Freeze the verified core API and the support matrix above; strict semantic versioning from then on. What is frozen, what stays experimental and what was decided for it is in the [freeze checklist](./COMPATIBILITY.md#10-freeze-checklist-draft)
+- [ ] A public candidate: 1.0.0-RC1 on Maven Central for at least four weeks, tried by two or three projects outside this repository before 1.0
 - [x] Context semantics on virtual threads: operator, trace, lock ordering, cancellation and pool reuse, not only "it starts"
 - [x] GraalVM support declared per module, starting with a minimal example, instead of all starters at once: verified in CI with `ddk-example-user`, and with `ddk-example-inventory` for the Redis-backed starters, projections and the publication registry; listed in [SUPPORT.md](./SUPPORT.md#graalvm-native-images)
 - [x] Known limits, rollback paths and maintenance responsibility written down: [SUPPORT.md](./SUPPORT.md), and a rollback section per release in the upgrade guide
