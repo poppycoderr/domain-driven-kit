@@ -27,7 +27,7 @@ mvn verify
 mvn spring-boot:run
 ```
 
-想用开发中的快照（如 `0.12.0-SNAPSHOT`），先在 DDK 仓库根目录执行 `mvn install -DskipTests` 装进本地仓库，再把上面的 `archetypeVersion` 换成快照版本。
+想用开发中的快照（如 `0.13.0-SNAPSHOT`），先在 DDK 仓库根目录执行 `mvn install -DskipTests` 装进本地仓库，再把上面的 `archetypeVersion` 换成快照版本。
 
 | 参数 | 默认值 | 说明 |
 |---|---|---|
