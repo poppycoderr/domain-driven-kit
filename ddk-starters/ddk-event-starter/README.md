@@ -194,6 +194,18 @@ aggregateLocks.executeAll("sku", skuIds, () ->
         idempotentConsumer.handle("inventory.order-placed", event.eventId(), () -> reserve(command)));
 ```
 
+### A message that always fails
+
+With orderly consumption, the default, a failed message is retried on its queue before anything behind it, and the RocketMQ client sets no limit on these retries. A message that fails every time therefore holds up every event that hashes to its queue until someone handles it. That happens when:
+
+- the body is not valid JSON, or does not match `payloadType()`;
+- an idempotent consumer receives a message without `ddk-event-id`;
+- a consumer that runs in the event's tenant receives a message without `ddk-event-tenant`;
+- the contract is `rejectOtherVersions()` and the version is unknown;
+- the handler has a bug that fails on this payload every time.
+
+Every retry logs a warning; from the tenth failure in a row it logs an error instead. With Micrometer present, `ddk.event.consume.failures{group}` reports how many times the longest failing queue of the group has failed in a row, and drops to 0 once it moves on. Alert when it keeps growing. To move on, fix the cause and redeploy, or catch the failure in the consumer and handle the message another way, for example by recording it for later. With concurrent consumption, RocketMQ's retry limit applies instead and the message ends in the dead-letter queue.
+
 ## Tracing and metrics
 
 Publishing and consuming are Micrometer observations, so they work with whatever the application already has and do nothing when it has no `ObservationRegistry`.

@@ -16,6 +16,10 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 - `ddk-seata-starter` is removed: it is no longer built or published, and `ddk-dependencies` no longer manages it or Seata. It was deprecated in 0.12.0; it had wiring tests only, Seata's runtime was never verified on Spring Boot 4, and global transactions go against the outbox and eventual consistency that DDK builds on. To keep using it, stay on `ddk-seata-starter` 0.12.0 and declare its version yourself, or copy its three classes (`DdkSeataAutoConfiguration`, `DdkSeataProperties`, `XidPropagationInterceptor`) into your project together with `seata-spring-boot-starter`
 
+### Added
+
+- `ddk.event.consume.failures{group}`: how many times the longest failing RocketMQ queue of a consumer group has failed in a row. With orderly consumption, the default, a message that always fails holds up its queue without limit; the gauge keeps growing in that case, and from the tenth failure in a row the log entry is an error instead of a warning. The event starter's README lists the cases that fail every time
+
 ### Changed
 
 - `ddk-mybatis-starter` logs a warning at startup when `ddk.mybatis.worker-id` and `ddk.mybatis.datacenter-id` are not both set. The derived snowflake identity comes from the MAC address and the process ID; in containers, where the process ID is usually 1, only 32 identities remain, and two of seven instances collide with a probability of about one half, which shows as a rare duplicate key on insert
