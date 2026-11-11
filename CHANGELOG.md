@@ -20,6 +20,10 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 - `ddk-mybatis-starter` logs a warning at startup when `ddk.mybatis.worker-id` and `ddk.mybatis.datacenter-id` are not both set. The derived snowflake identity comes from the MAC address and the process ID; in containers, where the process ID is usually 1, only 32 identities remain, and two of seven instances collide with a probability of about one half, which shows as a rare duplicate key on insert
 
+### Security
+
+- A sort field of a page query can no longer inject SQL. `QueryParser` passed `Sort.sortField` to MyBatis-Plus's `orderBy`, which puts the column into `ORDER BY` as it is, so a controller that accepts a `PageQuery` in its request body let the caller run a subquery in the database. A sort field must now be an identifier (`[A-Za-z_][A-Za-z0-9_]*`); anything else fails with `VALIDATION_ERROR`, which the web starter answers with 400. Affects every release since the first one
+
 ## [0.12.0] - 2026-11-10
 
 The last minor release before 1.0. It carries out the decisions that the 1.0 freeze checklist left open, while a minor release may still break, so that 1.0 itself only freezes. A cancelled request is answered with 503 and `REQUEST_CANCELLED` instead of 500, the one breaking change. `ddk-db-starter` is tested on PostgreSQL and MySQL and is no longer experimental, and `ddk-seata-starter` is deprecated ahead of its removal in 1.0. Publication metrics are sampled in the background, so their cost no longer follows the scrape rate. Native images are verified for the Redis-backed starters, projections and the publication registry, projects generated on JDK 23 and later compile Lombok, an optional ArchGuard rule keeps configuration classes outside the layers to wiring, and every starter's README starts with a 30-second setup and ends with its common errors. The [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) lists the steps.
