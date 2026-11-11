@@ -82,42 +82,9 @@ DDK 只有一个版本号，但各模块经受的验证并不一样。每个模�
 | Archetype（三层、四层） | 已验证 | 生成的项目在 CI 里构建和测试 | |
 | `ddk-mall` | 已验证，作为参考实现 | MySQL、Redis、RocketMQ、Elasticsearch | 支付渠道是模拟的；`secure` profile 用演示用户 |
 
-## 最新版本：0.11
+## 最新版本：0.12
 
-[0.11.0](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v0.11.0) 于 2026-11-10 发布。**目标：把 1.0 要冻结的契约定下来，补上 2026 年 10 月冻结评审发现的可靠性缺口，并在一个真实项目上验证升级和回退。** 0.11 不新增 starter，也不扩大任何支持声明；具体变化见 [CHANGELOG](./CHANGELOG.md) 和[升级指南](https://domaindrivenkit.com/ddk/upgrade)。
-
-契约：
-
-- [x] [COMPATIBILITY.zh-CN.md](./COMPATIBILITY.zh-CN.md) 列出滚动升级依赖的数据和传输格式，不只是 key 名和表名：Outbox 记录、消息头的取值、去重消费方的身份、Redis 值、缓存失效消息
-- [x] 同时写明每种版本可以做哪些平台变化：1.x 最低 Java 21、Spring Boot 4 系列、DDK 固定版本的库，以及出现在 DDK API 里的库类型
-- [x] 已发布的 0.10.0 写下的数据，当前代码能读，并且按同样的方式写回（[`compat/`](./compat/README.md)）：事件消息、Outbox 记录、两张表、Redis 值、缓存失效消息、锁 key
-- [x] 两项行为变化列在 **Breaking** 下并给出迁移步骤：`@Idempotent` 和 `@RateLimit` 的默认 scope 写全参数类型；等锁时被中断报 `CancellationException`
-
-可靠性：
-
-- [x] 失去领取的 worker 写入后又失败时，投影也能收敛
-- [x] 应用自己的 `CacheInvalidationPublisher` 可以替换 Redis 发布器
-- [x] 参数简单类名相同的重载不再共用防重复提交登记和限流额度
-- [x] 事件维护在两个实例、真实 Redis 锁下测试
-- [x] GraalVM：CI 把 `ddk-example-user` 构建成原生镜像并做冒烟测试；支持情况按模块写在 [SUPPORT.zh-CN.md](./SUPPORT.zh-CN.md#graalvm-原生镜像)
-
-验收：
-
-- [x] 防重复提交和限流 key 的跨版本 fixture，这是 0.11 唯一改变的持久格式：key 的结构不变，默认 scope 按 **Breaking** 里写的改变
-- [x] 升级与回退演练：用 Maven 中央仓库的 0.10.0 生成一个项目，升级到 0.11 再回退，0.10 和 0.11 的实例共用一个 MySQL 和一个 Redis 同时运行，检查 Redis key、两个版本同时运行期间各用一套的登记和额度、取消，以及两个版本共用的表和 Outbox 记录。步骤和结果见[升级指南](https://domaindrivenkit.com/ddk/upgrade)
-- [x] 1.0 冻结清单草案：冻结什么、哪些保持实验性、哪些还没定，见 [COMPATIBILITY.zh-CN.md](./COMPATIBILITY.zh-CN.md#10-冻结清单草案)
-- [x] 候选版本通过 Java 21 和 25、生成项目、API 比较和原生镜像任务。发布之后把它的 fixture 加到 `compat/`，`api.baseline.version` 改为 0.11.0
-
-不在 0.11 里：
-
-- DB 和 Seata starter 保持实验性，只验证到装配层面
-- 原生镜像的支持范围保持在 CI 验证过的模块，不声明其他模块
-- 事件发布指标在 `event_publication` 上按状态计数，而这张表的 `status` 没有索引，每次采集都扫表。事件 starter 的 README 给出了实测开销和应对办法；降低开销是之后的性能项
-- 消费端去重不变：它依赖跨租户唯一的事件 ID，以及来自消费方信任的来源的消息。租户消息头没有签名
-
-## 下一个版本：0.12
-
-**目标：趁次版本还允许破坏性变化，完成 1.0 的几个决定需要的改动，并让 DDK 更容易上手。** 决定了什么、为什么，见[冻结清单](./COMPATIBILITY.zh-CN.md#10-已经决定的)；1.0 在 0.12 之后发布，本身不再加代码。
+[0.12.0](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v0.12.0) 于 RELEASE_DATE 发布。**目标：趁次版本还允许破坏性变化，完成 1.0 的几个决定需要的改动，并让 DDK 更容易上手。** 决定了什么、为什么，见[冻结清单](./COMPATIBILITY.zh-CN.md#10-已经决定的)；1.0 在 0.12 之后发布，本身不再加代码。
 
 - [x] 依赖 Redis 的 starter、投影和发布登记在原生镜像下验证，CI 里加入 `ddk-example-inventory`
 - [x] 事件发布指标改为后台采样，开销不再随采集频率增长
@@ -166,6 +133,7 @@ DDK 只有一个版本号，但各模块经受的验证并不一样。每个模�
 | 0.9 | 2026 年 10 月评审的可靠性修复、后台工作的租户、投影与事件运维、`ddk-mall` 的支付对账与 secure profile、升级指南 |
 | 0.10 | 可采用与可升级：groupId 改为 `com.domaindrivenkit`、公开 API 与依赖审查、发布来源证明与中央仓库签名、CI 分阶段 |
 | 0.11 | 冻结前的契约：COMPATIBILITY 里的数据与传输格式和平台政策、已发布数据的 fixture、带断言的升级与回退演练、1.0 冻结清单草案 |
+| 0.12 | 冻结前的决定：被取消的请求返回 503 `REQUEST_CANCELLED`，DB starter 在真实数据库上验证、Seata starter 弃用，事件指标后台采样，依赖 Redis 的 starter 支持原生镜像，ArchGuard 的可选装配规则，每个 starter 的 30 秒上手和常见错误 |
 
 ## 明确不做
 

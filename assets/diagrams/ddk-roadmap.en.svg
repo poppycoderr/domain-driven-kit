@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 560" width="1120" height="560"
      role="img" aria-labelledby="ttl dsc" style="max-width:100%;height:auto">
   <title id="ttl">DDK roadmap</title>
-  <desc id="dsc">The foundation, 0.1–0.4 (Spring Boot 4 baseline, AI collaboration, reliable events and middleware), 0.5–0.8 (multi-tenancy and the reference app), 0.9 (reliability and the production path), 0.10 (adoption and upgrades) and 0.11 (contracts before the freeze) are released; the 1.0 freeze comes next; looking good and being useful is ongoing.</desc>
+  <desc id="dsc">The foundation, 0.1–0.4 (Spring Boot 4 baseline, AI collaboration, reliable events and middleware), 0.5–0.8 (multi-tenancy and the reference app), 0.9 (reliability and the production path), 0.10 (adoption and upgrades), 0.11 (contracts before the freeze) and 0.12 (decisions before the freeze) are released; the 1.0 freeze comes next; looking good and being useful is ongoing.</desc>
   <defs>
     <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path class="mk" d="M0 0 L10 5 L0 10 z"/>
@@ -70,7 +70,7 @@
 </style>
   <rect class="bg" width="1120" height="560" rx="18"/>
   <text class="title" x="56" y="60">Roadmap</text>
-  <text class="sub" x="56" y="87">0.11.0 is out: data and wire format contracts, an asserted upgrade and rollback rehearsal, a 1.0 freeze checklist draft; the 1.0 freeze comes next.</text>
+  <text class="sub" x="56" y="87">0.12.0 is out: the 1.0 decisions carried out, the DB starter stable, sampled publication metrics; the 1.0 freeze comes next.</text>
   <path class="rail" d="M132.5 176 L987.5 176"/>
   <path d="M132.5 176 L987.5 176" stroke="#14B8A6" stroke-width="2" fill="none"/>
   <rect x="56" y="200" width="153" height="232" rx="12" class="card"/>
@@ -133,7 +133,7 @@
   <circle cx="816.5" cy="176" r="7" fill="#14B8A6"/>
   <circle cx="816.5" cy="176" r="11" fill="none" stroke="#14B8A6" stroke-opacity=".35" stroke-width="2"/>
   <path class="hair" d="M816.5 187 L816.5 200"/>
-  <text class="kicker" x="758" y="234">0.10–0.11</text>
+  <text class="kicker" x="758" y="234">0.10–0.12</text>
   <text class="lbl-sm" x="758" y="262">Contracts</text>
   <rect x="758" y="276" width="66" height="24" rx="7" class="teal"/>
   <text class="txt-xs" x="768" y="293">Released</text>
@@ -142,7 +142,7 @@
   <circle cx="762" cy="358" r="2.5" fill="#94A3B8"/>
   <text class="txt-xs" x="772" y="362">Rollback drill</text>
   <circle cx="762" cy="392" r="2.5" fill="#94A3B8"/>
-  <text class="txt-xs" x="772" y="396">API and deps</text>
+  <text class="txt-xs" x="772" y="396">1.0 decisions</text>
   <rect x="911" y="200" width="153" height="232" rx="12" class="card"/>
   <circle cx="987.5" cy="176" r="7" fill="#3B82F6"/>
   <circle cx="987.5" cy="176" r="11" fill="none" stroke="#3B82F6" stroke-opacity=".35" stroke-width="2"/>

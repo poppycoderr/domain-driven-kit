@@ -82,42 +82,9 @@ DDK has one version number, but its modules are not equally proven. Each one has
 | Archetypes (three and four layers) | Verified | Generated projects are built and tested in CI | |
 | `ddk-mall` | Verified, as a reference | MySQL, Redis, RocketMQ, Elasticsearch | Simulated payment channel; demo users in the `secure` profile |
 
-## Latest release: 0.11
+## Latest release: 0.12
 
-[0.11.0](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v0.11.0), released on 2026-11-10. **Goal: settle the contracts that 1.0 will freeze, close the reliability gaps that the October 2026 freeze review found, and prove the upgrade and the way back on a real project.** 0.11 adds no starter and widens no support claim; what changed is in the [changelog](./CHANGELOG.md) and the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade).
-
-Contracts:
-
-- [x] [COMPATIBILITY.md](./COMPATIBILITY.md) names the data and wire formats that a rolling upgrade depends on, not only key and table names: outbox rows, the values of the message headers, the identity of idempotent consumers, Redis values and the cache invalidation message
-- [x] It also says which platform changes each kind of release may make: Java 21 as the minimum for 1.x, the Spring Boot 4 line, the libraries DDK pins, and the library types that appear in DDK's API
-- [x] Data written by the released 0.10.0 is read, and written back the same way, by the current code ([`compat/`](./compat/README.md)): event messages, outbox rows, both tables, Redis values, cache invalidation messages and lock keys
-- [x] Two behavior changes are listed under **Breaking** with migration steps: the default scope of `@Idempotent` and `@RateLimit` names parameter types in full, and an interrupt while waiting for a lock is reported as `CancellationException`
-
-Reliability:
-
-- [x] Projections converge when a worker that lost its claim writes and then fails
-- [x] An application's own `CacheInvalidationPublisher` replaces the Redis one
-- [x] Overloads whose parameter types share a simple name no longer share idempotency registrations and rate limits
-- [x] Event maintenance tested on two instances against a real Redis lock
-- [x] GraalVM: `ddk-example-user` built as a native image and smoke-tested in CI; support declared per module in [SUPPORT.md](./SUPPORT.md#graalvm-native-images)
-
-Acceptance:
-
-- [x] Cross-version fixtures for the idempotency and rate-limit keys, the one stored format that 0.11 changes: the key structure is unchanged, the default scope changes as listed under **Breaking**
-- [x] An upgrade and rollback rehearsal on a project generated from 0.10.0 on Maven Central, with 0.10 and 0.11 instances side by side on one MySQL and one Redis: Redis keys, the separate registrations and quotas while both versions run, cancellation, and the tables and outbox rows both versions share. Steps and results are in the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade)
-- [x] A draft of the 1.0 freeze checklist: what freezes, what stays experimental, what is still open, in [COMPATIBILITY.md](./COMPATIBILITY.md#10-freeze-checklist-draft)
-- [x] The release candidate passes Java 21 and 25, generated projects, the API check and the native image job. After the release, its fixtures are added under `compat/` and `api.baseline.version` moves to 0.11.0
-
-Not in 0.11:
-
-- The DB and Seata starters stay experimental, verified at the wiring level only
-- Native image support stays at what CI verifies; other modules are not declared
-- The event publication metrics count by status on `event_publication`, which has no index on `status`, so each scrape scans the table. The event starter's README gives the measured cost and the workarounds; reducing it is a later performance item
-- Deduplication of consumed events is unchanged: it relies on event IDs that are unique across tenants and on messages from a source the consumer trusts. The tenant header is not signed
-
-## Next: 0.12
-
-**Goal: make the changes that the 1.0 decisions need while a minor release may still break, and make DDK easier to start with.** What was decided and why is in the [freeze checklist](./COMPATIBILITY.md#decided-for-10); 1.0 follows 0.12 and adds no code of its own.
+[0.12.0](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v0.12.0), released on RELEASE_DATE. **Goal: make the changes that the 1.0 decisions need while a minor release may still break, and make DDK easier to start with.** What was decided and why is in the [freeze checklist](./COMPATIBILITY.md#decided-for-10); 1.0 follows 0.12 and adds no code of its own.
 
 - [x] Native images verified for the Redis-backed starters, projections and the publication registry, with `ddk-example-inventory` in CI
 - [x] Publication metrics sampled in the background, so that their cost no longer follows the scrape rate
@@ -166,6 +133,7 @@ No order and no dates. An item moves into a release when there is a concrete nee
 | 0.9 | Reliability fixes from the October 2026 review, tenants in background work, projection and event operations, payment recovery and a secure profile in `ddk-mall`, an upgrade guide |
 | 0.10 | Adoption and upgrades: the `com.domaindrivenkit` groupId, the public API and dependency review, release provenance and Central signing, CI in named stages |
 | 0.11 | Contracts before the freeze: data and wire formats and the platform policy in COMPATIBILITY.md, fixtures of released data, an asserted upgrade and rollback rehearsal, a draft of the 1.0 freeze checklist |
+| 0.12 | Decisions before the freeze: 503 `REQUEST_CANCELLED` for cancelled requests, the DB starter verified on real databases and the Seata starter deprecated, sampled publication metrics, native images for the Redis-backed starters, an optional wiring rule in ArchGuard, a 30-second start and common errors for every starter |
 
 ## Non-goals
 
