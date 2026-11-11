@@ -16,6 +16,8 @@ import com.ddk.mybatis.starter.internal.AuditMetaObjectHandler;
 import com.ddk.mybatis.starter.internal.MybatisRuntimeHints;
 import com.ddk.mybatis.starter.internal.OperatorDataScopeHandler;
 import com.ddk.mybatis.starter.internal.OperatorTenantLineHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -41,6 +43,9 @@ import org.springframework.context.annotation.ImportRuntimeHints;
 @ImportRuntimeHints(MybatisRuntimeHints.class)
 public class DdkMybatisAutoConfiguration {
 
+    private static final Logger log = LoggerFactory.getLogger(DdkMybatisAutoConfiguration.class);
+
+
     /**
      * 注册映射器注册表。
      * <p>
@@ -60,8 +65,9 @@ public class DdkMybatisAutoConfiguration {
      * 给聚合根预生成标识是 DDK 推荐的做法：聚合从诞生起就有身份，
      * 领域事件可以在工厂方法里就带上标识，仓储也不需要「写入后回填」这一步。
      * <p>
-     * 多实例部署时应当显式指定 {@code ddk.mybatis.worker-id} 与 {@code datacenter-id}，
-     * 否则 Hutool 会按本机 MAC / IP 推导，理论上存在冲突。
+     * 多实例部署时应当显式指定 {@code ddk.mybatis.worker-id} 与 {@code datacenter-id}。否则 Hutool 从 MAC 地址推导数据中心号，
+     * 再从数据中心号和进程号推导机器号；容器里进程号通常都是 1，整个身份空间只剩 32 个，7 个实例里有两个撞上的概率约一半，
+     * 撞上的两个实例在同一毫秒生成的主键会相同。所以没有配置时启动打一条警告。
      */
     @Bean
     @ConditionalOnMissingBean
@@ -69,6 +75,9 @@ public class DdkMybatisAutoConfiguration {
         Long workerId = properties.getWorkerId();
         Long datacenterId = properties.getDatacenterId();
         if (workerId == null || datacenterId == null) {
+            log.warn("ddk.mybatis.worker-id and ddk.mybatis.datacenter-id are not both set, so snowflake IDs use an identity derived from the MAC "
+                    + "address and the process ID. In containers, where the process ID is usually 1, that leaves 32 identities, and two of "
+                    + "several instances can generate the same ID. Set both, unique per instance, when more than one instance writes");
             return param -> IdUtil.getSnowflakeNextId();
         }
         Snowflake snowflake = IdUtil.getSnowflake(workerId, datacenterId);
