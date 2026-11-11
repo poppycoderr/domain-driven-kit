@@ -142,11 +142,6 @@
             </dependency>
             <dependency>
                 <groupId>com.domaindrivenkit</groupId>
-                <artifactId>ddk-seata-starter</artifactId>
-                <version>${ddk.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-archguard-starter</artifactId>
                 <version>${ddk.version}</version>
             </dependency>

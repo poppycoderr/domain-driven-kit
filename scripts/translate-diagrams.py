@@ -75,7 +75,6 @@ T = {
 'Caffeine + Redis 两级缓存':'Caffeine + Redis two levels',
 '按名字注册多数据源':'Named data sources',
 'OpenTelemetry · traceId 头':'OpenTelemetry · trace ID header',
-'出站调用传播 XID':'Outbound XID propagation',
 'ArchUnit 分层规则':'ArchUnit layer rules',
 '通用仓储实现 · 查询条件解析 · 分页适配':'Generic repository · query parsing · paging',
 'ddk-mybatis-starter 与需要持久化的应用':'ddk-mybatis-starter and persisting apps',

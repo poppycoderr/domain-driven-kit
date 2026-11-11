@@ -111,7 +111,7 @@
   <text class="lbl-sm" x="296.0" y="492">ddk-mybatis</text>
   <text class="txt" x="296.0" y="516">Generic repository · query parsing · paging</text>
   <rect x="680.0" y="458" width="384.0" height="88" rx="10" class="card"/>
-  <text class="lbl-sm" x="700.0" y="492">redis · cache · db · tracer · seata</text>
+  <text class="lbl-sm" x="700.0" y="492">redis · cache · db · tracer</text>
   <text class="txt" x="700.0" y="516">Infrastructure starters</text>
   <rect x="56" y="586" width="1008" height="90" rx="12" class="amber"/>
   <text class="kicker" x="80" y="616">Build time</text>

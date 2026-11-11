@@ -12,6 +12,10 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ## [Unreleased]
 
+### Breaking
+
+- `ddk-seata-starter` is removed: it is no longer built or published, and `ddk-dependencies` no longer manages it or Seata. It was deprecated in 0.12.0; it had wiring tests only, Seata's runtime was never verified on Spring Boot 4, and global transactions go against the outbox and eventual consistency that DDK builds on. To keep using it, stay on `ddk-seata-starter` 0.12.0 and declare its version yourself, or copy its three classes (`DdkSeataAutoConfiguration`, `DdkSeataProperties`, `XidPropagationInterceptor`) into your project together with `seata-spring-boot-starter`
+
 ## [0.12.0] - 2026-11-10
 
 The last minor release before 1.0. It carries out the decisions that the 1.0 freeze checklist left open, while a minor release may still break, so that 1.0 itself only freezes. A cancelled request is answered with 503 and `REQUEST_CANCELLED` instead of 500, the one breaking change. `ddk-db-starter` is tested on PostgreSQL and MySQL and is no longer experimental, and `ddk-seata-starter` is deprecated ahead of its removal in 1.0. Publication metrics are sampled in the background, so their cost no longer follows the scrape rate. Native images are verified for the Redis-backed starters, projections and the publication registry, projects generated on JDK 23 and later compile Lombok, an optional ArchGuard rule keeps configuration classes outside the layers to wiring, and every starter's README starts with a 30-second setup and ends with its common errors. The [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) lists the steps.

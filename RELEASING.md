@@ -98,7 +98,7 @@ The build signs every file, leaves out `ddk-examples`, `ddk-example-user`, `ddk-
 
 Open [Deployments](https://central.sonatype.com/publishing/deployments). The deployment `com.domaindrivenkit:X.Y.Z` should be `VALIDATED` with no errors. Before publishing, check:
 
-- the components are the 22 expected ones: the parent `domain-driven-kit`, `ddk-starters`, `ddk-archetypes`, `ddk-dependencies`, `ddk-core`, `ddk-test`, `ddk-mybatis`, the 13 starters and the two archetypes; no example module;
+- the components are the 21 expected ones: the parent `domain-driven-kit`, `ddk-starters`, `ddk-archetypes`, `ddk-dependencies`, `ddk-core`, `ddk-test`, `ddk-mybatis`, the 12 starters and the two archetypes; no example module;
 - every coordinate is `com.domaindrivenkit` at version `X.Y.Z`;
 - a few files, such as the BOM's POM with its `.asc` and checksums, match the local bundle.
 

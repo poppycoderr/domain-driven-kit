@@ -61,7 +61,6 @@
         <archunit.version>1.5.0</archunit.version>
         <errorprone.version>2.50.0</errorprone.version>
         <nullaway.version>0.14.1</nullaway.version>
-        <seata.version>2.6.0</seata.version>
         <spring-ai.version>2.0.1</spring-ai.version>
         <spring-modulith.version>2.1.1</spring-modulith.version>
         <rocketmq.version>5.5.1</rocketmq.version>
@@ -166,11 +165,6 @@
             </dependency>
             <dependency>
                 <groupId>com.domaindrivenkit</groupId>
-                <artifactId>ddk-seata-starter</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.domaindrivenkit</groupId>
                 <artifactId>ddk-archguard-starter</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -269,13 +263,6 @@
                 <groupId>org.redisson</groupId>
                 <artifactId>redisson</artifactId>
                 <version>${redisson.version}</version>
-            </dependency>
-
-            <!-- Seata -->
-            <dependency>
-                <groupId>org.apache.seata</groupId>
-                <artifactId>seata-spring-boot-starter</artifactId>
-                <version>${seata.version}</version>
             </dependency>
 
             <!-- MapStruct -->
