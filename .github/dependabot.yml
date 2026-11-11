@@ -1,0 +1,19 @@
+# Weekly update pull requests for the versions DDK pins, and for the GitHub Actions the workflows use (pinned to commits).
+# A library update still goes through COMPATIBILITY.md: a patch release takes patch updates, a minor release may take minor ones.
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      patch-updates:
+        update-types: [patch]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
