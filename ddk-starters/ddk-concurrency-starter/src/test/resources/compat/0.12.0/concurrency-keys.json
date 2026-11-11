@@ -1,0 +1,5 @@
+{
+  "defaultScope" : "com.ddk.compat.ShipmentDesk#dispatch(java.lang.String,java.util.Date)",
+  "idempotentKey" : "ddk:idempotent:com.ddk.compat.ShipmentDesk#dispatch(java.lang.String,java.util.Date):req-1",
+  "rateKey" : "ddk:rate:com.ddk.compat.ShipmentDesk#dispatch(java.lang.String,java.util.Date):20/60000ms:tenant-a"
+}
