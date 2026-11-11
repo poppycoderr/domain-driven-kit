@@ -94,7 +94,7 @@ A draft for the 1.0 decision, written after the 0.10 → 0.11 rehearsal. It says
 |---|---|---|
 | [Java API](#java-api) of the stable types | japicmp against the last release on every change | Inherited library methods ([Platform](#platform)) |
 | [Configuration](#configuration): `ddk.*` names and defaults, `Ddk*AutoConfiguration` names, your bean replaces DDK's | Wiring tests of each starter | No automated check that a property keeps its name; reviewed by hand |
-| [Data and wire formats](#data-and-wire-formats): event headers and body, consumer identity, the projection and processed message tables, outbox content, Redis keys and values, cache invalidation | Fixtures of 0.10.0 in [`compat/`](./compat/README.md), read and written back by every build; the 0.10 → 0.11 rehearsal with both versions side by side | Fixtures exist for 0.10.0 only; the outbox table itself is Spring Modulith's |
+| [Data and wire formats](#data-and-wire-formats): event headers and body, consumer identity, the projection and processed message tables, outbox content, Redis keys and values, cache invalidation | Fixtures of every release since 0.10.0 in [`compat/`](./compat/README.md), read and written back by every build; the 0.10 → 0.11 rehearsal with both versions side by side, and the 0.11 → 0.12 upgrade and rollback rehearsal | Releases before 0.10.0 have no fixtures; the outbox table itself is Spring Modulith's |
 | HTTP: `ApiResponse`, `CommonError` codes and statuses, the trace ID header | Web and tracer starter tests | |
 | [Architecture rules](#architecture-rules): an existing rule never becomes stricter | Fixtures for every rule | |
 | [Platform](#platform): Java 21 minimum, Spring Boot 4 line, pinned libraries | CI on Java 21 and 25 | |
@@ -111,8 +111,8 @@ The behavior that 1.0 freezes is the documented one, not more:
 | Part | Why | Leaves the list when |
 |---|---|---|
 | `ddk-seata-starter` | Wiring tests only; Seata's runtime is not verified on Spring Boot 4 | It is tested against the real system in CI |
-| GraalVM native images beyond the modules [SUPPORT.md](./SUPPORT.md#graalvm-native-images) lists as verified | Only `ddk-example-user` runs as a native image in CI | CI exercises the module natively |
-| How the documented metrics are computed | The metric names and documented tags are stable. Counting event publications scans `event_publication`, which is a known cost on large tables | |
+| GraalVM native images beyond the modules [SUPPORT.md](./SUPPORT.md#graalvm-native-images) lists as verified | CI runs `ddk-example-user` and `ddk-example-inventory` as native images, which cover the modules SUPPORT.md lists | CI exercises the module natively |
+| How the documented metrics are computed | The metric names and documented tags are stable. Event publications are counted in the background at an interval, and each count still scans `event_publication`, a known cost on large tables | |
 | Everything under [What is not stable](#what-is-not-stable) | | |
 
 ### Decided for 1.0

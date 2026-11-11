@@ -94,7 +94,7 @@ CI 在每次改动时检查这一点：japicmp 把每个模块与上一个发布
 |---|---|---|
 | 稳定类型的 [Java API](#java-api) | 每次改动都用 japicmp 和上一个发布版本比较 | 继承来的库方法（见[平台](#平台)） |
 | [配置](#配置)：`ddk.*` 的名称和默认值、`Ddk*AutoConfiguration` 的类名、应用的 Bean 替换 DDK 的 | 各 starter 的装配测试 | 属性改名没有自动检查，靠评审 |
-| [数据与传输格式](#数据与传输格式)：事件消息头和消息体、去重消费方的身份、投影和去重两张表、Outbox 的内容、Redis key 和值、缓存失效消息 | [`compat/`](./compat/README.md) 下 0.10.0 的 fixture，每次构建都读取并按同样方式写回；0.10 → 0.11 两个版本同时运行的演练 | 只有 0.10.0 的 fixture；Outbox 表本身属于 Spring Modulith |
+| [数据与传输格式](#数据与传输格式)：事件消息头和消息体、去重消费方的身份、投影和去重两张表、Outbox 的内容、Redis key 和值、缓存失效消息 | [`compat/`](./compat/README.md) 下 0.10.0 以来每个版本的 fixture，每次构建都读取并按同样方式写回；0.10 → 0.11 两个版本同时运行的演练，以及 0.11 → 0.12 的升级与回退演练 | 0.10.0 之前的版本没有 fixture；Outbox 表本身属于 Spring Modulith |
 | HTTP：`ApiResponse`、`CommonError` 的错误码和状态码、链路 ID 响应头 | Web 和 tracer starter 的测试 | |
 | [架构规则](#架构规则)：已有规则不变严 | 每条规则都有 fixture | |
 | [平台](#平台)：最低 Java 21、Spring Boot 4 系列、固定版本的库 | CI 在 Java 21 和 25 上运行 | |
@@ -111,8 +111,8 @@ CI 在每次改动时检查这一点：japicmp 把每个模块与上一个发布
 | 部分 | 原因 | 什么时候移出 |
 |---|---|---|
 | `ddk-seata-starter` | 只有装配测试；Seata 的运行时没有在 Spring Boot 4 上验证 | 在 CI 里对真实系统测试之后 |
-| [SUPPORT.zh-CN.md](./SUPPORT.zh-CN.md#graalvm-原生镜像) 列为已验证之外的模块的 GraalVM 原生镜像 | CI 里只有 `ddk-example-user` 以原生镜像运行 | CI 以原生方式覆盖该模块之后 |
-| 文档里的指标怎么计算 | 指标名和文档写明的标签是稳定的。统计事件发布会扫 `event_publication`，大表上的开销是已知问题 | |
+| [SUPPORT.zh-CN.md](./SUPPORT.zh-CN.md#graalvm-原生镜像) 列为已验证之外的模块的 GraalVM 原生镜像 | CI 以原生镜像运行 `ddk-example-user` 和 `ddk-example-inventory`，覆盖的就是 SUPPORT 列出的模块 | CI 以原生方式覆盖该模块之后 |
+| 文档里的指标怎么计算 | 指标名和文档写明的标签是稳定的。事件发布按间隔在后台计数，每次计数仍要扫 `event_publication`，大表上的开销是已知问题 | |
 | [不稳定的部分](#不稳定的部分)里的全部内容 | | |
 
 ### 1.0 已经决定的
