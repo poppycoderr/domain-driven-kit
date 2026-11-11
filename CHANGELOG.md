@@ -15,6 +15,7 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 ### Security
 
 - A sort field of a page query can no longer inject SQL. `QueryParser` passed `Sort.sortField` to MyBatis-Plus's `orderBy`, which puts the column into `ORDER BY` as it is, so a controller that accepts a `PageQuery` in its request body let the caller run a subquery in the database. A sort field must now be an identifier (`[A-Za-z_][A-Za-z0-9_]*`); anything else fails with `VALIDATION_ERROR`, which the web starter answers with 400. Affects every release since the first one
+- A string tenant id can no longer inject SQL. With `ddk.mybatis.tenant.numeric-id=false`, the tenant was written into the tenant condition without escaping, so a tenant id with a quote read the rows of every tenant. Tenant ids can come from a gateway header or the unsigned `ddk-event-tenant` message header. A string tenant id that contains a quote, a backslash or a control character is now rejected before any SQL runs. Numeric tenant ids, the default, were not affected
 
 ## [0.12.0] - 2026-11-10
 
