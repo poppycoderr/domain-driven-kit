@@ -30,6 +30,8 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 - With `ddk.web.cors.allow-credentials=true`, startup now also fails for origin patterns whose host is only wildcards, such as `https://*`, `*://*` or `https://*:8080`. Only the literal `*` was rejected before, although the origins are applied as patterns, so these let any site call the API with the user's credentials. Patterns that fix the domain, such as `https://*.example.com`, still work
 - The error contract in the API docs includes `429` with `RATE_LIMITED`, which `@RateLimit` answers with
 - The cache's level 2 no longer falls back to JDK serialization when the Redis starter's allow-listed serializer is missing, for example because the application excluded the Redis starter's auto-configuration. It used to, silently: anyone who could write to Redis could then make the application instantiate any class, and the values were binary instead of JSON. It now builds the same allow-listed JSON serializer, trusting the application's packages, and logs a warning
+- The Javadoc of `DomainEventPublisher` and the event starter's README said that every subscriber must use `@TransactionalEventListener(AFTER_COMMIT)`. Since the outbox, events are published after the write and before the commit, and the generated `AGENTS.md` already told the other half: work that must commit with the business, such as translating to an integration event, uses `@EventListener`. Both now give the two cases
+- The concurrency starter's README states that the keys of `@Idempotent`, `@RateLimit` and `@AggregateLock` do not include the tenant, and shows how to add it
 
 ### Security
 

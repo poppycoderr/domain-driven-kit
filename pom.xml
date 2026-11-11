@@ -521,7 +521,7 @@
         </profile>
         <!--
             公开 API 兼容性检查：把每个模块的 jar 与上一个发布版本比较，出现不兼容的变化就让构建失败。
-            0.x 阶段允许破坏性变更，但必须是有意的：在下面的 excludes 里写明放行的成员，并记进 CHANGELOG 的 Breaking。
+            只有主版本（1.0 之前是次版本）允许破坏性变更，而且必须是有意的：在下面的 excludes 里写明放行的成员，并记进 CHANGELOG 的 Breaking。
             发布之后把 api.baseline.version 改成新版本，并清空放行列表。
             基线 jar 从本地仓库解析；本地没有时先运行 scripts/install-api-baseline.sh。
         -->
