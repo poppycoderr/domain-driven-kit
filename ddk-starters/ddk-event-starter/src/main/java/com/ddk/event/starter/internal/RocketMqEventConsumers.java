@@ -21,6 +21,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 为声明的消费方创建 RocketMQ 消费者：每个消费组一个，订阅这个组关心的全部主题和标签。
@@ -29,10 +30,15 @@ import java.util.Set;
  * 处理失败时稍后重试当前队列，而不是跳过这条消息去处理后面的。不需要顺序时可以改成并发消费，失败的消息单独重投。
  * <p>
  * 在所有单例就绪之后才开始消费，应用关闭时先停止消费。
+ * <p>
+ * 顺序消费时，一条每次都失败的消息会让它所在的队列一直等待，RocketMQ 客户端对顺序消费的重试没有上限。所以这里按队列记下连续失败的次数：
+ * 成功消费后清零，{@link #consecutiveFailures(String)} 给出一个消费组里失败最久的队列，失败达到 {@value #STUCK_AFTER} 次时记一条 ERROR。
  */
 public class RocketMqEventConsumers implements SmartLifecycle {
 
     private static final Logger log = LoggerFactory.getLogger(RocketMqEventConsumers.class);
+
+    static final int STUCK_AFTER = 10;
 
     private final IntegrationEventDispatcher dispatcher;
 
@@ -41,6 +47,11 @@ public class RocketMqEventConsumers implements SmartLifecycle {
     private final boolean orderly;
 
     private final List<DefaultMQPushConsumer> consumers = new ArrayList<>();
+
+    /**
+     * 消费组 → 队列 → 连续失败次数。只记正在失败的队列。
+     */
+    private final Map<String, Map<String, Integer>> failing = new ConcurrentHashMap<>();
 
     private volatile boolean running;
 
@@ -97,18 +108,49 @@ public class RocketMqEventConsumers implements SmartLifecycle {
         return consumer;
     }
 
-    private boolean consume(String group, List<MessageExt> messages) {
+    boolean consume(String group, List<MessageExt> messages) {
         for (MessageExt message : messages) {
             try {
                 Map<String, String> headers = message.getProperties() == null ? Map.of() : message.getProperties();
                 dispatcher.dispatch(group, message.getTopic(), message.getTags(), headers, new String(message.getBody(), StandardCharsets.UTF_8));
             } catch (RuntimeException e) {
-                log.warn("Consuming {}:{} [{}] in group {} failed and will be retried", message.getTopic(), message.getTags(),
-                        message.getMsgId(), group, e);
+                int failures = message.getReconsumeTimes() + 1;
+                failing.computeIfAbsent(group, ignored -> new ConcurrentHashMap<>()).put(queue(message), failures);
+                if (orderly && failures >= STUCK_AFTER) {
+                    log.error("Consuming {}:{} [{}] in group {} has failed {} times in a row; its queue waits until the message succeeds. "
+                            + "Fix the cause, or skip the message in the consumer", message.getTopic(), message.getTags(), message.getMsgId(),
+                            group, failures, e);
+                } else {
+                    log.warn("Consuming {}:{} [{}] in group {} failed and will be retried", message.getTopic(), message.getTags(),
+                            message.getMsgId(), group, e);
+                }
                 return false;
             }
         }
+        Map<String, Integer> queues = failing.get(group);
+        if (queues != null) {
+            messages.forEach(message -> queues.remove(queue(message)));
+        }
         return true;
+    }
+
+    /**
+     * 一个消费组里连续失败最多的队列失败了几次；没有正在失败的队列时为 0。
+     */
+    public int consecutiveFailures(String group) {
+        Map<String, Integer> queues = failing.get(group);
+        return queues == null ? 0 : queues.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+    }
+
+    /**
+     * 声明了消费方的消费组。
+     */
+    public Set<String> groups() {
+        return subscriptions(dispatcher.consumers()).keySet();
+    }
+
+    private static String queue(MessageExt message) {
+        return message.getTopic() + "@" + message.getBrokerName() + "#" + message.getQueueId();
     }
 
     @Override

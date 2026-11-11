@@ -1,14 +1,18 @@
 package com.ddk.event.starter.config;
 
 import com.ddk.event.starter.consumer.IntegrationEventDispatcher;
+import com.ddk.event.starter.internal.RocketMqConsumerMetrics;
 import com.ddk.event.starter.internal.RocketMqEventConsumers;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * 从 RocketMQ 消费集成事件：应用声明了消费方，并且配置了 {@code ddk.event.rocketmq.name-server} 时生效。
@@ -32,5 +36,16 @@ public class DdkRocketMqEventConsumerAutoConfiguration {
             throw new IllegalStateException("ddk.event.rocketmq.name-server must not be empty");
         }
         return new RocketMqEventConsumers(dispatcher, nameServer, rocketmq.getConsumer().isOrderly());
+    }
+
+    @Configuration(proxyBeanMethods = false)
+    @ConditionalOnClass(MeterRegistry.class)
+    static class ConsumerMetricsConfiguration {
+
+        @Bean
+        @ConditionalOnMissingBean
+        RocketMqConsumerMetrics ddkRocketMqConsumerMetrics(ObjectProvider<MeterRegistry> registry, ObjectProvider<RocketMqEventConsumers> consumers) {
+            return new RocketMqConsumerMetrics(registry, consumers);
+        }
     }
 }
