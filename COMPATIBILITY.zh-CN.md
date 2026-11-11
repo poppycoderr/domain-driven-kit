@@ -40,7 +40,7 @@ DDK 运行在什么平台上也属于契约，但并不是每个碰巧能用的�
 | `ddk-core` | 领域模型（`AggregateRoot`、`Entity`、`Identifier`、`ValueObject`、`DomainEvent`、`AbstractDomainEvent`、`DomainEventPublisher`、`IntegrationEvent`、`Specification`）、`GenericRepository` 与 `ConcurrentUpdateException`、分页（`PageQuery`、`PageResponse`、`Sort`）、异常与 `ErrorCode` / `CommonError`、`ApiResponse`、`OperatorContext` / `Operator` / `DataScope`、映射注册（`MapperProvider`、`ObjectMapper`、`EnhancedMapper`、`MapperConfiguration`、`EnumMapper`、`IEnum`）、`IdentifierJacksonModule` |
 | `ddk-mybatis` | `GenericRepositoryImpl`、`MybatisPlusPageAdapter`、`@Query`、`Operator`、`QueryParser` |
 | `ddk-test` | `DdkAssertions`、`AggregateAssert`、`BusinessRuleAssert`、`DdkContainers` 及其容器类型 |
-| 各 starter | 应用注入、实现、标注或捕获的类型：`@AggregateLock`、`AggregateLocks`、`@Idempotent`、`@RateLimit`；`IntegrationEventConsumer`、`ReceivedEvent`、`EventContract`、`IntegrationEventDispatcher`、`IdempotentConsumer`；`Projection`、`Projections`、`FailedRefresh`；`DataScopeResolver`；`OperatorResolver`、`BaseExceptionHandler`；`CacheSettings`、`DdkCacheManager`、`TwoLevelCache`、`CacheInvalidationPublisher`、`CacheMetrics`；`RedisJsonMapper`；`CommonArchRules`、`ArchGuard`、`ArchGuardReport`、`Violation` |
+| 各 starter | 应用注入、实现、标注或捕获的类型：`@AggregateLock`、`AggregateLocks`、`@Idempotent`、`@RateLimit`；`IntegrationEventConsumer`、`ReceivedEvent`、`EventContract`、`IntegrationEventDispatcher`、`IdempotentConsumer`；`Projections`；`DataScopeResolver`；`OperatorResolver`、`BaseExceptionHandler`；`CacheSettings`、`DdkCacheManager`、`TwoLevelCache`、`CacheInvalidationPublisher`、`CacheMetrics`；`RedisJsonMapper`；`CommonArchRules`、`ArchGuard`、`ArchGuardReport`、`Violation` |
 
 新增带默认实现的方法、带默认值的注解元素，都是兼容的；改变参数列表不兼容，新参数以新增重载的方式加入。新增重载在二进制上兼容，但可能让已有的、传 `null` 的调用在编译时出现歧义，所以每个新重载都要为此审查。
 
@@ -111,6 +111,9 @@ CI 在每次改动时检查这一点：japicmp 把每个模块与上一个发布
 | 部分 | 原因 | 什么时候移出 |
 |---|---|---|
 | [SUPPORT.zh-CN.md](./SUPPORT.zh-CN.md#graalvm-原生镜像) 列为已验证之外的模块的 GraalVM 原生镜像 | CI 以原生镜像运行 `ddk-example-user` 和 `ddk-example-inventory`，覆盖的就是 SUPPORT 列出的模块 | CI 以原生方式覆盖该模块之后 |
+| `ddk-mcp-starter`（预览） | MCP 规范在 2026-07-28 有一次不兼容的修订（协议改为无状态，去掉协议级会话），Spring AI 会跟进。starter 的行为可能随之在 1.x 的次版本里改变 | 规范版本稳定下来，并且 starter 对它做过测试 |
+| `ddk-tracer-starter`（预览） | 它跟随 Spring Boot 的 OpenTelemetry 支持，相关属性在 4.1 里改过名；导出到追踪后端只做过手工验证 | 导出在 CI 里有测试 |
+| 投影 SPI（预览）：`Projection` 和 `FailedRefresh` | 实现还很少，都在本仓库里。应用调用来标记变化的 `Projections`，以及待刷新表，照常冻结 | 本仓库之外的项目实现过它 |
 | 文档里的指标怎么计算 | 指标名和文档写明的标签是稳定的。事件发布按间隔在后台计数，每次计数仍要扫 `event_publication`，大表上的开销是已知问题 | |
 | [不稳定的部分](#不稳定的部分)里的全部内容 | | |
 
@@ -120,6 +123,8 @@ CI 在每次改动时检查这一点：japicmp 把每个模块与上一个发布
 
 | 问题 | 决定 | 在哪里落实 |
 |---|---|---|
+| 要不要公开候选期 | 要：1.0.0-RC1 发布到中央仓库，至少保留四周；有两到三个本仓库之外的项目试用过、它们的反馈处理完之后才发 1.0。2026-11-11 在一次独立评审之后决定 | 路线图、下面的清单 |
+| 1.0 冻结多少 | 不全部冻结：MCP starter、tracer starter 和投影 SPI 在 1.0 里是预览，见上表，1.x 的次版本可能改变它们 | 本页 |
 | 什么时候发 1.0 | 0.12 之后，而不是 0.11 之后马上发。0.12 完成下面这些改动；1.0 不再加代码，只做冻结、演练和文档 | 路线图 |
 | 被取消的请求的 HTTP 响应 | 单独的错误码：`CommonError.REQUEST_CANCELLED`，返回 503，不再是 500 `SYSTEM_ERROR`。请求本身没有错，可以重试，也不再算作服务端故障 | 0.12，列在 **Breaking** 下 |
 | 去重表的主键要不要包含租户 | 不包含，主键保持 `(consumer, message_id)`。「事件 ID 跨租户唯一」和「消息来源可信」仍是 `IdempotentConsumer` 的前提，现在写进了它的 Javadoc 和 README | 0.12，文档 |
@@ -133,6 +138,7 @@ CI 在每次改动时检查这一点：japicmp 把每个模块与上一个发布
 - [x] 0.12.0 完成这些决定需要的改动并发布，它的 fixture 和 API 基线按同样方式跟进；`ddk-seata-starter` 已移除
 - [ ] 从 0.12 到 1.0 候选版本的升级与回退演练，用 0.12.0 生成的项目，做法与 0.11 → 0.12 相同
 - [ ] 候选版本通过 Java 21 和 25、生成项目、API 比较和原生镜像任务
+- [ ] 1.0.0-RC1 在中央仓库上至少四周，两到三个本仓库之外的项目试用过，它们的反馈都已处理
 - [ ] 去掉本节标题里的「草案」，[支持矩阵](./ROADMAP.zh-CN.md#支持状态)与本页一致
 
 ## 1.0 之前

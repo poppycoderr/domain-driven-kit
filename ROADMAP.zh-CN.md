@@ -73,10 +73,10 @@ DDK 只有一个版本号，但各模块经受的验证并不一样。每个模�
 | Concurrency starter | 已验证 | Redis | 防重复提交按 TTL 窗口生效，不是恰好一次 |
 | Job starter | 已验证 | Redis 锁；进程内锁 | |
 | Event starter | 已验证 | H2、PostgreSQL 17、RocketMQ、Spring Modulith 的 JDBC 发布记录 | Kafka、AMQP、JMS 走 Modulith 自己的模块，DDK 没有测试；进程内转发仅开发 |
-| Projection starter | 已验证 | H2、MySQL 8.4、PostgreSQL 17；Elasticsearch 经 `ddk-mall` | 没有 Elasticsearch 专用的辅助功能 |
-| MCP starter | 进程内验证 | 真实 MCP 客户端，streamable HTTP | 只支持同步 server；授权由应用负责 |
+| Projection starter | 已验证 | H2、MySQL 8.4、PostgreSQL 17；Elasticsearch 经 `ddk-mall` | 没有 Elasticsearch 专用的辅助功能；`Projection` SPI 在 1.0 里是预览 |
+| MCP starter | 进程内验证 | 真实 MCP 客户端，streamable HTTP | 只支持同步 server；授权由应用负责；1.0 里是预览 |
 | ArchGuard starter | 已验证 | 每条规则都有 ArchUnit 正反例 | |
-| Tracer starter | 进程内验证 | 跨 HTTP 和消息的链路上下文 | 导出到追踪后端只做过手工验证 |
+| Tracer starter | 进程内验证 | 跨 HTTP 和消息的链路上下文 | 导出到追踪后端只做过手工验证；1.0 里是预览 |
 | DB starter（多数据源） | 已验证 | H2；PostgreSQL 17 和 MySQL 8.4 同时作为两个数据源 | 发件箱、去重表、待刷新表只有和业务事务用同一个数据源时才是原子的 |
 | Archetype（三层、四层） | 已验证 | 生成的项目在 CI 里构建和测试 | |
 | `ddk-mall` | 已验证，作为参考实现 | MySQL、Redis、RocketMQ、Elasticsearch | 支付渠道是模拟的；`secure` profile 用演示用户 |
@@ -99,6 +99,7 @@ DDK 只有一个版本号，但各模块经受的验证并不一样。每个模�
 **目标：只冻结经过验证的部分。**
 
 - [ ] 冻结经过验证的核心 API 和上面的支持矩阵，此后严格遵守语义化版本。冻结哪些、哪些保持实验性、为它作了哪些决定，见[冻结清单](./COMPATIBILITY.zh-CN.md#10-冻结清单草案)
+- [ ] 公开候选：1.0.0-RC1 发布到中央仓库，至少四周；发 1.0 之前要有两到三个本仓库之外的项目试用过
 - [x] 虚拟线程上的上下文语义：操作者、链路、加锁顺序、取消、线程池复用，而不只是「能启动」
 - [x] GraalVM 按模块声明支持，从一个最小示例开始，不要求所有 starter 一起支持：CI 用 `ddk-example-user` 验证，依赖 Redis 的 starter、投影和发布登记用 `ddk-example-inventory` 验证，清单见 [SUPPORT.zh-CN.md](./SUPPORT.zh-CN.md#graalvm-原生镜像)
 - [x] 写清已知限制、回滚路径和维护责任：[SUPPORT.zh-CN.md](./SUPPORT.zh-CN.md)，以及升级指南里每个版本的回退一节
