@@ -12,6 +12,10 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-11-10
+
+The last minor release before 1.0. It carries out the decisions that the 1.0 freeze checklist left open, while a minor release may still break, so that 1.0 itself only freezes. A cancelled request is answered with 503 and `REQUEST_CANCELLED` instead of 500, the one breaking change. `ddk-db-starter` is tested on PostgreSQL and MySQL and is no longer experimental, and `ddk-seata-starter` is deprecated ahead of its removal in 1.0. Publication metrics are sampled in the background, so their cost no longer follows the scrape rate. Native images are verified for the Redis-backed starters, projections and the publication registry, projects generated on JDK 23 and later compile Lombok, an optional ArchGuard rule keeps configuration classes outside the layers to wiring, and every starter's README starts with a 30-second setup and ends with its common errors. The [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) lists the steps.
+
 ### Breaking
 
 - A request whose thread is interrupted, which `AggregateLocks` and `@AggregateLock` report as `CancellationException` since 0.11.0, is answered by `BaseExceptionHandler` with 503 and the new error code `REQUEST_CANCELLED` instead of 500 and `SYSTEM_ERROR`. It happens, for example, when the application shuts down while a request waits for a lock: the request itself was fine and can be retried, usually on another instance, and it no longer counts as a server error in 5xx-by-code alerts on `SYSTEM_ERROR`. An MCP tool reports `REQUEST_CANCELLED` too. To keep the old response, declare an `@ExceptionHandler(CancellationException.class)` in your own `@RestControllerAdvice` that returns 500 with `ApiResponse.ofFail(CommonError.SYSTEM_ERROR)`
@@ -290,7 +294,8 @@ The first release: the DDD foundation on a Spring Boot 4.1 baseline.
 Starter implementation classes live in `com.ddk.<starter>.starter.internal` packages and are not public API: `CacheInvalidationListener`, `CacheInvalidationMessage`, `RedisCacheInvalidationPublisher`, `MicrometerCacheMetrics`, `JitteredTtlFunction`, `SpringDomainEventPublisher` and `TraceIdResponseFilter`. Generated projects check this with `DDK_INTERNALS_MUST_NOT_BE_USED`.
 - The springdoc dependency from `ddk-web-starter`; add it in the application when API docs are needed
 
-[Unreleased]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.11.0...HEAD
+[Unreleased]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.12.0...HEAD
+[0.12.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.9.0...v0.10.0
 [0.9.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.8.0...v0.9.0
