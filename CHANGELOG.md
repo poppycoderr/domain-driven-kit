@@ -12,6 +12,10 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ## [Unreleased]
 
+## [0.12.1] - 2026-11-11
+
+A security release. It fixes two ways to inject SQL through `ddk-mybatis` and `ddk-mybatis-starter`: the sort field of a page query, and a string tenant id. Every application that accepts a `PageQuery` from a request should upgrade; applications with string tenant ids should upgrade too. Nothing else changes, and nothing needs to change in the application. The advisories are [GHSA-67m2-4mxv-mj3p](https://github.com/poppycoderr/domain-driven-kit/security/advisories/GHSA-67m2-4mxv-mj3p) and [GHSA-3wwm-gcpx-5ch7](https://github.com/poppycoderr/domain-driven-kit/security/advisories/GHSA-3wwm-gcpx-5ch7).
+
 ### Security
 
 - A sort field of a page query can no longer inject SQL. `QueryParser` passed `Sort.sortField` to MyBatis-Plus's `orderBy`, which puts the column into `ORDER BY` as it is, so a controller that accepts a `PageQuery` in its request body let the caller run a subquery in the database. A sort field must now be an identifier (`[A-Za-z_][A-Za-z0-9_]*`); anything else fails with `VALIDATION_ERROR`, which the web starter answers with 400. Affects every release since the first one
@@ -299,7 +303,8 @@ The first release: the DDD foundation on a Spring Boot 4.1 baseline.
 Starter implementation classes live in `com.ddk.<starter>.starter.internal` packages and are not public API: `CacheInvalidationListener`, `CacheInvalidationMessage`, `RedisCacheInvalidationPublisher`, `MicrometerCacheMetrics`, `JitteredTtlFunction`, `SpringDomainEventPublisher` and `TraceIdResponseFilter`. Generated projects check this with `DDK_INTERNALS_MUST_NOT_BE_USED`.
 - The springdoc dependency from `ddk-web-starter`; add it in the application when API docs are needed
 
-[Unreleased]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.12.0...HEAD
+[Unreleased]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.12.1...HEAD
+[0.12.1]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.9.0...v0.10.0
