@@ -14,8 +14,8 @@ This roadmap has four parts: **what is supported today** and how well each part 
 
 Three observations decide what DDK does and does not do:
 
-1. **Spring already covers modularity and event registries.** Spring Modulith 2 verifies module boundaries and ships a persistent event publication registry; jMolecules provides DDD concept annotations. DDK interoperates with them instead of rebuilding them.
-2. **The mainstream stack in China lacks a DDD layer.** MyBatis-Plus, Redis, RocketMQ, Seata, XXL-Job and Nacos are an extremely common combination, yet almost nothing ties them to aggregates, repositories and domain events. This is where DDK is most distinctive.
+1. **Spring already covers modularity and event registries.** Spring Modulith 2 verifies module boundaries and ships a persistent event publication registry; jMolecules provides DDD concept annotations. DDK builds on Modulith's event publication registry and works alongside jMolecules, instead of rebuilding either.
+2. **The mainstream stack in China lacks a DDD layer.** MyBatis-Plus, Redis, RocketMQ, Seata, XXL-Job and Nacos are an extremely common combination, yet almost nothing ties them to aggregates, repositories and domain events. DDK does this for the part closest to the domain, MyBatis-Plus, Redis and RocketMQ, and this is where it is most distinctive.
 3. **AI coding agents need executable architecture constraints.** Tools like Claude Code and Codex write code fast and blur layers just as fast. A project with a predictable structure and rules that fail tests is naturally better suited to agent collaboration. DDK already has ArchGuard; turning it into the agent's feedback loop is the obvious next step.
 
 ```text

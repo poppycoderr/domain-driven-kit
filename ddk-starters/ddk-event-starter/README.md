@@ -36,7 +36,10 @@ Integration events (`@IntegrationEvent`) also need Spring Modulith's `event_publ
 </dependency>
 ```
 
-`GenericRepositoryImpl` publishes an aggregate's events after a successful write. Subscribers use `@TransactionalEventListener(phase = AFTER_COMMIT)`, so a rolled-back transaction notifies no one.
+`GenericRepositoryImpl` publishes an aggregate's events after a successful write, still inside the business transaction. A subscriber picks when it runs:
+
+- **`@EventListener`** runs in the same transaction, for work that must commit or roll back with the business: translating to an integration event, which goes through the outbox and must be published inside the transaction, or marking a projection.
+- **`@TransactionalEventListener(phase = AFTER_COMMIT)`** runs after the commit and not at all on a rollback, for side effects that may be lost but must never announce a change that did not happen, such as a notification.
 
 ## Integration events
 

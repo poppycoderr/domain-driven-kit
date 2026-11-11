@@ -145,6 +145,10 @@ This is a business limit, such as exports per tenant or SMS codes per phone numb
 - The reference example does not use this starter yet, because it runs without Redis
 - A lock is only as reliable as a single Redis: after a failover, a lock that was not yet replicated can be granted twice. Keep the version check on the aggregate
 
+## Tenants
+
+The keys of `@Idempotent`, `@RateLimit` and `@AggregateLock` are the prefix, the scope and the value of the key expression; they do not include the tenant. Two tenants whose business keys coincide, such as order numbers that each tenant counts from 1, share a registration, a quota or a lock: the second request is rejected as a duplicate, or both count against one limit. Nothing leaks, but requests fail. Put the tenant into the key expression when keys are only unique within a tenant, for example `key = "T(com.ddk.core.context.OperatorContext).required().tenantId() + ':' + #command.orderNo()"`.
+
 ## Common errors
 
 | Symptom | Cause | Fix |
@@ -152,5 +156,6 @@ This is a business limit, such as exports per tenant or SMS codes per phone numb
 | `@AggregateLock on X.y needs a RedissonClient: configure spring.data.redis.* or declare a RedissonClient bean` | No Redis connection and no `RedissonClient` bean; the call refuses to run without the lock | Configure `spring.data.redis.*` or declare a `RedissonClient` |
 | Startup fails: `ddk-concurrency-starter creates a RedissonClient for standalone Redis only` | Spring Boot is configured for Sentinel or Cluster | Declare your own `RedissonClient` bean for that topology |
 | `Lock [...] is being acquired inside a transaction and would be released before the commit` | The lock is taken inside a transaction that started earlier, so another caller could read data that is not committed yet | Take the lock first and start the transaction inside it; `ddk.concurrency.lock.inside-transaction=warn` only logs |
+| A request is rejected as a duplicate although this tenant never sent it | Another tenant used the same business key; keys do not include the tenant | Put the tenant into the key expression, see [Tenants](#tenants) |
 | `Expression "..." on X.y evaluated to an empty key` | The SpEL key resolved to `null` or blank | Fix the expression, or validate the argument before the call |
 | `CancellationException` while waiting for a lock | The thread was interrupted, for example during shutdown; this is not a busy lock | Do not retry it as if the lock were busy |
