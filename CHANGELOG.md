@@ -24,6 +24,10 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 - `ddk-mybatis-starter` logs a warning at startup when `ddk.mybatis.worker-id` and `ddk.mybatis.datacenter-id` are not both set. The derived snowflake identity comes from the MAC address and the process ID; in containers, where the process ID is usually 1, only 32 identities remain, and two of seven instances collide with a probability of about one half, which shows as a rare duplicate key on insert
 
+### Fixed
+
+- The cache starter's README states two limits it did not mention: an eviction that fails while Redis is unreachable leaves the old value in Redis until the L2 TTL ends it, so the L1 TTL bounds staleness only when the eviction reached Redis; and cache keys do not include the tenant, so with multi-tenancy the key has to carry it
+
 ### Security
 
 - A sort field of a page query can no longer inject SQL. `QueryParser` passed `Sort.sortField` to MyBatis-Plus's `orderBy`, which puts the column into `ORDER BY` as it is, so a controller that accepts a `PageQuery` in its request body let the caller run a subquery in the database. A sort field must now be an identifier (`[A-Za-z_][A-Za-z0-9_]*`); anything else fails with `VALIDATION_ERROR`, which the web starter answers with 400. Affects every release since the first one

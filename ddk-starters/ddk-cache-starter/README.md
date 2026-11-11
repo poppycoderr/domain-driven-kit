@@ -73,7 +73,7 @@ ddk:
 | `ddk.cache.null-value-ttl` | `1m` | TTL for cached `null`, applied to both levels |
 | `ddk.cache.key-prefix` | `ddk:cache:` | Redis key is `<prefix><cache>::<key>`; also prefixes the invalidation channel |
 | `ddk.cache.local.enabled` | `false` | Enable L1 for every cache |
-| `ddk.cache.local.ttl` | `30s` | L1 TTL, which is also the upper bound of cross-instance staleness |
+| `ddk.cache.local.ttl` | `30s` | L1 TTL. It bounds how long another instance can serve an old value after an invalidation that reached Redis; see [Design decisions](#design-decisions) for when it does not |
 | `ddk.cache.local.maximum-size` | `10000` | L1 entries per cache |
 | `ddk.cache.local.broadcast-evict` | `true` | Broadcast L1 invalidation over Redis Pub/Sub |
 | `ddk.cache.caches.<name>.*` | — | Per-cache `ttl`, `local-enabled`, `local-ttl`, `local-maximum-size` |
@@ -84,6 +84,8 @@ ddk:
 - **Invalidation broadcast is best effort.** Redis Pub/Sub does not redeliver messages missed during a disconnect; the L1 TTL is the final safety net.
 - **Another transport for the broadcast.** Declare your own `CacheInvalidationPublisher` bean. DDK then neither publishes nor subscribes on its Redis channel; your receiving side clears the local level with `cacheManager.findCache(name).ifPresent(cache -> cache.evictLocal(key))`, or `clearLocal()` for a clear.
 - **Redis failures never reach business code.** L2 errors are treated as misses and counted. Caches with L1 keep serving from L1; caches without L1 call the method every time.
+- **A failed write to L2 is not retried.** When `@CacheEvict` or `@CachePut` runs while Redis is unreachable, the local level is updated but the old value stays in Redis. Once Redis is back, every instance reads that old value again, until the L2 TTL ends it. So the staleness bound is the L1 TTL only when the invalidation reached Redis; when it failed, it is the L2 TTL. For caches where that matters, keep the L2 TTL short and alert on `ddk.cache.remote.errors{operation="evict"}`.
+- **Keys do not include the tenant.** A cache hit returns the value without running the method, so the SQL with its tenant condition never runs. With multi-tenancy, put the tenant into the key yourself, for example `@Cacheable(cacheNames = "skus", key = "T(com.ddk.core.context.OperatorContext).required().tenantId() + ':' + #skuId")`, or use a cache only for data that all tenants share.
 - **Without a `RedisConnectionFactory` bean, every cache runs on L1 only** and the application still starts.
 - **Values in L2 use the Redis starter's serializer**, including its deserialization type allow-list (`ddk.redis.trusted-packages`).
 - **`clear()` uses `SCAN`**, not `KEYS`.
@@ -107,5 +109,7 @@ Keys are never used as tags.
 | Startup logs `No RedisConnectionFactory found, DDK cache runs with the local level only` | No Redis connection is configured, so only the local level (L1) works and nothing is shared between instances | Configure `spring.data.redis.*`, or accept local-only caching in that environment |
 | Logs `L2 cache [...] get failed, falling back` | Redis failed during an operation; the cache falls back instead of failing the call | Check Redis; the warning repeats while it is down |
 | Another instance serves an old value for a while | L1 is on and the invalidation broadcast was missed or turned off | Keep `ddk.cache.local.broadcast-evict=true`; `local-ttl` bounds how long a missed invalidation can last |
+| After a Redis outage, all instances serve an old value until it expires in Redis | An eviction ran while Redis was unreachable; it cleared the local level but not Redis | Evict the key again, or wait for the L2 TTL; keep the L2 TTL short for caches that must not stay stale |
+| One tenant sees another tenant's cached data | The cache key does not include the tenant, and a hit skips the method and its tenant-filtered SQL | Put the tenant into the key, or do not cache tenant data |
 | Startup fails: `ttl jitter must be within [0, 1]` | `ddk.cache.ttl-jitter` is out of range | Use a ratio such as `0.1` |
 | A value cached with `@Cacheable` cannot be read through `RedisTemplate` | The cache uses its own serialization | Read cached values through the cache |
