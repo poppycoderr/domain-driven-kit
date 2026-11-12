@@ -87,4 +87,16 @@ class OperatorContextTest {
         assertThatThrownBy(() -> Operator.of(" ")).isInstanceOf(IllegalArgumentException.class);
         assertThat(Operator.of("7").tenantId()).isNull();
     }
+
+    @Test
+    @DisplayName("操作者按值比较，与 1.0 之前的 record 一致")
+    void operatorIsAValue() {
+        Operator a = new Operator("7", "Alice", "t-1");
+        Operator same = new Operator("7", "Alice", "t-1");
+
+        assertThat(a).isEqualTo(same).hasSameHashCodeAs(same);
+        assertThat(a).isNotEqualTo(new Operator("7", null, "t-1")).isNotEqualTo(Operator.of("7", "t-2"));
+        assertThat(a.toString()).isEqualTo("Operator[id=7, name=Alice, tenantId=t-1]");
+        assertThat(a.name()).isEqualTo("Alice");
+    }
 }
