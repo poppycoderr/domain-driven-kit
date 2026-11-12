@@ -59,7 +59,7 @@
         <jacoco.line.minimum>0.70</jacoco.line.minimum>
         <jacoco.branch.minimum>0.50</jacoco.branch.minimum>
         <archunit.version>1.5.1</archunit.version>
-        <errorprone.version>2.50.0</errorprone.version>
+        <errorprone.version>2.52.0</errorprone.version>
         <nullaway.version>0.14.3</nullaway.version>
         <spring-ai.version>2.0.2</spring-ai.version>
         <spring-modulith.version>2.1.2</spring-modulith.version>
