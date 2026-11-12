@@ -75,13 +75,15 @@ jMolecules and DDK do not conflict, but DDK has no adapter for it either. `ddk-c
 
 DDK is on Maven Central under the groupId `com.domaindrivenkit` from 0.10.0 on. Requirements: JDK 21+, Maven 3.9+, Spring Boot 4.1.x.
 
+**1.0.0-RC1**, the first release candidate of 1.0, is on Maven Central too. To try it, use `1.0.0-RC1` wherever a version appears below, follow the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) from 0.12, and report what you find in the [issue tracker](https://github.com/poppycoderr/domain-driven-kit/issues). It stays a candidate for at least four weeks; until 1.0 is released, the examples below use the last final release.
+
 Generate a four-layer service (`ddk-layer3-archetype` for three layers):
 
 ```bash
 mvn archetype:generate \
   -DarchetypeGroupId=com.domaindrivenkit \
   -DarchetypeArtifactId=ddk-layer4-archetype \
-  -DarchetypeVersion=0.12.0 \
+  -DarchetypeVersion=0.12.1 \
   -DgroupId=com.acme \
   -DartifactId=order-service \
   -Dpackage=com.acme.order \
@@ -97,7 +99,7 @@ To add DDK to an existing Spring Boot 4.1 project, import the BOM and leave out 
         <dependency>
             <groupId>com.domaindrivenkit</groupId>
             <artifactId>ddk-dependencies</artifactId>
-            <version>0.12.0</version>
+            <version>0.12.1</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -130,10 +132,10 @@ See the full guide: [Quick Start](https://domaindrivenkit.com/ddk/quickstart).
 Artifacts on Maven Central are signed with the DDK release key, fingerprint `02F5 D443 996C 2388 C803 9D6C AE07 FF4C 8842 56F0` ([public key](https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x02F5D443996C2388C8039D6CAE07FF4C884256F0)). Download a jar and its `.asc` from Maven Central, import the key and verify; `gpg` should report a good signature and this primary key fingerprint:
 
 ```bash
-curl -fsSO https://repo.maven.apache.org/maven2/com/domaindrivenkit/ddk-core/0.12.0/ddk-core-0.12.0.jar
-curl -fsSO https://repo.maven.apache.org/maven2/com/domaindrivenkit/ddk-core/0.12.0/ddk-core-0.12.0.jar.asc
+curl -fsSO https://repo.maven.apache.org/maven2/com/domaindrivenkit/ddk-core/0.12.1/ddk-core-0.12.1.jar
+curl -fsSO https://repo.maven.apache.org/maven2/com/domaindrivenkit/ddk-core/0.12.1/ddk-core-0.12.1.jar.asc
 gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys 02F5D443996C2388C8039D6CAE07FF4C884256F0
-gpg --verify ddk-core-0.12.0.jar.asc ddk-core-0.12.0.jar
+gpg --verify ddk-core-0.12.1.jar.asc ddk-core-0.12.1.jar
 ```
 
 The jars on [GitHub Releases](https://github.com/poppycoderr/domain-driven-kit/releases) are built by the release workflow and carry a build provenance attestation: `gh attestation verify <jar> --repo poppycoderr/domain-driven-kit`. The two are separate builds of the same tag, so take the jar and the `.asc` from the same place: a GitHub Release jar does not match a Maven Central signature.
@@ -292,7 +294,7 @@ Released so far:
 
 Next:
 
-13. **v1.0 Freeze**: only what has been verified, with a support matrix
+13. **v1.0 Freeze**: only what has been verified, with a support matrix. [1.0.0-RC1](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v1.0.0-RC1) was released on 2026-11-11; 1.0 follows after at least four weeks and trials outside this repository
 
 See [ROADMAP.md](./ROADMAP.md) for the full plan.
 
