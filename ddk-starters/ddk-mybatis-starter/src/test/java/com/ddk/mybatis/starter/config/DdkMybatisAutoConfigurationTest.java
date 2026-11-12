@@ -6,7 +6,7 @@ import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.ddk.core.mapper.EnhancedMapper;
 import com.ddk.core.mapper.MapperProvider;
 import com.ddk.core.mapper.MissingMapperException;
-import com.ddk.core.mapper.ObjectMapper;
+import com.ddk.core.mapper.BeanMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,7 +36,7 @@ class DdkMybatisAutoConfigurationTest {
     }
 
     @EnhancedMapper(source = Source.class, target = Target.class)
-    static class SourceToTargetMapper implements ObjectMapper<Source, Target> {
+    static class SourceToTargetMapper implements BeanMapper<Source, Target> {
         @Override
         public Target map(Source source) {
             return new Target(source.name());

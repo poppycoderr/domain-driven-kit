@@ -559,6 +559,11 @@
                                 <excludes>
                                     <!-- internal 包不属于公开 API -->
                                     <exclude>*.internal</exclude>
+                                    <!-- 1.0 Breaking：ObjectMapper 改名为 BeanMapper -->
+                                    <exclude>com.ddk.core.mapper.ObjectMapper</exclude>
+                                    <exclude>com.ddk.core.mapper.MapperProvider#lookup(java.lang.Class,java.lang.Class)</exclude>
+                                    <exclude>com.ddk.mybatis.repository.GenericRepositoryImpl#toPo()</exclude>
+                                    <exclude>com.ddk.mybatis.repository.GenericRepositoryImpl#toEntity()</exclude>
                                 </excludes>
                             </parameter>
                         </configuration>

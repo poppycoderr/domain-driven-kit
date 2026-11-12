@@ -9,7 +9,7 @@ import com.ddk.core.domain.AbstractDomainEvent;
 import com.ddk.core.domain.AggregateRoot;
 import com.ddk.core.domain.Identifier;
 import com.ddk.core.mapper.EnhancedMapper;
-import com.ddk.core.mapper.ObjectMapper;
+import com.ddk.core.mapper.BeanMapper;
 import com.ddk.core.page.PageQuery;
 import com.ddk.mybatis.query.Operator;
 import com.ddk.mybatis.query.Query;
@@ -135,7 +135,7 @@ final class IntegrationFixtures {
     }
 
     @EnhancedMapper(source = User.class, target = UserPO.class)
-    public static class UserPoConverter implements ObjectMapper<User, UserPO> {
+    public static class UserPoConverter implements BeanMapper<User, UserPO> {
         @Override
         public UserPO map(User source) {
             if (source == null) {
@@ -158,7 +158,7 @@ final class IntegrationFixtures {
     }
 
     @EnhancedMapper(source = UserPO.class, target = User.class)
-    public static class UserEntityConverter implements ObjectMapper<UserPO, User> {
+    public static class UserEntityConverter implements BeanMapper<UserPO, User> {
         @Override
         public User map(UserPO source) {
             if (source == null) {

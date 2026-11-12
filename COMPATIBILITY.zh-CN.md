@@ -38,7 +38,7 @@ DDK 运行在什么平台上也属于契约，但并不是每个碰巧能用的�
 
 | 模块 | 稳定的类型 |
 |---|---|
-| `ddk-core` | 领域模型（`AggregateRoot`、`Entity`、`Identifier`、`ValueObject`、`DomainEvent`、`AbstractDomainEvent`、`DomainEventPublisher`、`IntegrationEvent`、`Specification`）、`GenericRepository` 与 `ConcurrentUpdateException`、分页（`PageQuery`、`PageResponse`、`Sort`）、异常与 `ErrorCode` / `CommonError`、`ApiResponse`、`OperatorContext` / `Operator` / `DataScope`、映射注册（`MapperProvider`、`ObjectMapper`、`EnhancedMapper`、`MapperConfiguration`、`EnumMapper`、`IEnum`）、`IdentifierJacksonModule` |
+| `ddk-core` | 领域模型（`AggregateRoot`、`Entity`、`Identifier`、`ValueObject`、`DomainEvent`、`AbstractDomainEvent`、`DomainEventPublisher`、`IntegrationEvent`、`Specification`）、`GenericRepository` 与 `ConcurrentUpdateException`、分页（`PageQuery`、`PageResponse`、`Sort`）、异常与 `ErrorCode` / `CommonError`、`ApiResponse`、`OperatorContext` / `Operator` / `DataScope`、映射注册（`MapperProvider`、`BeanMapper`、`EnhancedMapper`、`MapperConfiguration`、`EnumMapper`、`IEnum`）、`IdentifierJacksonModule` |
 | `ddk-mybatis` | `GenericRepositoryImpl`、`MybatisPlusPageAdapter`、`@Query`、`Operator`、`QueryParser` |
 | `ddk-test` | `DdkAssertions`、`AggregateAssert`、`BusinessRuleAssert`、`DdkContainers` 及其容器类型 |
 | 各 starter | 应用注入、实现、标注或捕获的类型：`@AggregateLock`、`AggregateLocks`、`@Idempotent`、`@RateLimit`；`IntegrationEventConsumer`、`ReceivedEvent`、`EventContract`、`IntegrationEventDispatcher`、`IdempotentConsumer`；`Projections`；`DataScopeResolver`；`OperatorResolver`、`BaseExceptionHandler`；`CacheSettings`、`DdkCacheManager`、`TwoLevelCache`、`CacheInvalidationPublisher`、`CacheMetrics`；`RedisJsonMapper`；`CommonArchRules`、`ArchGuard`、`ArchGuardReport`、`Violation` |

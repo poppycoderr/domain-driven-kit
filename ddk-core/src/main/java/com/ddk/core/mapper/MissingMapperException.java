@@ -1,10 +1,10 @@
 package com.ddk.core.mapper;
 
 /**
- * 找不到对应的 {@link ObjectMapper} 时抛出。
+ * 找不到对应的 {@link BeanMapper} 时抛出。
  * <p>
  * 这个异常存在的理由，是替换掉一个更糟的行为：早期版本在查不到映射器时会退回
- * MapStruct 为 {@code ObjectMapper<Object, Object>} 生成的默认实现，而它生成的代码是
+ * MapStruct 为 {@code BeanMapper<Object, Object>} 生成的默认实现，而它生成的代码是
  *
  * <pre>{@code
  * public Object map(Object source) {
@@ -39,7 +39,7 @@ public class MissingMapperException extends IllegalStateException {
 
                     @Mapper(config = MapperConfiguration.class)
                     @EnhancedMapper(source = %s.class, target = %s.class)
-                    public interface %sTo%sMapper extends ObjectMapper<%s, %s> {
+                    public interface %sTo%sMapper extends BeanMapper<%s, %s> {
                     }
 
                 注意映射是有方向的：Entity -> PO 和 PO -> Entity 是两个映射器，需要各注册一次。"""

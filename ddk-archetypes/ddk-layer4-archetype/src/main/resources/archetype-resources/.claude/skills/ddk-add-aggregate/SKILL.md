@@ -32,7 +32,7 @@ $h2 3. 基础设施层
 |---|---|
 | `infrastructure/orm/po/OrderPO.java` | 表的镜像，Lombok `@Data`；主键 `@TableId(type = IdType.ASSIGN_ID)`；版本列 `@Version private Long version` |
 | `infrastructure/orm/mapper/OrderMapper.java` | `interface OrderMapper extends BaseMapper<OrderPO>`，加 `@Mapper` |
-| `infrastructure/converter/OrderPoConverter.java` | `@Component` + `@EnhancedMapper(source = Order.class, target = OrderPO.class)`，实现 `ObjectMapper<Order, OrderPO>`，手写字段映射，带上 `version` |
+| `infrastructure/converter/OrderPoConverter.java` | `@Component` + `@EnhancedMapper(source = Order.class, target = OrderPO.class)`，实现 `BeanMapper<Order, OrderPO>`，手写字段映射，带上 `version` |
 | `infrastructure/converter/OrderEntityConverter.java` | 反方向，经由 `Order.restore(...)` 重建 |
 | `infrastructure/acl/impl/OrderRepositoryImpl.java` | `@Repository`，`extends GenericRepositoryImpl<Order, OrderId, OrderPO, OrderMapper> implements OrderRepository`（`OrderId` 由通用仓储拆成主键值）；自定义查询用 `Wrappers.lambdaQuery(OrderPO.class)`，结果经 `toEntity()::map` 转换 |
 

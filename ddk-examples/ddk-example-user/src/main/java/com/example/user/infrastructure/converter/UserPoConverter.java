@@ -1,7 +1,7 @@
 package com.example.user.infrastructure.converter;
 
 import com.ddk.core.mapper.EnhancedMapper;
-import com.ddk.core.mapper.ObjectMapper;
+import com.ddk.core.mapper.BeanMapper;
 import com.example.user.domain.model.entity.User;
 import com.example.user.infrastructure.orm.po.UserPO;
 import org.springframework.stereotype.Component;
@@ -13,7 +13,7 @@ import java.util.List;
  */
 @Component
 @EnhancedMapper(source = User.class, target = UserPO.class, description = "User -> UserPO")
-public class UserPoConverter implements ObjectMapper<User, UserPO> {
+public class UserPoConverter implements BeanMapper<User, UserPO> {
 
     @Override
     public UserPO map(User source) {

@@ -12,7 +12,7 @@ import com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInt
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import com.ddk.core.mapper.EnhancedMapper;
 import com.ddk.core.mapper.MapperProvider;
-import com.ddk.core.mapper.ObjectMapper;
+import com.ddk.core.mapper.BeanMapper;
 import com.ddk.core.page.PageQuery;
 import com.ddk.core.repository.ConcurrentUpdateException;
 import com.ddk.mybatis.repository.GenericRepositoryImpl;
@@ -177,7 +177,7 @@ class AggregateChildTablesIntegrationTest {
     }
 
     @EnhancedMapper(source = Basket.class, target = BasketPO.class, description = "Basket -> BasketPO")
-    static class BasketPoConverter implements ObjectMapper<Basket, BasketPO> {
+    static class BasketPoConverter implements BeanMapper<Basket, BasketPO> {
 
         @Override
         public BasketPO map(Basket source) {
@@ -202,7 +202,7 @@ class AggregateChildTablesIntegrationTest {
     }
 
     @EnhancedMapper(source = BasketPO.class, target = Basket.class, description = "BasketPO -> Basket")
-    static class BasketEntityConverter implements ObjectMapper<BasketPO, Basket> {
+    static class BasketEntityConverter implements BeanMapper<BasketPO, Basket> {
 
         @Override
         public Basket map(BasketPO source) {
