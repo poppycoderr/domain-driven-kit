@@ -42,7 +42,7 @@
     </scm>
 
     <properties>
-        <spring-modulith.version>2.1.1</spring-modulith.version>
+        <spring-modulith.version>2.1.2</spring-modulith.version>
         <rocketmq.version>5.5.1</rocketmq.version>
         <springdoc.version>3.1.1</springdoc.version>
         <okio.version>3.16.4</okio.version>

@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.1.1</version>
+        <version>4.1.2</version>
         <relativePath/>
     </parent>
 
@@ -44,25 +44,25 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- Spring Boot -->
-        <spring-boot.version>4.1.1</spring-boot.version>
+        <spring-boot.version>4.1.2</spring-boot.version>
 
         <!-- Core Dependencies -->
         <mapstruct.version>1.6.3</mapstruct.version>
-        <mybatis-plus.version>3.5.17</mybatis-plus.version>
+        <mybatis-plus.version>3.5.18.1</mybatis-plus.version>
 
         <!-- Utility Libraries -->
-        <hutool.version>5.8.47</hutool.version>
+        <hutool.version>5.8.48</hutool.version>
 
         <!-- Build Tooling -->
-        <jacoco.version>0.8.15</jacoco.version>
+        <jacoco.version>0.8.16</jacoco.version>
         <spotless.version>3.11.0</spotless.version>
         <jacoco.line.minimum>0.70</jacoco.line.minimum>
         <jacoco.branch.minimum>0.50</jacoco.branch.minimum>
-        <archunit.version>1.5.0</archunit.version>
+        <archunit.version>1.5.1</archunit.version>
         <errorprone.version>2.50.0</errorprone.version>
-        <nullaway.version>0.14.1</nullaway.version>
-        <spring-ai.version>2.0.1</spring-ai.version>
-        <spring-modulith.version>2.1.1</spring-modulith.version>
+        <nullaway.version>0.14.3</nullaway.version>
+        <spring-ai.version>2.0.2</spring-ai.version>
+        <spring-modulith.version>2.1.2</spring-modulith.version>
         <rocketmq.version>5.5.1</rocketmq.version>
         <japicmp.version>0.27.0</japicmp.version>
         <!-- 公开 API 与哪个已发布版本比较；每次发布之后改成刚发布的版本 -->
