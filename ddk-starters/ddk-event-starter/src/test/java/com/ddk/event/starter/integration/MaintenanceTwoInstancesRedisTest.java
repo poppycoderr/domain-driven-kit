@@ -89,6 +89,8 @@ class MaintenanceTwoInstancesRedisTest {
         }
         await().atMost(Duration.ofSeconds(10)).until(() -> completedCount() == FAILED);
         for (UUID id : jdbc.queryForList("SELECT id FROM event_publication", UUID.class)) {
+            // 外发已经成功；去掉完成时间，才像一条真实的失败发布。Modulith 2.1.2 起只把未完成的记录标为失败
+            jdbc.update("UPDATE event_publication SET completion_date = NULL WHERE id = ?", id);
             repository.markFailed(id);
         }
         orderEvents.sent.clear();
