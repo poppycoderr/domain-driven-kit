@@ -564,6 +564,8 @@
                                     <exclude>com.ddk.core.mapper.MapperProvider#lookup(java.lang.Class,java.lang.Class)</exclude>
                                     <exclude>com.ddk.mybatis.repository.GenericRepositoryImpl#toPo()</exclude>
                                     <exclude>com.ddk.mybatis.repository.GenericRepositoryImpl#toEntity()</exclude>
+                                    <!-- 1.0 Breaking：Operator 从 record 改成 final 类 -->
+                                    <exclude>com.ddk.core.context.Operator</exclude>
                                 </excludes>
                             </parameter>
                         </configuration>
