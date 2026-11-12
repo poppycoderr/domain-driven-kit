@@ -11,7 +11,7 @@ Thanks for helping. This page is the short version; [AGENTS.md](./AGENTS.md) hol
 
 ## Build
 
-You need JDK 21 or newer, Maven 3.9 and, for the integration tests, a running Docker daemon.
+You need JDK 21.0.8 or newer (NullAway's JSpecify mode needs `-XDaddTypeAnnotationsToSymbol`, which earlier JDK 21 updates do not support; applications built on DDK still need only Java 21), Maven 3.9 and, for the integration tests, a running Docker daemon.
 
 ```bash
 mvn verify               # the local gate

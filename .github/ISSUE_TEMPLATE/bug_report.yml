@@ -25,7 +25,7 @@ body:
     attributes:
       label: Platform
       description: Java version, Spring Boot version, and the database, Redis or broker involved.
-      placeholder: Java 21.0.5, Spring Boot 4.1.1, MySQL 8.4
+      placeholder: Java 21.0.5, Spring Boot 4.1.2, MySQL 8.4
     validations:
       required: true
   - type: textarea
