@@ -26,6 +26,7 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 ### Changed
 
 - `ddk-mybatis-starter` logs a warning at startup when `ddk.mybatis.worker-id` and `ddk.mybatis.datacenter-id` are not both set. The derived snowflake identity comes from the MAC address and the process ID; in containers, where the process ID is usually 1, only 32 identities remain, and two of seven instances collide with a probability of about one half, which shows as a rare duplicate key on insert
+- DDK is built against the patch releases Spring Boot 4.1.2, Spring AI 2.0.2, MyBatis-Plus 3.5.18.1, Hutool 5.8.48 and Lombok 1.18.48, and `ddk-dependencies` manages Spring Modulith 2.1.2. Spring Modulith 2.1.2 marks a publication as failed or resubmitted only while it is not completed, so a completed publication can no longer be resubmitted by mistake; publications that really failed are resubmitted as before
 
 ### Fixed
 

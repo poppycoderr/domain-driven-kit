@@ -19,12 +19,12 @@ DDK 由一个人维护：[@poppycoderr](https://github.com/poppycoderr)，AI 编
 | | 测试过的版本 |
 |---|---|
 | JDK | 21 和 25 |
-| Spring Boot | 4.1（基于 4.1.1 构建） |
+| Spring Boot | 4.1（基于 4.1.2 构建） |
 | 数据库 | H2、MySQL 8.4、PostgreSQL 17 |
 | Redis | 7 |
 | RocketMQ | 5.5（服务端 5.5.0，客户端 5.5.1） |
 | Elasticsearch | 9.4（在 `ddk-mall` 里） |
-| DDK 依赖的库 | MyBatis-Plus 3.5.17、Redisson 4.7.0、ShedLock 7.10.1、Spring Modulith 2.1.1、Spring AI 2.0.1、springdoc 3.1.1 |
+| DDK 依赖的库 | MyBatis-Plus 3.5.18.1、Redisson 4.7.0、ShedLock 7.10.1、Spring Modulith 2.1.2、Spring AI 2.0.2、springdoc 3.1.1 |
 
 各模块验证到什么程度、有哪些已知限制，见[支持状态](./ROADMAP.zh-CN.md#支持状态)。标为「仅装配」的模块是实验性的，见 [COMPATIBILITY.zh-CN.md](./COMPATIBILITY.zh-CN.md#不稳定的部分)。虚拟线程下的语义见[虚拟线程](https://domaindrivenkit.com/ddk/core/virtual-threads)一页。
 

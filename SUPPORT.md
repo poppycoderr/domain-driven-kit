@@ -19,12 +19,12 @@ Every change runs the full test suite in CI on these versions. Other versions ma
 | | Tested |
 |---|---|
 | JDK | 21 and 25 |
-| Spring Boot | 4.1 (built against 4.1.1) |
+| Spring Boot | 4.1 (built against 4.1.2) |
 | Databases | H2, MySQL 8.4, PostgreSQL 17 |
 | Redis | 7 |
 | RocketMQ | 5.5 (server 5.5.0, client 5.5.1) |
 | Elasticsearch | 9.4 (in `ddk-mall`) |
-| Libraries DDK builds on | MyBatis-Plus 3.5.17, Redisson 4.7.0, ShedLock 7.10.1, Spring Modulith 2.1.1, Spring AI 2.0.1, springdoc 3.1.1 |
+| Libraries DDK builds on | MyBatis-Plus 3.5.18.1, Redisson 4.7.0, ShedLock 7.10.1, Spring Modulith 2.1.2, Spring AI 2.0.2, springdoc 3.1.1 |
 
 How thoroughly each module is verified, and its known limits, is in the [support matrix](./ROADMAP.md#support-status). Modules marked wiring only are experimental: see [COMPATIBILITY.md](./COMPATIBILITY.md#what-is-not-stable). The semantics on virtual threads are on the [virtual threads page](https://domaindrivenkit.com/ddk/core/virtual-threads).
 
