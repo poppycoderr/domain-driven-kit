@@ -9,8 +9,14 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 - **0.x**: a minor release (`0.1` → `0.2`) may contain breaking changes, and every one is listed under **Breaking** below. Patch releases (`0.1.0` → `0.1.1`) never break. The [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) lists what to do for each minor release, including schema migrations and behavior changes that are not API breaks.
 - **1.0 onwards**: breaking changes only in major releases.
 - Releases are tagged `vX.Y.Z` and published as [GitHub Releases](https://github.com/poppycoderr/domain-driven-kit/releases). From 0.10.0 on they are also on Maven Central under `com.domaindrivenkit`; earlier releases (groupId `com.ddk`) and snapshots are installed locally with [`scripts/ddk.sh`](./scripts/ddk.sh). [COMPATIBILITY.md](./COMPATIBILITY.md) says what each kind of release may change.
+- A release candidate, such as `1.0.0-RC1`, is tagged `vX.Y.Z-RCn` and published like a release, but as a GitHub pre-release. Maven orders it before the final version. It has a section of its own below, and the next candidate or the final release lists only what changed since
 
 ## [Unreleased]
+
+## [1.0.0-RC1] - 2026-11-11
+
+The first release candidate of 1.0. From 1.0 on, the contract in [COMPATIBILITY.md](./COMPATIBILITY.md) holds: breaking changes only in a major release, checked by the API check against the last release and by the compatibility fixtures of every release since 0.10.0. Before the freeze, four things change that could not change afterwards: `ddk-seata-starter` is removed, `ObjectMapper` is renamed to `BeanMapper`, `EnumMapper` rejects an unknown value instead of returning `null`, and `Operator` becomes a final class with the same API. The MCP and tracer starters and the projection SPI are previews in 1.0 and may still change in a 1.x minor release. This candidate includes the security fixes of 0.12.1. It stays a candidate for at least four weeks, until two or three projects outside this repository have tried it; the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) lists the steps from 0.12, and reports go to the [issue tracker](https://github.com/poppycoderr/domain-driven-kit/issues).
+
 
 ### Breaking
 
@@ -36,6 +42,10 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 - The cache's level 2 no longer falls back to JDK serialization when the Redis starter's allow-listed serializer is missing, for example because the application excluded the Redis starter's auto-configuration. It used to, silently: anyone who could write to Redis could then make the application instantiate any class, and the values were binary instead of JSON. It now builds the same allow-listed JSON serializer, trusting the application's packages, and logs a warning
 - The Javadoc of `DomainEventPublisher` and the event starter's README said that every subscriber must use `@TransactionalEventListener(AFTER_COMMIT)`. Since the outbox, events are published after the write and before the commit, and the generated `AGENTS.md` already told the other half: work that must commit with the business, such as translating to an integration event, uses `@EventListener`. Both now give the two cases
 - The concurrency starter's README states that the keys of `@Idempotent`, `@RateLimit` and `@AggregateLock` do not include the tenant, and shows how to add it
+
+## [0.12.1] - 2026-11-11
+
+A security release. It fixes two ways to inject SQL through `ddk-mybatis` and `ddk-mybatis-starter`: the sort field of a page query, and a string tenant id. Every application that accepts a `PageQuery` from a request should upgrade; applications with string tenant ids should upgrade too. Nothing else changes, and nothing needs to change in the application. The advisories are [GHSA-67m2-4mxv-mj3p](https://github.com/poppycoderr/domain-driven-kit/security/advisories/GHSA-67m2-4mxv-mj3p) and [GHSA-3wwm-gcpx-5ch7](https://github.com/poppycoderr/domain-driven-kit/security/advisories/GHSA-3wwm-gcpx-5ch7).
 
 ### Security
 
@@ -324,7 +334,9 @@ The first release: the DDD foundation on a Spring Boot 4.1 baseline.
 Starter implementation classes live in `com.ddk.<starter>.starter.internal` packages and are not public API: `CacheInvalidationListener`, `CacheInvalidationMessage`, `RedisCacheInvalidationPublisher`, `MicrometerCacheMetrics`, `JitteredTtlFunction`, `SpringDomainEventPublisher` and `TraceIdResponseFilter`. Generated projects check this with `DDK_INTERNALS_MUST_NOT_BE_USED`.
 - The springdoc dependency from `ddk-web-starter`; add it in the application when API docs are needed
 
-[Unreleased]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.12.0...HEAD
+[Unreleased]: https://github.com/poppycoderr/domain-driven-kit/compare/v1.0.0-RC1...HEAD
+[1.0.0-RC1]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.12.1...v1.0.0-RC1
+[0.12.1]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.10.0...v0.11.0
 [0.10.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.9.0...v0.10.0
