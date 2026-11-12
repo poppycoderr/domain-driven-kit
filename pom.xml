@@ -64,7 +64,7 @@
         <spring-ai.version>2.0.1</spring-ai.version>
         <spring-modulith.version>2.1.1</spring-modulith.version>
         <rocketmq.version>5.5.1</rocketmq.version>
-        <japicmp.version>0.26.3</japicmp.version>
+        <japicmp.version>0.27.0</japicmp.version>
         <!-- 公开 API 与哪个已发布版本比较；每次发布之后改成刚发布的版本 -->
         <api.baseline.version>0.12.0</api.baseline.version>
         <!-- 基线版本的 groupId，写字面值：安装基线的脚本直接读取它。0.9 及以前的版本是 com.ddk -->
