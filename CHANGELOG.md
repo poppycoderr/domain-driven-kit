@@ -15,6 +15,7 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 ### Breaking
 
 - `ddk-seata-starter` is removed: it is no longer built or published, and `ddk-dependencies` no longer manages it or Seata. It was deprecated in 0.12.0; it had wiring tests only, Seata's runtime was never verified on Spring Boot 4, and global transactions go against the outbox and eventual consistency that DDK builds on. To keep using it, stay on `ddk-seata-starter` 0.12.0 and declare its version yourself, or copy its three classes (`DdkSeataAutoConfiguration`, `DdkSeataProperties`, `XidPropagationInterceptor`) into your project together with `seata-spring-boot-starter`
+- `EnumMapper.toEnum` throws `IllegalArgumentException` for a value that no constant of the enum has, naming the value, its type and the enum, instead of returning `null`. A `null` value still maps to `null`. Before, an aggregate loaded from a row with an unknown value got `null` in that field and failed somewhere else, or not at all. For a rolling upgrade this means: deploy the version that knows a new enum constant to every instance before anything writes its value. Values are compared with `equals`, so an `INT` column read as `Integer` does not match a `getValue()` that returns `Long`; that also fails now
 
 ### Added
 
