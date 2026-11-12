@@ -1,0 +1,66 @@
+name: Release candidate trial report
+description: You tried a DDK release candidate, such as 1.0.0-RC1, in a project of your own. Reports that found nothing are useful too.
+title: "[RC trial] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for trying the candidate. 1.0 is released only after projects outside this repository have tried it and their reports are handled, so this report decides when 1.0 ships.
+        A bug you found can go here or in its own bug report. Security problems go through the Security tab instead, see SECURITY.md.
+  - type: input
+    id: version
+    attributes:
+      label: Candidate version
+      placeholder: 1.0.0-RC1
+    validations:
+      required: true
+  - type: dropdown
+    id: start
+    attributes:
+      label: Starting point
+      options:
+        - Upgraded an existing project from 0.12
+        - Upgraded an existing project from an older version
+        - Generated a new project from the layer3 archetype
+        - Generated a new project from the layer4 archetype
+        - Added DDK modules to an existing project that did not use DDK
+    validations:
+      required: true
+  - type: input
+    id: modules
+    attributes:
+      label: Modules used
+      description: The DDK modules and starters the project depends on.
+      placeholder: ddk-core, ddk-mybatis-starter, ddk-event-starter
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Platform
+      description: Java version, Spring Boot version, and the database, Redis or broker involved. Say if you built a native image.
+      placeholder: Java 21.0.9, Spring Boot 4.1.2, MySQL 8.4, Redis 7.4
+    validations:
+      required: true
+  - type: dropdown
+    id: outcome
+    attributes:
+      label: Outcome
+      options:
+        - Worked without changes beyond the upgrade guide
+        - Worked, but needed changes the upgrade guide does not mention
+        - Did not work
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: What you found
+      description: Anything that broke, surprised you or is missing from the upgrade guide, with the exception or log lines. Write "nothing" if there was nothing.
+    validations:
+      required: true
+  - type: textarea
+    id: api
+    attributes:
+      label: API you would change before it is frozen
+      description: 1.0 freezes the public API listed in COMPATIBILITY.md. A name, signature or default you would change now, and why.

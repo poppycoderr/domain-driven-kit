@@ -75,7 +75,7 @@ jMolecules and DDK do not conflict, but DDK has no adapter for it either. `ddk-c
 
 DDK is on Maven Central under the groupId `com.domaindrivenkit` from 0.10.0 on. Requirements: JDK 21+, Maven 3.9+, Spring Boot 4.1.x.
 
-**1.0.0-RC1**, the first release candidate of 1.0, is on Maven Central too. To try it, use `1.0.0-RC1` wherever a version appears below, follow the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) from 0.12, and report what you find in the [issue tracker](https://github.com/poppycoderr/domain-driven-kit/issues). It stays a candidate for at least four weeks; until 1.0 is released, the examples below use the last final release.
+**1.0.0-RC1**, the first release candidate of 1.0, is on Maven Central too. To try it, use `1.0.0-RC1` wherever a version appears below, follow the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) from 0.12, and tell us how it went in a [trial report](https://github.com/poppycoderr/domain-driven-kit/issues/new?template=rc_trial_report.yml), even if nothing broke. It stays a candidate for at least four weeks; until 1.0 is released, the examples below use the last final release.
 
 Generate a four-layer service (`ddk-layer3-archetype` for three layers):
 

@@ -75,7 +75,7 @@ jMolecules 和 DDK 不冲突，但 DDK 也没有为它做适配。`ddk-core` 只
 
 DDK 从 0.10.0 起发布在 Maven 中央仓库，groupId 是 `com.domaindrivenkit`。环境要求：JDK 21+、Maven 3.9+、Spring Boot 4.1.x。
 
-**1.0.0-RC1** 是 1.0 的第一个候选版，也已发布到中央仓库。想试用的话，把下面出现的版本号都换成 `1.0.0-RC1`，按[升级指南](https://domaindrivenkit.com/ddk/upgrade)从 0.12 升级，发现的问题请提到 [issue](https://github.com/poppycoderr/domain-driven-kit/issues)。候选期至少四周；1.0 发布之前，下面的示例仍使用最新的正式版。
+**1.0.0-RC1** 是 1.0 的第一个候选版，也已发布到中央仓库。想试用的话，把下面出现的版本号都换成 `1.0.0-RC1`，按[升级指南](https://domaindrivenkit.com/ddk/upgrade)从 0.12 升级，试用结果请填一份[试用报告](https://github.com/poppycoderr/domain-driven-kit/issues/new?template=rc_trial_report.yml)，没遇到问题也欢迎填写。候选期至少四周；1.0 发布之前，下面的示例仍使用最新的正式版。
 
 生成一个四层架构服务（三层用 `ddk-layer3-archetype`）：
 
