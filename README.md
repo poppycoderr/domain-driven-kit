@@ -69,6 +69,8 @@ These projects overlap with DDK in places and solve different problems. They are
 
 DDK does not replace Spring Modulith: reliable domain events in DDK run on Modulith's event publication registry, and module boundaries inside a DDK project can still be verified with it. DDK's layer rules and Modulith's module rules check different axes of the same codebase.
 
+jMolecules and DDK do not conflict, but DDK has no adapter for it either. `ddk-core` depends only on the JDK and JSpecify, so DDK's base classes do not implement jMolecules' interfaces. You can still use both in one project: put jMolecules annotations such as `@AggregateRoot` or `@ValueObject` on classes that extend DDK's base classes, and use jMolecules' integrations on top. Where both name the same concept, DDK's base class is what its repository and architecture rules look at. Base classes that also implement jMolecules' interfaces can come in a 1.x minor release, since adding an interface is compatible.
+
 ## Quick Start
 
 DDK is on Maven Central under the groupId `com.domaindrivenkit` from 0.10.0 on. Requirements: JDK 21+, Maven 3.9+, Spring Boot 4.1.x.

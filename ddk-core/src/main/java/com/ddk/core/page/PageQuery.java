@@ -9,6 +9,10 @@ import java.util.List;
 
 /**
  * 通用分页查询对象（纯 POJO，不依赖任何持久层框架）
+ * <p>
+ * 每页条数有两处上限：{@link #setPageSize} 把超出 {@link #DEFAULT_MAX_PAGE_SIZE}（200）的值静默截到 200，
+ * {@code ddk-mybatis-starter} 的 {@code ddk.mybatis.max-page-size}（默认 500）又截一次，实际生效的是两者中较小的那个。
+ * 所以把 {@code max-page-size} 调到 200 以上，对经过 {@code PageQuery} 的查询没有作用。
  *
  * @author Elijah Du
  * @date 2025/2/8

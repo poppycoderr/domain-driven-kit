@@ -43,7 +43,7 @@ The starter brings in `spring-boot-starter-webmvc`, `spring-boot-starter-validat
 |---|---|---|
 | `ddk.web.exception-handler` | `true` | Register `BaseExceptionHandler` |
 | `ddk.web.jackson` | `true` | Apply the Jackson defaults |
-| `ddk.web.write-long-as-string` | `true` | Write `Long` / `long` as strings; needs `ddk.web.jackson` |
+| `ddk.web.write-long-as-string` | `true` | Write `Long` / `long` as strings; needs `ddk.web.jackson`. It keeps snowflake IDs exact in JavaScript, and it applies to every `Long`, so counts such as `total` become strings too. A client that is not a browser can turn it off |
 | `ddk.web.openapi` | `true` | With springdoc present, add the error responses and the error code list to the docs |
 | `ddk.web.cors.enabled` | `false` | Turn on CORS |
 | `ddk.web.cors.path-pattern` | `/**` | Paths it applies to |

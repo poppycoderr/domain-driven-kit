@@ -69,6 +69,8 @@
 
 DDK 不是 Spring Modulith 的替代品：DDK 的可靠领域事件直接使用 Modulith 的事件发布记录，DDK 项目内部的模块边界也仍然可以用它来校验。DDK 的分层规则和 Modulith 的模块规则检查的是同一份代码的两个不同维度。
 
+jMolecules 和 DDK 不冲突，但 DDK 也没有为它做适配。`ddk-core` 只依赖 JDK 和 JSpecify，所以 DDK 的基类没有实现 jMolecules 的接口。两者仍然可以在同一个项目里并用：在继承 DDK 基类的类上加 jMolecules 的注解，例如 `@AggregateRoot`、`@ValueObject`，再叠加 jMolecules 的集成。两边描述同一个概念时，DDK 的仓储和架构规则看的是 DDK 的基类。让基类同时实现 jMolecules 的接口可以放在 1.x 的次版本里做，因为增加接口是兼容的变化。
+
 ## 快速开始
 
 DDK 从 0.10.0 起发布在 Maven 中央仓库，groupId 是 `com.domaindrivenkit`。环境要求：JDK 21+、Maven 3.9+、Spring Boot 4.1.x。
