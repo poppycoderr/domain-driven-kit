@@ -55,7 +55,7 @@
 
         <!-- Build Tooling -->
         <jacoco.version>0.8.15</jacoco.version>
-        <spotless.version>2.44.5</spotless.version>
+        <spotless.version>3.11.0</spotless.version>
         <jacoco.line.minimum>0.70</jacoco.line.minimum>
         <jacoco.branch.minimum>0.50</jacoco.branch.minimum>
         <archunit.version>1.5.0</archunit.version>
