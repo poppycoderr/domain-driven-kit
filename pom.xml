@@ -74,7 +74,7 @@
         <okio.version>3.18.2</okio.version>
         <redisson.version>4.7.0</redisson.version>
         <springdoc.version>3.2.0</springdoc.version>
-        <shedlock.version>7.10.1</shedlock.version>
+        <shedlock.version>7.11.0</shedlock.version>
         <maven-archetype.version>3.4.1</maven-archetype.version>
     </properties>
 
