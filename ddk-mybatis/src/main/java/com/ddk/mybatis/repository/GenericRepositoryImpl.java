@@ -46,6 +46,11 @@ import java.util.Optional;
  *     <li>实体是聚合根时，在写入成功后排空并发布它累积的领域事件</li>
  * </ol>
  *
+ * <h2>不要调用继承来的写方法</h2>
+ * 从 {@code ServiceImpl} 继承的写方法，例如 {@code saveOrUpdate}、{@code updateBatchById}、{@code remove(Wrapper)}、
+ * {@code lambdaUpdate()}，绕过了这里的两项保证：影响 0 行时抛 {@code ConcurrentUpdateException}，以及发布领域事件。
+ * 它们属于 MyBatis-Plus，随它的版本变化，不在 DDK 的兼容承诺之内。读方法（{@code lambdaQuery()}、{@code getBaseMapper()}）可以用。
+ *
  * <h2>聚合有子表时</h2>
  * 覆盖 {@link #afterInsert(Object)}、{@link #afterUpdate(Object)}、{@link #afterLoad(List)}、{@link #beforeRemove(List)}，
  * 在根表读写的前后处理子表。聚合仍然作为一个整体保存和加载，应用层看不到子表。

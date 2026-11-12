@@ -98,7 +98,7 @@ Statements on the listed tables get `(dept_id IN (...) OR create_by = ?)`. `Data
 | Property | Default | Meaning |
 |---|---|---|
 | `ddk.mybatis.db-type` | `mysql` | Pagination dialect |
-| `ddk.mybatis.max-page-size` | `500` | Largest page; bigger requests are cut to this size without an error |
+| `ddk.mybatis.max-page-size` | `500` | Largest page; bigger requests are cut to this size without an error. `PageQuery` itself cuts page sizes to 200 first, so the smaller of the two applies and a value above 200 has no effect on queries that go through `PageQuery` |
 | `ddk.mybatis.overflow` | `false` | Go back to the first page when the page number is past the end |
 | `ddk.mybatis.optimistic-locker` | `true` | Optimistic locking interceptor |
 | `ddk.mybatis.block-attack` | `true` | Full-table guard |
