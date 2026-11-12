@@ -1,0 +1,6 @@
+{
+  "cachedValue" : "{\"@class\":\"com.ddk.compat.CachedProduct\",\"sku\":\"sku-1\",\"price\":[\"java.math.BigDecimal\",19.90],\"updatedAt\":\"2026-10-22T08:00:00Z\",\"tags\":[\"java.util.ImmutableCollections$List12\",[\"new\",\"sale\"]],\"note\":null}",
+  "clearMessage" : "{\"origin\":\"instance-a\",\"cacheName\":\"products\",\"key\":null}",
+  "evictMessage" : "{\"origin\":\"instance-a\",\"cacheName\":\"products\",\"key\":\"sku-1\"}",
+  "lockKey" : "ddk:lock:order:42"
+}
