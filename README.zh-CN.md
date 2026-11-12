@@ -75,13 +75,15 @@ jMolecules 和 DDK 不冲突，但 DDK 也没有为它做适配。`ddk-core` 只
 
 DDK 从 0.10.0 起发布在 Maven 中央仓库，groupId 是 `com.domaindrivenkit`。环境要求：JDK 21+、Maven 3.9+、Spring Boot 4.1.x。
 
+**1.0.0-RC1** 是 1.0 的第一个候选版，也已发布到中央仓库。想试用的话，把下面出现的版本号都换成 `1.0.0-RC1`，按[升级指南](https://domaindrivenkit.com/ddk/upgrade)从 0.12 升级，发现的问题请提到 [issue](https://github.com/poppycoderr/domain-driven-kit/issues)。候选期至少四周；1.0 发布之前，下面的示例仍使用最新的正式版。
+
 生成一个四层架构服务（三层用 `ddk-layer3-archetype`）：
 
 ```bash
 mvn archetype:generate \
   -DarchetypeGroupId=com.domaindrivenkit \
   -DarchetypeArtifactId=ddk-layer4-archetype \
-  -DarchetypeVersion=0.12.0 \
+  -DarchetypeVersion=0.12.1 \
   -DgroupId=com.acme \
   -DartifactId=order-service \
   -Dpackage=com.acme.order \
@@ -97,7 +99,7 @@ cd order-service && mvn verify
         <dependency>
             <groupId>com.domaindrivenkit</groupId>
             <artifactId>ddk-dependencies</artifactId>
-            <version>0.12.0</version>
+            <version>0.12.1</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -130,10 +132,10 @@ cd order-service && mvn verify
 Maven 中央仓库上的构件用 DDK 的发布密钥签名，指纹 `02F5 D443 996C 2388 C803 9D6C AE07 FF4C 8842 56F0`（[公钥](https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x02F5D443996C2388C8039D6CAE07FF4C884256F0)）。从中央仓库下载 jar 和对应的 `.asc`，导入公钥后验签；`gpg` 应当报告签名有效，并显示这个主密钥指纹：
 
 ```bash
-curl -fsSO https://repo.maven.apache.org/maven2/com/domaindrivenkit/ddk-core/0.12.0/ddk-core-0.12.0.jar
-curl -fsSO https://repo.maven.apache.org/maven2/com/domaindrivenkit/ddk-core/0.12.0/ddk-core-0.12.0.jar.asc
+curl -fsSO https://repo.maven.apache.org/maven2/com/domaindrivenkit/ddk-core/0.12.1/ddk-core-0.12.1.jar
+curl -fsSO https://repo.maven.apache.org/maven2/com/domaindrivenkit/ddk-core/0.12.1/ddk-core-0.12.1.jar.asc
 gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys 02F5D443996C2388C8039D6CAE07FF4C884256F0
-gpg --verify ddk-core-0.12.0.jar.asc ddk-core-0.12.0.jar
+gpg --verify ddk-core-0.12.1.jar.asc ddk-core-0.12.1.jar
 ```
 
 [GitHub Release](https://github.com/poppycoderr/domain-driven-kit/releases) 上的 jar 由发布工作流构建，附有构建来源证明：`gh attestation verify <jar> --repo poppycoderr/domain-driven-kit`。两处的构件是同一个 tag 的两次构建，jar 和 `.asc` 要取自同一处：GitHub Release 的 jar 配不上中央仓库的签名。
@@ -292,7 +294,7 @@ com.ddk.core
 
 接下来：
 
-13. **v1.0 冻结**：只冻结经过验证的部分，配一张支持矩阵
+13. **v1.0 冻结**：只冻结经过验证的部分，配一张支持矩阵。[1.0.0-RC1](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v1.0.0-RC1) 已于 2026-11-11 发布；至少四周、并经过本仓库之外的项目试用之后发布 1.0
 
 完整路线图见 [ROADMAP.zh-CN.md](./ROADMAP.zh-CN.md)。
 
