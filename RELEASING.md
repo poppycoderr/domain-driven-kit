@@ -125,3 +125,12 @@ This is how 0.10.0 was released; its deployment name was entered by hand in the 
 1. **Next snapshot.** A pull request moves every module, the BOM's `ddk.version` and the snapshot examples in the archetype READMEs to the next `-SNAPSHOT`, sets `api.baseline.version` in the root pom to the release, and empties the `api-check` excludes.
 2. **Compatibility fixtures.** In the same pull request as the next snapshot: run `compat/generator` with `-Dddk.version=X.Y.Z` against the published artifacts, then `compat/install-fixtures.sh X.Y.Z` puts each file under the modules' `src/test/resources/compat/X.Y.Z/`, next to the earlier releases. The compatibility tests run once per release directory, and fail when `api.baseline.version` names a release without fixtures (see `compat/README.md`).
 3. **Docs.** A pull request points both READMEs (Quick Start and the release list), both archetype READMEs, both roadmaps and the roadmap diagram at the release. The documentation site's quick start, home page and upgrade guide move to it as well.
+
+## 5. Release candidates
+
+A release candidate, such as `1.0.0-RC1`, goes through the same steps with its own version, with these differences:
+
+- The changelog section is `[1.0.0-RC1]`, and the next candidate or the final release gets its own section that lists only what changed since.
+- The GitHub Release is a pre-release, because the version has a hyphen; it never becomes the latest release. Maven orders `1.0.0-RC1` before `1.0.0`, so a version range or a "latest" lookup does not pick it over the final release.
+- After it: `main` stays on the same `-SNAPSHOT`. `api.baseline.version` moves to the candidate, its `api-check` excludes are emptied and its compatibility fixtures are added, so that any change after the candidate shows up as a break against it.
+- Docs: both READMEs and the documentation site name the candidate and how to try it, while the Quick Start keeps the last final release. The upgrade guide's section for the release says it is a candidate.
