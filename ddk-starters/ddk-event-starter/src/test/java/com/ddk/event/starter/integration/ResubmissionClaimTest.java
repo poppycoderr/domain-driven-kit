@@ -94,6 +94,8 @@ class ResubmissionClaimTest {
                 IntegrationEventExternalizationTest.Order.pay(IntegrationEventExternalizationTest.OrderId.of(42L))));
         await().atMost(Duration.ofSeconds(5)).until(() -> jdbc.queryForObject("SELECT COUNT(*) FROM event_publication", Long.class) == 1);
         UUID id = jdbc.queryForObject("SELECT id FROM event_publication", UUID.class);
+        // 外发已经成功，记录带着完成时间；真实的失败发布没有完成时间，Modulith 2.1.2 起也只把未完成的记录标为失败
+        jdbc.update("UPDATE event_publication SET completion_date = NULL WHERE id = ?", id);
         repository.markFailed(id);
         return id;
     }
