@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MapperProvider implements SmartInitializingSingleton {
 
     /** key: 源类型全限定名 + "->" + 目标类型全限定名 */
-    private final Map<String, ObjectMapper<?, ?>> mappers = new ConcurrentHashMap<>();
+    private final Map<String, BeanMapper<?, ?>> mappers = new ConcurrentHashMap<>();
 
     private final ApplicationContext context;
 
@@ -61,12 +61,12 @@ public class MapperProvider implements SmartInitializingSingleton {
      * @throws MissingMapperException 未注册对应映射器时抛出
      */
     @SuppressWarnings("unchecked")
-    public <S, T> ObjectMapper<S, T> lookup(Class<S> source, Class<T> target) {
-        ObjectMapper<?, ?> mapper = mappers.get(keyOf(source, target));
+    public <S, T> BeanMapper<S, T> lookup(Class<S> source, Class<T> target) {
+        BeanMapper<?, ?> mapper = mappers.get(keyOf(source, target));
         if (mapper == null) {
             throw new MissingMapperException(source, target);
         }
-        return (ObjectMapper<S, T>) mapper;
+        return (BeanMapper<S, T>) mapper;
     }
 
     /**
@@ -86,7 +86,7 @@ public class MapperProvider implements SmartInitializingSingleton {
     /**
      * 扫描并注册所有 {@link EnhancedMapper}。
      *
-     * @throws IllegalStateException 映射器没有实现 {@link ObjectMapper}，
+     * @throws IllegalStateException 映射器没有实现 {@link BeanMapper}，
      *                               或同一映射方向被注册多次时抛出——重复注册意味着
      *                               运行时用哪一个取决于扫描顺序，必须在启动期暴露
      */
@@ -95,10 +95,10 @@ public class MapperProvider implements SmartInitializingSingleton {
             String beanName = entry.getKey();
             Object bean = entry.getValue();
 
-            if (!(bean instanceof ObjectMapper<?, ?> mapper)) {
+            if (!(bean instanceof BeanMapper<?, ?> mapper)) {
                 throw new IllegalStateException(
                         "@EnhancedMapper 标注的 " + bean.getClass().getName()
-                                + " 没有实现 ObjectMapper，无法作为映射器注册");
+                                + " 没有实现 BeanMapper，无法作为映射器注册");
             }
 
             // 用 findAnnotationOnBean 而不是 bean.getClass().getAnnotation()：
@@ -109,7 +109,7 @@ public class MapperProvider implements SmartInitializingSingleton {
             }
 
             String key = keyOf(annotation.source(), annotation.target());
-            ObjectMapper<?, ?> previous = mappers.putIfAbsent(key, mapper);
+            BeanMapper<?, ?> previous = mappers.putIfAbsent(key, mapper);
             if (previous != null && previous != mapper) {
                 throw new IllegalStateException(
                         "映射方向 " + key + " 被重复注册："

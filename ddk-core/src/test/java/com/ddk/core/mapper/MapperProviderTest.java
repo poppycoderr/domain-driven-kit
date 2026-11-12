@@ -31,7 +31,7 @@ class MapperProviderTest {
     }
 
     @EnhancedMapper(source = User.class, target = UserPO.class)
-    static class UserToPoMapper implements ObjectMapper<User, UserPO> {
+    static class UserToPoMapper implements BeanMapper<User, UserPO> {
         @Override
         public UserPO map(User source) {
             return new UserPO(source.name());
@@ -44,7 +44,7 @@ class MapperProviderTest {
     }
 
     @EnhancedMapper(source = UserPO.class, target = User.class)
-    static class PoToUserMapper implements ObjectMapper<UserPO, User> {
+    static class PoToUserMapper implements BeanMapper<UserPO, User> {
         @Override
         public User map(UserPO source) {
             return new User(source.name());
@@ -57,7 +57,7 @@ class MapperProviderTest {
     }
 
     @EnhancedMapper(source = Billing.User.class, target = Billing.UserPO.class)
-    static class BillingUserToPoMapper implements ObjectMapper<Billing.User, Billing.UserPO> {
+    static class BillingUserToPoMapper implements BeanMapper<Billing.User, Billing.UserPO> {
         @Override
         public Billing.UserPO map(Billing.User source) {
             return new Billing.UserPO("billing:" + source.name());
@@ -71,7 +71,7 @@ class MapperProviderTest {
 
     /** 重复注册同一个映射方向 */
     @EnhancedMapper(source = User.class, target = UserPO.class)
-    static class DuplicateUserToPoMapper implements ObjectMapper<User, UserPO> {
+    static class DuplicateUserToPoMapper implements BeanMapper<User, UserPO> {
         @Override
         public UserPO map(User source) {
             return new UserPO("duplicate");
@@ -83,7 +83,7 @@ class MapperProviderTest {
         }
     }
 
-    /** 标了注解但没实现 ObjectMapper */
+    /** 标了注解但没实现 BeanMapper */
     @EnhancedMapper(source = User.class, target = UserPO.class)
     static class NotAMapper {
     }
@@ -210,10 +210,10 @@ class MapperProviderTest {
     }
 
     @Test
-    @DisplayName("标了 @EnhancedMapper 却没实现 ObjectMapper 时，启动期就失败")
+    @DisplayName("标了 @EnhancedMapper 却没实现 BeanMapper 时，启动期就失败")
     void failsOnNonMapperBean() {
         Exception ex = assertThrows(Exception.class, () -> providerOf(InvalidBeanConfig.class));
-        assertTrue(rootCauseMessage(ex).contains("没有实现 ObjectMapper"), "实际消息：" + rootCauseMessage(ex));
+        assertTrue(rootCauseMessage(ex).contains("没有实现 BeanMapper"), "实际消息：" + rootCauseMessage(ex));
     }
 
     private static String rootCauseMessage(Throwable t) {

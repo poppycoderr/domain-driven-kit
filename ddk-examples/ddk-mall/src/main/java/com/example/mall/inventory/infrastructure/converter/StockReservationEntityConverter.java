@@ -1,7 +1,7 @@
 package com.example.mall.inventory.infrastructure.converter;
 
 import com.ddk.core.mapper.EnhancedMapper;
-import com.ddk.core.mapper.ObjectMapper;
+import com.ddk.core.mapper.BeanMapper;
 import com.example.mall.inventory.domain.model.ReservationId;
 import com.example.mall.inventory.domain.model.ReservationStatus;
 import com.example.mall.inventory.domain.model.SkuId;
@@ -16,7 +16,7 @@ import java.util.List;
  */
 @Component
 @EnhancedMapper(source = StockReservationPO.class, target = StockReservation.class, description = "StockReservationPO -> StockReservation")
-public class StockReservationEntityConverter implements ObjectMapper<StockReservationPO, StockReservation> {
+public class StockReservationEntityConverter implements BeanMapper<StockReservationPO, StockReservation> {
 
     @Override
     public StockReservation map(StockReservationPO source) {

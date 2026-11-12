@@ -1,7 +1,7 @@
 package com.example.user.infrastructure.converter;
 
 import com.ddk.core.mapper.EnhancedMapper;
-import com.ddk.core.mapper.ObjectMapper;
+import com.ddk.core.mapper.BeanMapper;
 import com.example.user.domain.model.entity.User;
 import com.example.user.domain.model.entity.UserId;
 import com.example.user.domain.model.enums.Gender;
@@ -17,7 +17,7 @@ import java.util.List;
  */
 @Component
 @EnhancedMapper(source = UserPO.class, target = User.class, description = "UserPO -> User")
-public class UserEntityConverter implements ObjectMapper<UserPO, User> {
+public class UserEntityConverter implements BeanMapper<UserPO, User> {
 
     @Override
     public User map(UserPO source) {

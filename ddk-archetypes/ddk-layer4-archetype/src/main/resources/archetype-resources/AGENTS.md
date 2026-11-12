@@ -35,7 +35,7 @@ adapter ──► application ──► domain ◄── infrastructure
 | `domain.service` | 跨聚合、不属于任何单个聚合的领域逻辑 | 事务、编排 |
 | `domain.error` | 错误码枚举（实现 `ErrorCode`） | |
 | `infrastructure.acl.impl` | 仓储实现（继承 `GenericRepositoryImpl`）与端口实现 | 业务规则 |
-| `infrastructure.converter` | Entity ↔ PO 转换器（`@EnhancedMapper` + `ObjectMapper`，两个方向各一个） | |
+| `infrastructure.converter` | Entity ↔ PO 转换器（`@EnhancedMapper` + `BeanMapper`，两个方向各一个） | |
 | `infrastructure.orm.po` / `mapper` | `*PO` 与 MyBatis-Plus `*Mapper` | |
 
 $h2 编码约定

@@ -11,7 +11,7 @@ import com.ddk.core.domain.AggregateRoot;
 import com.ddk.core.domain.DomainEventPublisher;
 import com.ddk.core.domain.Identifier;
 import com.ddk.core.mapper.MapperProvider;
-import com.ddk.core.mapper.ObjectMapper;
+import com.ddk.core.mapper.BeanMapper;
 import com.ddk.core.page.PageQuery;
 import com.ddk.core.page.PageResponse;
 import com.ddk.core.repository.ConcurrentUpdateException;
@@ -102,11 +102,11 @@ public class GenericRepositoryImpl<E, ID extends Serializable, P, M extends Base
         return mapperProvider;
     }
 
-    protected ObjectMapper<E, P> toPo() {
+    protected BeanMapper<E, P> toPo() {
         return mapperProvider.lookup(eClass, pClass);
     }
 
-    protected ObjectMapper<P, E> toEntity() {
+    protected BeanMapper<P, E> toEntity() {
         return mapperProvider.lookup(pClass, eClass);
     }
 

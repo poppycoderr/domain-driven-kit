@@ -1,7 +1,7 @@
 package com.example.mall.payment.infrastructure.converter;
 
 import com.ddk.core.mapper.EnhancedMapper;
-import com.ddk.core.mapper.ObjectMapper;
+import com.ddk.core.mapper.BeanMapper;
 import com.example.mall.payment.domain.model.Payment;
 import com.example.mall.payment.domain.model.PaymentId;
 import com.example.mall.payment.domain.model.PaymentStatus;
@@ -15,7 +15,7 @@ import java.util.List;
  */
 @Component
 @EnhancedMapper(source = PaymentPO.class, target = Payment.class, description = "PaymentPO -> Payment")
-public class PaymentEntityConverter implements ObjectMapper<PaymentPO, Payment> {
+public class PaymentEntityConverter implements BeanMapper<PaymentPO, Payment> {
 
     @Override
     public Payment map(PaymentPO source) {

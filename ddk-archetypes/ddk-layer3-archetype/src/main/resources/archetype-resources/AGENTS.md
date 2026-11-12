@@ -35,7 +35,7 @@ adapter ──► business ◄── infrastructure
 | `business.acl` | 仓储契约（继承 `GenericRepository<聚合, 类型化标识>`）与外部能力接口 `*Gateway` | 实现类 |
 | `business.error` | 错误码枚举（实现 `ErrorCode`） | |
 | `infrastructure.acl.impl` | 仓储实现（继承 `GenericRepositoryImpl`）与接口实现 | 业务规则 |
-| `infrastructure.converter` | 实体 ↔ PO 转换器（`@EnhancedMapper` + `ObjectMapper`，两个方向各一个） | |
+| `infrastructure.converter` | 实体 ↔ PO 转换器（`@EnhancedMapper` + `BeanMapper`，两个方向各一个） | |
 | `infrastructure.orm.po` / `mapper` | `*PO` 与 MyBatis-Plus `*Mapper` | |
 
 $h2 编码约定

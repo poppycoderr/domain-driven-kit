@@ -1,7 +1,7 @@
 package com.example.mall.order.infrastructure.converter;
 
 import com.ddk.core.mapper.EnhancedMapper;
-import com.ddk.core.mapper.ObjectMapper;
+import com.ddk.core.mapper.BeanMapper;
 import com.example.mall.order.domain.model.Order;
 import com.example.mall.order.domain.model.OrderLine;
 import com.example.mall.order.infrastructure.orm.po.OrderLinePO;
@@ -16,7 +16,7 @@ import java.util.List;
  */
 @Component
 @EnhancedMapper(source = Order.class, target = OrderPO.class, description = "Order -> OrderPO")
-public class OrderPoConverter implements ObjectMapper<Order, OrderPO> {
+public class OrderPoConverter implements BeanMapper<Order, OrderPO> {
 
     @Override
     public OrderPO map(Order source) {

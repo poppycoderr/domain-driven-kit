@@ -1,7 +1,7 @@
 package com.example.mall.order.infrastructure.converter;
 
 import com.ddk.core.mapper.EnhancedMapper;
-import com.ddk.core.mapper.ObjectMapper;
+import com.ddk.core.mapper.BeanMapper;
 import com.example.mall.order.domain.model.Money;
 import com.example.mall.order.domain.model.Order;
 import com.example.mall.order.domain.model.OrderId;
@@ -17,7 +17,7 @@ import java.util.List;
  */
 @Component
 @EnhancedMapper(source = OrderPO.class, target = Order.class, description = "OrderPO -> Order")
-public class OrderEntityConverter implements ObjectMapper<OrderPO, Order> {
+public class OrderEntityConverter implements BeanMapper<OrderPO, Order> {
 
     @Override
     public Order map(OrderPO source) {
