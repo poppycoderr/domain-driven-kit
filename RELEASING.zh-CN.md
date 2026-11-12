@@ -125,3 +125,12 @@ gpg --verify ddk-core-X.Y.Z.jar.asc ddk-core-X.Y.Z.jar
 1. **下一个快照。** 用一个 PR 把所有模块、BOM 的 `ddk.version`、两份 archetype README 里的快照示例改成下一个 `-SNAPSHOT`，把根 pom 的 `api.baseline.version` 改成刚发布的版本，并清空 `api-check` 的放行列表。
 2. **兼容性 fixture。** 和下一个快照放在同一个 PR 里：用 `-Dddk.version=X.Y.Z` 对已发布的构件运行 `compat/generator`，再用 `compat/install-fixtures.sh X.Y.Z` 把每个文件放到各模块的 `src/test/resources/compat/X.Y.Z/`，与之前版本的放在一起。兼容性测试对每个版本目录各跑一遍；`api.baseline.version` 指向的版本没有 fixture 时测试失败（见 `compat/README.md`）。
 3. **文档。** 用一个 PR 让两份 README（快速开始和版本列表）、两份 archetype README、两份路线图和路线图配图指向新版本；文档站的快速开始、首页和升级指南也一并更新。
+
+## 五、候选版
+
+候选版（例如 `1.0.0-RC1`）用自己的版本号走同样的步骤，不同之处是：
+
+- CHANGELOG 的一节是 `[1.0.0-RC1]`；下一个候选版或正式版各有自己的一节，只列此后的变化。
+- 版本号带连字符，所以 GitHub Release 是 pre-release，不会成为 Latest。Maven 把 `1.0.0-RC1` 排在 `1.0.0` 之前，版本范围或「取最新版本」都不会选中它而放过正式版。
+- 发布之后：`main` 保持同一个 `-SNAPSHOT`；`api.baseline.version` 改成这个候选版，清空 `api-check` 的放行列表，并加上它的兼容性 fixture。这样候选版之后的任何改动，都会作为相对它的破坏性变化暴露出来。
+- 文档：两份 README 和文档站写明候选版以及怎么试用，快速开始仍指向上一个正式版；升级指南里这个版本的一节注明它是候选版。
