@@ -1,19 +1,34 @@
-# Weekly update pull requests for the versions DDK pins, and for the GitHub Actions the workflows use (pinned to commits).
+# Monthly update pull requests for the versions DDK pins, and for the GitHub Actions the workflows use (pinned to commits).
+# Minor and patch updates come grouped, at most one pull request each for build tools, libraries and actions a month;
+# a major update comes alone, because each one needs its own review.
 # A library update still goes through COMPATIBILITY.md: a patch release takes patch updates, a minor release may take minor ones.
+# Dependabot changes the parent pom only: an update of a version that ddk-dependencies also manages needs the same change there.
 version: 2
 updates:
   - package-ecosystem: maven
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
     open-pull-requests-limit: 5
     groups:
-      patch-updates:
-        update-types: [patch]
+      # Plugins and compile-time checks: they change how DDK is built, not what applications get
+      build-tools:
+        patterns:
+          - "org.apache.maven.plugins:*"
+          - "com.diffplug.spotless:*"
+          - "org.jacoco:*"
+          - "org.sonatype.central:*"
+          - "com.github.siom79.japicmp:*"
+          - "com.google.errorprone:*"
+          - "com.uber.nullaway:*"
+        update-types: [minor, patch]
+      libraries:
+        patterns: ["*"]
+        update-types: [minor, patch]
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: weekly
+      interval: monthly
     groups:
       actions:
         patterns: ["*"]
