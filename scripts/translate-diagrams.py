@@ -119,9 +119,9 @@ T = {
 },
 'ddk-roadmap': {
 'DDK 演进路线':'DDK roadmap',
-'基础层、0.1–0.4（Spring Boot 4 基线、AI 协作、可靠事件与中间件）、0.5–0.8（多租户与参考应用）已发布；0.9 可靠性与生产路径、0.10 可采用与可升级、0.11 冻结前的契约、0.12 冻结前的决定已发布；接下来冻结 1.0；好看又好用贯穿始终。':'The foundation, 0.1–0.4 (Spring Boot 4 baseline, AI collaboration, reliable events and middleware), 0.5–0.8 (multi-tenancy and the reference app), 0.9 (reliability and the production path), 0.10 (adoption and upgrades), 0.11 (contracts before the freeze) and 0.12 (decisions before the freeze) are released; the 1.0 freeze comes next; looking good and being useful is ongoing.',
+'基础层、0.1–0.4（Spring Boot 4 基线、AI 协作、可靠事件与中间件）、0.5–0.8（多租户与参考应用）已发布；0.9 可靠性与生产路径、0.10 可采用与可升级、0.11 冻结前的契约、0.12 冻结前的决定已发布；1.0 已发布，公开 API 从此冻结；好看又好用贯穿始终。':'The foundation, 0.1–0.4 (Spring Boot 4 baseline, AI collaboration, reliable events and middleware), 0.5–0.8 (multi-tenancy and the reference app), 0.9 (reliability and the production path), 0.10 (adoption and upgrades), 0.11 (contracts before the freeze), 0.12 (decisions before the freeze) and 1.0 are released, and the public API is frozen from now on; looking good and being useful is ongoing.',
 '演进路线':'Roadmap',
-'0.12.0 已发布：落实 1.0 的决定、DB starter 转为稳定、事件指标后台采样；接下来冻结 1.0。':'0.12.0 is out: the 1.0 decisions carried out, the DB starter stable, sampled publication metrics; the 1.0 freeze comes next.',
+'1.0.0 已于 2026-11-13 发布：冻结经过验证的部分，此后严格遵守语义化版本。':'1.0.0 is out, released on 2026-11-13: what has been verified is frozen, with strict semantic versioning from now on.',
 '基础层':'Foundation',
 '已完成':'Done',
 '领域模型与仓储':'Domain model',

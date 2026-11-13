@@ -81,25 +81,13 @@ DDK has one version number, but its modules are not equally proven. Each one has
 | Archetypes (three and four layers) | Verified | Generated projects are built and tested in CI | |
 | `ddk-mall` | Verified, as a reference | MySQL, Redis, RocketMQ, Elasticsearch | Simulated payment channel; demo users in the `secure` profile |
 
-## Latest release: 0.12
+## Latest release: 1.0
 
-[0.12.0](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v0.12.0), released on 2026-11-10. **Goal: make the changes that the 1.0 decisions need while a minor release may still break, and make DDK easier to start with.** What was decided and why is in the [freeze checklist](./COMPATIBILITY.md#decided-for-10); 1.0 follows 0.12 and adds no code of its own.
+[1.0.0](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v1.0.0), released on 2026-11-13. **Goal: freeze only what has been verified.** The contract in [COMPATIBILITY.md](./COMPATIBILITY.md) holds from now on: breaking changes only in a major release. What 1.0 froze, what stays a preview and what was decided for it is in the [freeze checklist](./COMPATIBILITY.md#10-freeze-checklist).
 
-- [x] Native images verified for the Redis-backed starters, projections and the publication registry, with `ddk-example-inventory` in CI
-- [x] Publication metrics sampled in the background, so that their cost no longer follows the scrape rate
-- [x] A cancelled request answered with 503 `REQUEST_CANCELLED` instead of 500 `SYSTEM_ERROR`
-- [x] The premises of idempotent consumers stated where they are used; the processed message table keeps its key
-- [x] An optional ArchGuard rule that keeps `@Configuration` classes outside the layers to wiring, checked in generated projects
-- [x] `ddk-db-starter` tested on PostgreSQL and MySQL and no longer experimental; `ddk-seata-starter` deprecated
-- [x] Generated projects compile Lombok on JDK 23 and later
-- [x] A 30-second start and the common errors in every starter's README; a contributing guide and issue and pull request templates
-
-## 1.0: freeze
-
-**Goal: freeze only what has been verified.**
-
-- [ ] Freeze the verified core API and the support matrix above; strict semantic versioning from then on. What is frozen, what stays experimental and what was decided for it is in the [freeze checklist](./COMPATIBILITY.md#10-freeze-checklist)
-- [ ] A public candidate: 1.0.0-RC1 on Maven Central for at least two weeks, tried by the maintainer in a project outside this repository before 1.0
+- [x] The verified core API and the support matrix above frozen; strict semantic versioning from now on. The MCP and tracer starters and the projection SPI stay previews
+- [x] Before the freeze, in 1.0.0-RC1: `ddk-seata-starter` removed, `ObjectMapper` renamed to `BeanMapper`, `EnumMapper` rejecting unknown values, `Operator` a final class
+- [x] A public candidate: 1.0.0-RC1 on Maven Central from 2026-11-11. The maintainer ended its period on 2026-11-13 without an outside trial, since DDK has few users so far and no published code changed after it
 - [x] Context semantics on virtual threads: operator, trace, lock ordering, cancellation and pool reuse, not only "it starts"
 - [x] GraalVM support declared per module, starting with a minimal example, instead of all starters at once: verified in CI with `ddk-example-user`, and with `ddk-example-inventory` for the Redis-backed starters, projections and the publication registry; listed in [SUPPORT.md](./SUPPORT.md#graalvm-native-images)
 - [x] Known limits, rollback paths and maintenance responsibility written down: [SUPPORT.md](./SUPPORT.md), and a rollback section per release in the upgrade guide
@@ -134,6 +122,7 @@ No order and no dates. An item moves into a release when there is a concrete nee
 | 0.10 | Adoption and upgrades: the `com.domaindrivenkit` groupId, the public API and dependency review, release provenance and Central signing, CI in named stages |
 | 0.11 | Contracts before the freeze: data and wire formats and the platform policy in COMPATIBILITY.md, fixtures of released data, an asserted upgrade and rollback rehearsal, a draft of the 1.0 freeze checklist |
 | 0.12 | Decisions before the freeze: 503 `REQUEST_CANCELLED` for cancelled requests, the DB starter verified on real databases and the Seata starter deprecated, sampled publication metrics, native images for the Redis-backed starters, an optional wiring rule in ArchGuard, a 30-second start and common errors for every starter |
+| 1.0 | The freeze: the verified API, configuration, data formats and platform under strict semantic versioning; the Seata starter removed, `BeanMapper`, `EnumMapper` rejecting unknown values, a final `Operator` |
 
 ## Non-goals
 
