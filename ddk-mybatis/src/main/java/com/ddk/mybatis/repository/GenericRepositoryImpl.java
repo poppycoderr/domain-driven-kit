@@ -200,7 +200,7 @@ public class GenericRepositoryImpl<E, ID extends Serializable, P, M extends Base
     @Override
     public PageResponse<E> page(PageQuery query) {
         Page<P> page = MybatisPlusPageAdapter.toPage(query);
-        super.page(page, QueryParser.parse(query));
+        super.page(page, QueryParser.parse(query, pClass));
         afterLoad(page.getRecords());
         return MybatisPlusPageAdapter.toPageResponse(page, toEntity()::map);
     }

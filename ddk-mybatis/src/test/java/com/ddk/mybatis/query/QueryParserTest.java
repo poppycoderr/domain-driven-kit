@@ -1,14 +1,22 @@
 package com.ddk.mybatis.query;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.core.MybatisConfiguration;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.ddk.core.exception.BusinessException;
 import com.ddk.core.exception.CommonError;
 import com.ddk.core.page.PageQuery;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.apache.ibatis.builder.MapperBuilderAssistant;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -34,6 +42,32 @@ class QueryParserTest {
 
         /** 没有 @Query，不应进入 SQL */
         private String ignored;
+    }
+
+    @TableName("t_user")
+    static class UserPo {
+
+        @TableId
+        Long id;
+
+        Integer userStatus;
+
+        LocalDateTime createTime;
+
+        @TableField("display_name")
+        String nickname;
+
+        @TableField(select = false)
+        String passwordHash;
+    }
+
+    /** 没有初始化表信息的持久化对象，相当于没有对应 Mapper */
+    static class UnmappedPo {
+    }
+
+    @BeforeAll
+    static void registerTable() {
+        TableInfoHelper.initTableInfo(new MapperBuilderAssistant(new MybatisConfiguration(), "test"), UserPo.class);
     }
 
     private static String sqlOf(QueryWrapper<?> wrapper) {
@@ -131,5 +165,41 @@ class QueryParserTest {
         query.addSort("", "ASC");
 
         assertFalse(sqlOf(QueryParser.parse(query)).contains("ORDER BY"));
+    }
+
+    @Test
+    @DisplayName("给出持久化对象时，排序字段按属性名或列名换成表里的列，改过名的列也能排序")
+    void sortFieldsMapToTheColumnsOfThePo() {
+        UserQuery query = new UserQuery();
+        query.addSort("createTime", "DESC").addSort("nickname", "ASC").addSort("user_status", "ASC").addSort("id", "ASC");
+
+        String sql = sqlOf(QueryParser.parse(query, UserPo.class));
+
+        assertTrue(sql.contains("ORDER BY create_time DESC,display_name ASC,user_status ASC,id ASC"), "实际 SQL：" + sql);
+    }
+
+    @Test
+    @DisplayName("不是这张表的列、或者不查询出来的列，不能用来排序")
+    void sortFieldsOutsideThePoAreRejected() {
+        for (String field : List.of("noSuchColumn", "passwordHash", "password_hash")) {
+            UserQuery query = new UserQuery();
+            query.addSort(field, "ASC");
+
+            BusinessException e = assertThrows(BusinessException.class, () -> QueryParser.parse(query, UserPo.class), field);
+            assertEquals(CommonError.VALIDATION_ERROR, e.getErrorCode(), field);
+        }
+    }
+
+    @Test
+    @DisplayName("持久化对象没有表信息时退回只检查标识符的规则")
+    void withoutTableInfoOnlyIdentifiersAreChecked() {
+        UserQuery query = new UserQuery();
+        query.addSort("createTime", "DESC");
+
+        assertTrue(sqlOf(QueryParser.parse(query, UnmappedPo.class)).contains("create_time DESC"));
+
+        UserQuery injected = new UserQuery();
+        injected.addSort("(select 1)", "ASC");
+        assertThrows(BusinessException.class, () -> QueryParser.parse(injected, UnmappedPo.class));
     }
 }
