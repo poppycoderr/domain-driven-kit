@@ -7,7 +7,7 @@ All notable changes to Domain Driven Kit are documented here. The format follows
 DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat:
 
 - **0.x**: a minor release (`0.1` → `0.2`) may contain breaking changes, and every one is listed under **Breaking** below. Patch releases (`0.1.0` → `0.1.1`) never break. The [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) lists what to do for each minor release, including schema migrations and behavior changes that are not API breaks.
-- **1.0 onwards**: breaking changes only in major releases.
+- **1.0 onwards**: breaking changes only in major releases. The parts that [COMPATIBILITY.md](./COMPATIBILITY.md#experimental-in-10) lists as experimental in 1.0, the previews among them, may change in a minor release; such a change is listed under **Changed** and marked as a preview change.
 - Releases are tagged `vX.Y.Z` and published as [GitHub Releases](https://github.com/poppycoderr/domain-driven-kit/releases). From 0.10.0 on they are also on Maven Central under `com.domaindrivenkit`; earlier releases (groupId `com.ddk`) and snapshots are installed locally with [`scripts/ddk.sh`](./scripts/ddk.sh). [COMPATIBILITY.md](./COMPATIBILITY.md) says what each kind of release may change.
 - A release candidate, such as `1.0.0-RC1`, is tagged `vX.Y.Z-RCn` and published like a release, but as a GitHub pre-release. Maven orders it before the final version. It has a section of its own below, and the next candidate or the final release lists only what changed since
 

@@ -6,7 +6,7 @@
   <img src="./assets/diagrams/ddk-roadmap.en.svg" alt="DDK roadmap" />
 </p>
 
-This roadmap has four parts: **what is supported today** and how well each part is verified, **what the next release contains**, **what comes after it**, and a **pool of candidates** without order or dates. What earlier releases delivered is summarized under [History](#history) and listed in full in the [changelog](./CHANGELOG.md).
+This roadmap has three parts: **what is supported today** and how well each part is verified, **the latest release**, and a **pool of candidates** without order or dates. The scope of 1.1 is not settled yet; once it is, it gets a section here. What earlier releases delivered is summarized under [History](#history) and listed in full in the [changelog](./CHANGELOG.md).
 
 ## Positioning
 
@@ -26,8 +26,8 @@ Three observations decide what DDK does and does not do:
   Guardrails   ArchGuard rules · AGENTS.md / Skills · generated projects ship architecture tests
   Domain       ddk-core: aggregates · value objects · domain events · specifications · repositories
   Reliability  outbox · idempotency · distributed locks · rate limits   ← keyed by aggregate / command
-  Integration  MyBatis-Plus · Redis · RocketMQ/Kafka · ShedLock · Elasticsearch
-  AI           Spring AI · MCP: application services as tools, under the same validation and permissions
+  Integration  MyBatis-Plus · Redis · RocketMQ (Kafka via Spring Modulith) · ShedLock · Elasticsearch
+  AI           Spring AI · MCP: application services as tools, under the same validation; authorization is the application's
   Platform     Spring Boot 4 · Jackson 3 · JSpecify · virtual threads · OpenTelemetry
 ```
 
@@ -69,7 +69,7 @@ DDK has one version number, but its modules are not equally proven. Each one has
 | Web starter | In-process verified | MockMvc | |
 | MyBatis starter (audit, tenancy, data scope) | Verified | H2, MySQL 8.4 | |
 | Redis starter | Verified | Redis, through the cache starter's integration tests | |
-| Cache starter | Verified | Redis | |
+| Cache starter | Verified | Redis | An eviction while Redis is unreachable leaves the old value in Redis until its TTL ends; keys do not include the tenant |
 | Concurrency starter | Verified | Redis | Idempotency is per TTL window, not exactly-once |
 | Job starter | Verified | Redis lock; in-process lock | |
 | Event starter | Verified | H2, PostgreSQL 17, RocketMQ, Spring Modulith JDBC registry | Kafka, AMQP and JMS go through Modulith's own modules and are not tested by DDK; local delivery is development only |

@@ -14,6 +14,8 @@ From 1.0 on, DDK follows [semantic versioning](https://semver.org/) for everythi
 | Minor (`1.2` → `1.3`) | Additions: new types, methods, properties, rules, starters. Deprecations. Behavior fixes that make DDK do what its documentation already says |
 | Major (`1.x` → `2.0`) | Anything listed under **Breaking** in the changelog, each with a migration step in the upgrade guide |
 
+One exception: the parts listed under [Experimental in 1.0](#experimental-in-10), the previews among them, may also change in a minor release. Such a change is listed under **Changed** in the changelog and marked as a preview change; the API check lets it through with an `api-check` exclude that is emptied after that release.
+
 Something to be removed is first marked `@Deprecated(since = "...", forRemoval = true)`, or deprecated in the documentation for things that are not Java, in a minor release. It is removed in the next major release at the earliest.
 
 ## Platform
@@ -80,7 +82,7 @@ An existing rule in `CommonArchRules` does not become stricter in a minor releas
 ## What is not stable
 
 - **`*.internal` packages.** Implementation classes that only auto-configuration creates. Generated projects check this with `DDK_INTERNALS_MUST_NOT_BE_USED`.
-- **Experimental modules:** none at present. A module that is tested at the wiring level only is listed here, may change in any release, and leaves the list when it is verified against the real system, as `ddk-db-starter` did in 0.12. `ddk-seata-starter`, the other one, was deprecated in 0.12 and removed in 1.0.
+- **Experimental parts:** the ones listed under [Experimental in 1.0](#experimental-in-10); the MCP and tracer starters and the projection SPI among them are called previews. They may change in a 1.x minor release, as [Versioning](#versioning) describes. No module is tested at the wiring level only today; a new one that is would be listed there until it is verified against the real system, as `ddk-db-starter` was in 0.12. `ddk-seata-starter` was deprecated in 0.12 and removed in 1.0.
 - **Examples** (`ddk-examples/*`): reference code, not a library.
 - **Log messages, metric tag sets beyond the documented ones, and exception messages.** Write code against exception types and error codes, not message text.
 - **Generated project templates.** A new release of an archetype generates a different skeleton; projects generated earlier are not changed.
@@ -95,7 +97,7 @@ Written as a draft after the 0.10 → 0.11 rehearsal and settled with 1.0.0 on 2
 |---|---|---|
 | [Java API](#java-api) of the stable types | japicmp against the last release on every change | Inherited library methods ([Platform](#platform)) |
 | [Configuration](#configuration): `ddk.*` names and defaults, `Ddk*AutoConfiguration` names, your bean replaces DDK's | Wiring tests of each starter | No automated check that a property keeps its name; reviewed by hand |
-| [Data and wire formats](#data-and-wire-formats): event headers and body, consumer identity, the projection and processed message tables, outbox content, Redis keys and values, cache invalidation | Fixtures of every release since 0.10.0 in [`compat/`](./compat/README.md), read and written back by every build; the 0.10 → 0.11 rehearsal with both versions side by side, and the 0.11 → 0.12 upgrade and rollback rehearsal | Releases before 0.10.0 have no fixtures; the outbox table itself is Spring Modulith's |
+| [Data and wire formats](#data-and-wire-formats): event headers and body, consumer identity, the projection and processed message tables, outbox content, Redis keys and values, cache invalidation | Fixtures of every release since 0.10.0 in [`compat/`](./compat/README.md), read and written back by every build; the 0.10 → 0.11 rehearsal with both versions side by side, and the upgrade and rollback rehearsals 0.11 → 0.12 and 0.12.1 → 1.0.0-RC1 (25 checks) | Releases before 0.10.0 have no fixtures; the outbox table itself is Spring Modulith's |
 | HTTP: `ApiResponse`, `CommonError` codes and statuses, the trace ID header | Web and tracer starter tests | |
 | [Architecture rules](#architecture-rules): an existing rule never becomes stricter | Fixtures for every rule | |
 | [Platform](#platform): Java 21 minimum, Spring Boot 4 line, pinned libraries | CI on Java 21 and 25 | |
@@ -120,13 +122,13 @@ The behavior that 1.0 freezes is the documented one, not more:
 
 ### Decided for 1.0
 
-The questions that this draft left open, as the maintainer decided them on 2026-11-10. The changes they need land in 0.12, so that 1.0 itself only freezes.
+The questions that the draft left open, as the maintainer decided them from 2026-11-10 on. Most changes they needed landed in 0.12, while a minor release could still break; the last four breaking changes before the freeze landed in 1.0.0-RC1.
 
 | Question | Decision | Done in |
 |---|---|---|
-| A public candidate period | Yes: 1.0.0-RC1 on Maven Central for at least two weeks, and 1.0 only after the maintainer has tried it in a project outside this repository and the reports are handled. Decided on 2026-11-11, after an independent review; shortened on 2026-11-12 from four weeks and two or three outside projects, because DDK has few users so far. Ended on 2026-11-13 by the maintainer, without an outside trial: DDK has few users to try it, and no source code of the published modules changed after RC1 | the roadmap, the checklist below |
+| A public candidate period | A candidate, 1.0.0-RC1 on 2026-11-11, but no wait for outside trials: the maintainer ended the period on 2026-11-13 and released 1.0.0, because DDK has few users to try it and no source code of the published modules changed after RC1. The plan, decided after an independent review, had been four weeks and two or three outside projects, shortened on 2026-11-12 to two weeks and a trial by the maintainer | the roadmap, the checklist below |
 | How much 1.0 freezes | Less than all of it: the MCP and tracer starters and the projection SPI are previews in 1.0, listed above, and may change in a 1.x minor release | this page |
-| When to release 1.0 | After 0.12, not right after 0.11. 0.12 makes the changes below while a minor release may still break; 1.0 adds no code, only the freeze, the rehearsal and the documentation | the roadmap |
+| When to release 1.0 | After 0.12, not right after 0.11. 0.12 makes the changes below while a minor release may still break; 1.0 adds no features, only the four breaking changes of RC1, the freeze, the rehearsal and the documentation | the roadmap |
 | The HTTP answer to a cancelled request | A code of its own: `CommonError.REQUEST_CANCELLED` with 503, instead of 500 `SYSTEM_ERROR`. The request was fine and can be retried, and it no longer counts as a server fault | 0.12, listed under **Breaking** |
 | Whether the processed message table's key includes the tenant | No: the key stays `(consumer, message_id)`. Event IDs unique across tenants and a trusted source stay premises of `IdempotentConsumer`, now stated in its Javadoc and README where it is used | 0.12, documentation |
 | How wide the ArchGuard exemption for `@Configuration` classes outside the layers stays | As wide as it is. A new, optional rule, `WIRING_CLASSES_ONLY_WIRE`, keeps those classes to `@Bean` methods and supertype overrides and stops them from calling mappers; generated projects check it | 0.12 |

@@ -6,7 +6,7 @@
   <img src="./assets/diagrams/ddk-roadmap.svg" alt="DDK roadmap" />
 </p>
 
-这份路线图分四部分：**现在支持什么**、各部分验证到什么程度；**下一个版本包含什么**；**之后做什么**；以及没有顺序和日期的**候选池**。已发布版本做了什么，概要见[历史](#历史)，完整内容见 [CHANGELOG](./CHANGELOG.md)。
+这份路线图分三部分：**现在支持什么**、各部分验证到什么程度；**最新版本**；以及没有顺序和日期的**候选池**。1.1 的范围还没有定，定下来之后在这里加一节。已发布版本做了什么，概要见[历史](#历史)，完整内容见 [CHANGELOG](./CHANGELOG.md)。
 
 ## 定位
 
@@ -26,8 +26,8 @@
   护栏        ArchGuard 规则 · AGENTS.md / Skills · 生成项目即带架构测试
   领域        ddk-core：聚合 · 值对象 · 领域事件 · 规约 · 仓储契约
   可靠性      Outbox · 幂等 · 分布式锁 · 限流          ← 按聚合 / 命令语义封装
-  集成        MyBatis-Plus · Redis · RocketMQ/Kafka · ShedLock · Elasticsearch
-  AI          Spring AI · MCP：应用服务即工具，受同一套校验与权限约束
+  集成        MyBatis-Plus · Redis · RocketMQ（Kafka 经 Spring Modulith） · ShedLock · Elasticsearch
+  AI          Spring AI · MCP：应用服务即工具，受同一套校验约束，授权由应用负责
   平台        Spring Boot 4 · Jackson 3 · JSpecify · 虚拟线程 · OpenTelemetry
 ```
 
@@ -69,7 +69,7 @@ DDK 只有一个版本号，但各模块经受的验证并不一样。每个模�
 | Web starter | 进程内验证 | MockMvc | |
 | MyBatis starter（审计、多租户、数据权限） | 已验证 | H2、MySQL 8.4 | |
 | Redis starter | 已验证 | Redis，经缓存 starter 的集成测试 | |
-| Cache starter | 已验证 | Redis | |
+| Cache starter | 已验证 | Redis | Redis 不可用时执行的清除留下 Redis 里的旧值，直到它过期；key 不含租户 |
 | Concurrency starter | 已验证 | Redis | 防重复提交按 TTL 窗口生效，不是恰好一次 |
 | Job starter | 已验证 | Redis 锁；进程内锁 | |
 | Event starter | 已验证 | H2、PostgreSQL 17、RocketMQ、Spring Modulith 的 JDBC 发布记录 | Kafka、AMQP、JMS 走 Modulith 自己的模块，DDK 没有测试；进程内转发仅开发 |
