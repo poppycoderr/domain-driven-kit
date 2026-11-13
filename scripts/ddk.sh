@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
 # Installs Domain Driven Kit into the local Maven repository and generates projects from its archetypes.
-# Releases from 0.10.0 on are on Maven Central, but snapshots and older releases are not. The script builds the requested
-# ref from source and installs it locally, so the same command works for all of them.
+# Releases from 0.10.0 on are on Maven Central, and the script takes them from there. Snapshots and older releases are
+# not, so for those it builds the requested ref from source and installs it locally. The same command works for all of them.
 #
 #   curl -fsSL https://raw.githubusercontent.com/poppycoderr/domain-driven-kit/main/scripts/ddk.sh | bash -s -- new order-service
 #
@@ -12,7 +12,7 @@ DDK_REPO="${DDK_REPO:-https://github.com/poppycoderr/domain-driven-kit.git}"
 DDK_REF="${DDK_REF:-latest}"
 DDK_HOME="${DDK_HOME:-$HOME/.ddk}"
 SRC_DIR="$DDK_HOME/src"
-# 记录最近一次安装的是哪个 ref、哪个提交、装出来的版本号，供下次判断能否直接复用
+# 记录最近一次安装的是哪个 ref、哪个提交、装出来的版本号和 groupId，供下次判断能否直接复用
 STATE_FILE="$DDK_HOME/installed"
 
 info() { printf '\033[36m==>\033[0m %s\n' "$*"; }
@@ -24,7 +24,8 @@ usage() {
 Usage: ddk.sh <command> [options]
 
 Commands:
-  install                   Build DDK and install it into the local Maven repository
+  install                   Put DDK into the local Maven repository: download a release from Maven Central,
+                            or build a snapshot or a release before 0.10.0 from source
   new <artifactId>          Generate a project (installs DDK first when needed)
   help                      Show this help
 
@@ -45,11 +46,40 @@ require() {
     command -v "$1" >/dev/null 2>&1 || fail "$1 is required but was not found on PATH"
 }
 
+java_version() {
+    java -version 2>&1 | awk -F'"' '/version/ {print $2}'
+}
+
 check_java() {
     require java
-    local version
-    version=$(java -version 2>&1 | awk -F'"' '/version/ {print $2}' | cut -d. -f1)
-    [[ "$version" =~ ^[0-9]+$ && "$version" -ge 21 ]] || fail "JDK 21 or newer is required (found: ${version:-unknown})"
+    local version major
+    version=$(java_version)
+    major=${version%%.*}
+    [[ "$major" =~ ^[0-9]+$ && "$major" -ge 21 ]] || fail "JDK 21 or newer is required (found: ${version:-unknown})"
+}
+
+# 从 0.10 之后的源码构建 DDK 需要 JDK 21.0.8 起：NullAway 用到的 -XDaddTypeAnnotationsToSymbol 在更早的 21 更新里没有，
+# 编译会在 Error Prone 里失败，报错看不出原因。应用本身只需要 Java 21
+check_build_java() {
+    check_java
+    local version major update
+    version=$(java_version)
+    major=${version%%.*}
+    (( major > 21 )) && return
+    update=$(echo "$version" | awk -F'[.+_-]' '{print $3}')
+    [[ "$update" =~ ^[0-9]+$ && "$update" -ge 8 ]] \
+        || fail "Building DDK from source needs JDK 21.0.8 or newer (found: $version). Releases from 0.10.0 on come from Maven Central and need no build"
+}
+
+# 0.10.0 起的发布 tag 在中央仓库上
+on_central() {
+    [[ "$1" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]] || return 1
+    (( BASH_REMATCH[1] > 0 || BASH_REMATCH[2] >= 10 ))
+}
+
+# 0.10.0 之前的发布 tag，用 JDK 21 的任何更新都能构建
+before_central() {
+    [[ "$1" =~ ^v0\.[0-9]\.[0-9]+$ ]]
 }
 
 ddk_version() {
@@ -84,10 +114,9 @@ local_repository() {
 
 # 两个 archetype 都已经在本地 Maven 仓库里
 artifacts_present() {
-    local version="$1" repository group
-    [[ -f "$SRC_DIR/pom.xml" ]] || return 1
+    local version="$1" group="$2" repository
+    [[ -n "$group" ]] || return 1
     repository=$(local_repository)
-    group=$(ddk_group)
     [[ -f "$repository/${group//.//}/ddk-layer3-archetype/$version/ddk-layer3-archetype-$version.jar" \
         && -f "$repository/${group//.//}/ddk-layer4-archetype/$version/ddk-layer4-archetype-$version.jar" ]]
 }
@@ -95,11 +124,29 @@ artifacts_present() {
 install_ddk() {
     require git
     require mvn
-    check_java
 
     local ref
     ref=$(resolve_ref)
     [[ -n "$ref" ]] || fail "Cannot list the releases of $DDK_REPO. Check the network, or set DDK_REF to a tag or branch"
+
+    if on_central "$ref"; then
+        check_java
+        local release="${ref#v}" commit layers
+        commit=$(remote_commit "$ref")
+        info "Downloading DDK $release from Maven Central"
+        mkdir -p "$DDK_HOME"
+        for layers in 3 4; do
+            mvn -B -ntp -q dependency:get -Dartifact="com.domaindrivenkit:ddk-layer${layers}-archetype:$release" -Dtransitive=false
+        done
+        printf '%s %s %s %s\n' "$ref" "${commit:-unknown}" "$release" "com.domaindrivenkit" > "$STATE_FILE"
+        info "DDK $release is ready"
+        return
+    fi
+    if before_central "$ref"; then
+        check_java
+    else
+        check_build_java
+    fi
 
     if [[ -d "$SRC_DIR/.git" ]]; then
         info "Updating DDK source ($ref)"
@@ -125,17 +172,17 @@ install_ddk() {
     info "Installing DDK $version ($ref, commit ${commit:0:7}) into the local Maven repository"
     mvn -f "$SRC_DIR/pom.xml" -B -ntp -q install \
         -Dmaven.test.skip=true -Djacoco.skip=true -Dspotless.check.skip=true
-    printf '%s %s %s\n' "$ref" "$commit" "$version" > "$STATE_FILE"
+    printf '%s %s %s %s\n' "$ref" "$commit" "$version" "$(ddk_group)" > "$STATE_FILE"
     info "Installed DDK $version"
 }
 
 # 确保 DDK_REF 对应的版本已经装好，并输出要用的版本号。
 # 已装的正是这个 ref、远端没有更新、Maven 产物也都在时直接复用；否则重新安装。连不上仓库时只能复用已装的同一个 ref。
 ensure_installed() {
-    local ref remote installed_ref="" installed_commit="" installed_version=""
+    local ref remote installed_ref="" installed_commit="" installed_version="" installed_group=""
     ref=$(resolve_ref)
     if [[ -f "$STATE_FILE" ]]; then
-        read -r installed_ref installed_commit installed_version < "$STATE_FILE" || true
+        read -r installed_ref installed_commit installed_version installed_group < "$STATE_FILE" || true
     fi
 
     if [[ -z "$ref" ]]; then
@@ -146,7 +193,7 @@ ensure_installed() {
     fi
     remote=$(remote_commit "$ref")
 
-    if [[ "$installed_ref" == "$ref" && -n "$installed_version" ]] && artifacts_present "$installed_version"; then
+    if [[ "$installed_ref" == "$ref" && -n "$installed_version" ]] && artifacts_present "$installed_version" "$installed_group"; then
         if [[ -z "$remote" ]]; then
             warn "Cannot reach $DDK_REPO to check $ref for changes; using what is installed"
             echo "$installed_version"
@@ -160,7 +207,7 @@ ensure_installed() {
     [[ -n "$remote" ]] || fail "Cannot reach $DDK_REPO, and DDK $ref is not installed"
 
     DDK_REF="$ref" install_ddk >&2
-    read -r _ _ installed_version < "$STATE_FILE"
+    read -r _ _ installed_version _ < "$STATE_FILE"
     echo "$installed_version"
 }
 
@@ -186,14 +233,14 @@ new_project() {
     require mvn
     local version
     version=$(ensure_installed)
-    local commit
+    local commit ref group
     commit=$(awk '{print $2}' "$STATE_FILE")
-    local ref
     ref=$(awk '{print $1}' "$STATE_FILE")
+    group=$(awk '{print $4}' "$STATE_FILE")
 
     info "Generating $artifact_id ($layers layers, package $package) with DDK $version ($ref, commit ${commit:0:7})"
     mvn -B -ntp -q archetype:generate \
-        -DarchetypeGroupId="$(ddk_group)" \
+        -DarchetypeGroupId="$group" \
         -DarchetypeArtifactId="ddk-layer${layers}-archetype" \
         -DarchetypeVersion="$version" \
         -DarchetypeCatalog=local \

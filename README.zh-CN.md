@@ -142,13 +142,13 @@ gpg --verify ddk-core-1.0.1.jar.asc ddk-core-1.0.1.jar
 
 ### 快照与旧版本
 
-开发中的快照和 0.10.0 之前的版本（groupId `com.ddk`）不在中央仓库。`scripts/ddk.sh` 从源码构建指定的版本，装进本地 Maven 仓库，再用 archetype 生成项目：
+开发中的快照和 0.10.0 之前的版本（groupId `com.ddk`）不在中央仓库。`scripts/ddk.sh` 从源码构建它们，装进本地 Maven 仓库，再用 archetype 生成项目；0.10.0 起的发布版本则直接从中央仓库下载。从源码构建需要 JDK 21.0.8 或更新的版本，脚本会检查；应用本身只需要 Java 21：
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/poppycoderr/domain-driven-kit/main/scripts/ddk.sh | DDK_REF=main bash -s -- new order-service --group com.acme
 ```
 
-不设 `DDK_REF` 时构建最新的发布版本；`DDK_REF=v0.9.0` 指定某个发布版本，`--layers 3` 生成三层骨架，`ddk.sh help` 查看全部选项。之后再运行时，只有 ref 相同、提交相同、Maven 产物仍在，才会复用已有的安装。想手动构建，在本仓库的克隆里执行 `mvn -B install`。
+不设 `DDK_REF` 时使用最新的发布版本；`DDK_REF=v0.9.0` 指定某个发布版本，`--layers 3` 生成三层骨架，`ddk.sh help` 查看全部选项。之后再运行时，只有 ref 相同、提交相同、Maven 产物仍在，才会复用已有的安装。想手动构建，在本仓库的克隆里执行 `mvn -B install`。
 
 ## 模块
 
