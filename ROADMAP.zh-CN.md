@@ -81,25 +81,13 @@ DDK 只有一个版本号，但各模块经受的验证并不一样。每个模�
 | Archetype（三层、四层） | 已验证 | 生成的项目在 CI 里构建和测试 | |
 | `ddk-mall` | 已验证，作为参考实现 | MySQL、Redis、RocketMQ、Elasticsearch | 支付渠道是模拟的；`secure` profile 用演示用户 |
 
-## 最新版本：0.12
+## 最新版本：1.0
 
-[0.12.0](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v0.12.0) 于 2026-11-10 发布。**目标：趁次版本还允许破坏性变化，完成 1.0 的几个决定需要的改动，并让 DDK 更容易上手。** 决定了什么、为什么，见[冻结清单](./COMPATIBILITY.zh-CN.md#10-已经决定的)；1.0 在 0.12 之后发布，本身不再加代码。
+[1.0.0](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v1.0.0) 于 2026-11-13 发布。**目标：只冻结经过验证的部分。** 从此 [COMPATIBILITY.zh-CN.md](./COMPATIBILITY.zh-CN.md) 里的契约生效：破坏性变更只出现在主版本。1.0 冻结了什么、哪些仍是预览、为此作了哪些决定，见[冻结清单](./COMPATIBILITY.zh-CN.md#10-冻结清单)。
 
-- [x] 依赖 Redis 的 starter、投影和发布登记在原生镜像下验证，CI 里加入 `ddk-example-inventory`
-- [x] 事件发布指标改为后台采样，开销不再随采集频率增长
-- [x] 被取消的请求返回 503 `REQUEST_CANCELLED`，不再是 500 `SYSTEM_ERROR`
-- [x] 去重消费的前提写在使用它的地方；去重表的主键不变
-- [x] 新增一条可选的 ArchGuard 规则，让层外的 `@Configuration` 类只做装配，生成的项目默认检查
-- [x] `ddk-db-starter` 在 PostgreSQL 和 MySQL 上测试，不再是实验性模块；`ddk-seata-starter` 弃用
-- [x] 生成的项目在 JDK 23 及以上能编译 Lombok
-- [x] 每个 starter 的 README 都有 30 秒上手和常见错误；贡献指南、Issue 和 PR 模板
-
-## 1.0：冻结
-
-**目标：只冻结经过验证的部分。**
-
-- [ ] 冻结经过验证的核心 API 和上面的支持矩阵，此后严格遵守语义化版本。冻结哪些、哪些保持实验性、为它作了哪些决定，见[冻结清单](./COMPATIBILITY.zh-CN.md#10-冻结清单)
-- [ ] 公开候选：1.0.0-RC1 发布到中央仓库，至少两周；发 1.0 之前维护者要在本仓库之外的项目里试用过
+- [x] 冻结经过验证的核心 API 和上面的支持矩阵，此后严格遵守语义化版本。MCP starter、tracer starter 和投影 SPI 仍是预览
+- [x] 冻结之前在 1.0.0-RC1 里完成：移除 `ddk-seata-starter`，`ObjectMapper` 改名为 `BeanMapper`，`EnumMapper` 拒绝未知值，`Operator` 改为 final 类
+- [x] 公开候选：1.0.0-RC1 于 2026-11-11 发布到中央仓库。2026-11-13 维护者提前结束候选期，没有外部试用：DDK 目前用户少，RC1 之后发布的代码也没有变化
 - [x] 虚拟线程上的上下文语义：操作者、链路、加锁顺序、取消、线程池复用，而不只是「能启动」
 - [x] GraalVM 按模块声明支持，从一个最小示例开始，不要求所有 starter 一起支持：CI 用 `ddk-example-user` 验证，依赖 Redis 的 starter、投影和发布登记用 `ddk-example-inventory` 验证，清单见 [SUPPORT.zh-CN.md](./SUPPORT.zh-CN.md#graalvm-原生镜像)
 - [x] 写清已知限制、回滚路径和维护责任：[SUPPORT.zh-CN.md](./SUPPORT.zh-CN.md)，以及升级指南里每个版本的回退一节
@@ -134,6 +122,7 @@ DDK 只有一个版本号，但各模块经受的验证并不一样。每个模�
 | 0.10 | 可采用与可升级：groupId 改为 `com.domaindrivenkit`、公开 API 与依赖审查、发布来源证明与中央仓库签名、CI 分阶段 |
 | 0.11 | 冻结前的契约：COMPATIBILITY 里的数据与传输格式和平台政策、已发布数据的 fixture、带断言的升级与回退演练、1.0 冻结清单草案 |
 | 0.12 | 冻结前的决定：被取消的请求返回 503 `REQUEST_CANCELLED`，DB starter 在真实数据库上验证、Seata starter 弃用，事件指标后台采样，依赖 Redis 的 starter 支持原生镜像，ArchGuard 的可选装配规则，每个 starter 的 30 秒上手和常见错误 |
+| 1.0 | 冻结：经过验证的 API、配置、数据格式和平台遵守严格的语义化版本；移除 Seata starter，`BeanMapper`，`EnumMapper` 拒绝未知值，`Operator` 改为 final 类 |
 
 ## 明确不做
 

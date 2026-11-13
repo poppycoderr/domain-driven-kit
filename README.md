@@ -75,7 +75,7 @@ jMolecules and DDK do not conflict, but DDK has no adapter for it either. `ddk-c
 
 DDK is on Maven Central under the groupId `com.domaindrivenkit` from 0.10.0 on. Requirements: JDK 21+, Maven 3.9+, Spring Boot 4.1.x.
 
-**1.0.0-RC1**, the first release candidate of 1.0, is on Maven Central too. To try it, use `1.0.0-RC1` wherever a version appears below, follow the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) from 0.12, and tell us how it went in a [trial report](https://github.com/poppycoderr/domain-driven-kit/issues/new?template=rc_trial_report.yml), even if nothing broke. It stays a candidate for at least two weeks; until 1.0 is released, the examples below use the last final release.
+**1.0.0** is out: from now on, breaking changes come only in a major release, as [COMPATIBILITY.md](./COMPATIBILITY.md) describes. To upgrade from 0.12, follow the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade).
 
 Generate a four-layer service (`ddk-layer3-archetype` for three layers):
 
@@ -83,7 +83,7 @@ Generate a four-layer service (`ddk-layer3-archetype` for three layers):
 mvn archetype:generate \
   -DarchetypeGroupId=com.domaindrivenkit \
   -DarchetypeArtifactId=ddk-layer4-archetype \
-  -DarchetypeVersion=0.12.1 \
+  -DarchetypeVersion=1.0.0 \
   -DgroupId=com.acme \
   -DartifactId=order-service \
   -Dpackage=com.acme.order \
@@ -99,7 +99,7 @@ To add DDK to an existing Spring Boot 4.1 project, import the BOM and leave out 
         <dependency>
             <groupId>com.domaindrivenkit</groupId>
             <artifactId>ddk-dependencies</artifactId>
-            <version>0.12.1</version>
+            <version>1.0.0</version>
             <type>pom</type>
             <scope>import</scope>
         </dependency>
@@ -132,10 +132,10 @@ See the full guide: [Quick Start](https://domaindrivenkit.com/ddk/quickstart).
 Artifacts on Maven Central are signed with the DDK release key, fingerprint `02F5 D443 996C 2388 C803 9D6C AE07 FF4C 8842 56F0` ([public key](https://keyserver.ubuntu.com/pks/lookup?op=get&search=0x02F5D443996C2388C8039D6CAE07FF4C884256F0)). Download a jar and its `.asc` from Maven Central, import the key and verify; `gpg` should report a good signature and this primary key fingerprint:
 
 ```bash
-curl -fsSO https://repo.maven.apache.org/maven2/com/domaindrivenkit/ddk-core/0.12.1/ddk-core-0.12.1.jar
-curl -fsSO https://repo.maven.apache.org/maven2/com/domaindrivenkit/ddk-core/0.12.1/ddk-core-0.12.1.jar.asc
+curl -fsSO https://repo.maven.apache.org/maven2/com/domaindrivenkit/ddk-core/1.0.0/ddk-core-1.0.0.jar
+curl -fsSO https://repo.maven.apache.org/maven2/com/domaindrivenkit/ddk-core/1.0.0/ddk-core-1.0.0.jar.asc
 gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys 02F5D443996C2388C8039D6CAE07FF4C884256F0
-gpg --verify ddk-core-0.12.1.jar.asc ddk-core-0.12.1.jar
+gpg --verify ddk-core-1.0.0.jar.asc ddk-core-1.0.0.jar
 ```
 
 The jars on [GitHub Releases](https://github.com/poppycoderr/domain-driven-kit/releases) are built by the release workflow and carry a build provenance attestation: `gh attestation verify <jar> --repo poppycoderr/domain-driven-kit`. The two are separate builds of the same tag, so take the jar and the `.asc` from the same place: a GitHub Release jar does not match a Maven Central signature.
@@ -292,9 +292,9 @@ Released so far:
 11. **v0.11 Contracts before the freeze**: data and wire formats and the platform policy written down, fixtures of released data, an asserted upgrade and rollback rehearsal, a 1.0 freeze checklist draft
 12. **v0.12 Decisions before the freeze**: cancelled requests answered with 503, the DB starter stable and the Seata starter deprecated, sampled publication metrics, more native images, a 30-second start for every starter
 
-Next:
+13. **v1.0 Freeze**: only what has been verified, with a support matrix and strict semantic versioning from now on; released on 2026-11-13
 
-13. **v1.0 Freeze**: only what has been verified, with a support matrix. [1.0.0-RC1](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v1.0.0-RC1) was released on 2026-11-11; 1.0 follows after at least two weeks and a trial outside this repository
+Next: no release is scheduled yet; the [candidate pool](./ROADMAP.md#candidate-pool) lists what may come.
 
 See [ROADMAP.md](./ROADMAP.md) for the full plan.
 
