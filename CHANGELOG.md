@@ -12,6 +12,14 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ## [Unreleased]
 
+## [0.12.2] - 2026-11-13
+
+A security release for the 0.12 line, with the same fix as 1.0.1. It fixes a way to inject SQL through the row-level data scope of `ddk-mybatis-starter` when group or owner ids are strings. Applications that set `ddk.mybatis.data-scope.numeric-group-id` or `numeric-owner-id` to `false` should upgrade. Nothing else changes, and nothing needs to change in the application. The advisory is [GHSA-9cw9-2935-ch77](https://github.com/poppycoderr/domain-driven-kit/security/advisories/GHSA-9cw9-2935-ch77).
+
+### Security
+
+- A string data scope id can no longer inject SQL. With string group or owner ids, the data scope condition doubled single quotes but kept backslashes, which MySQL treats as escapes by default: a group id ending in a backslash made the next group id SQL, and read the rows of every tenant. A string data scope id that contains a backslash or a control character is now rejected before any SQL runs; ids with single quotes still work. Numeric ids, the default, were not affected. Affects every release since 0.8.0
+
 ## [0.12.1] - 2026-11-11
 
 A security release. It fixes two ways to inject SQL through `ddk-mybatis` and `ddk-mybatis-starter`: the sort field of a page query, and a string tenant id. Every application that accepts a `PageQuery` from a request should upgrade; applications with string tenant ids should upgrade too. Nothing else changes, and nothing needs to change in the application. The advisories are [GHSA-67m2-4mxv-mj3p](https://github.com/poppycoderr/domain-driven-kit/security/advisories/GHSA-67m2-4mxv-mj3p) and [GHSA-3wwm-gcpx-5ch7](https://github.com/poppycoderr/domain-driven-kit/security/advisories/GHSA-3wwm-gcpx-5ch7).
@@ -303,7 +311,8 @@ The first release: the DDD foundation on a Spring Boot 4.1 baseline.
 Starter implementation classes live in `com.ddk.<starter>.starter.internal` packages and are not public API: `CacheInvalidationListener`, `CacheInvalidationMessage`, `RedisCacheInvalidationPublisher`, `MicrometerCacheMetrics`, `JitteredTtlFunction`, `SpringDomainEventPublisher` and `TraceIdResponseFilter`. Generated projects check this with `DDK_INTERNALS_MUST_NOT_BE_USED`.
 - The springdoc dependency from `ddk-web-starter`; add it in the application when API docs are needed
 
-[Unreleased]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.12.1...HEAD
+[Unreleased]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.12.2...HEAD
+[0.12.2]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.12.1...v0.12.2
 [0.12.1]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.10.0...v0.11.0
