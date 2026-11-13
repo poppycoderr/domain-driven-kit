@@ -75,7 +75,7 @@ jMolecules and DDK do not conflict, but DDK has no adapter for it either. `ddk-c
 
 DDK is on Maven Central under the groupId `com.domaindrivenkit` from 0.10.0 on. Requirements: JDK 21+, Maven 3.9+, Spring Boot 4.1.x.
 
-**1.0.0-RC1**, the first release candidate of 1.0, is on Maven Central too. To try it, use `1.0.0-RC1` wherever a version appears below, follow the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) from 0.12, and tell us how it went in a [trial report](https://github.com/poppycoderr/domain-driven-kit/issues/new?template=rc_trial_report.yml), even if nothing broke. It stays a candidate for at least four weeks; until 1.0 is released, the examples below use the last final release.
+**1.0.0-RC1**, the first release candidate of 1.0, is on Maven Central too. To try it, use `1.0.0-RC1` wherever a version appears below, follow the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) from 0.12, and tell us how it went in a [trial report](https://github.com/poppycoderr/domain-driven-kit/issues/new?template=rc_trial_report.yml), even if nothing broke. It stays a candidate for at least two weeks; until 1.0 is released, the examples below use the last final release.
 
 Generate a four-layer service (`ddk-layer3-archetype` for three layers):
 
@@ -294,7 +294,7 @@ Released so far:
 
 Next:
 
-13. **v1.0 Freeze**: only what has been verified, with a support matrix. [1.0.0-RC1](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v1.0.0-RC1) was released on 2026-11-11; 1.0 follows after at least four weeks and trials outside this repository
+13. **v1.0 Freeze**: only what has been verified, with a support matrix. [1.0.0-RC1](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v1.0.0-RC1) was released on 2026-11-11; 1.0 follows after at least two weeks and a trial outside this repository
 
 See [ROADMAP.md](./ROADMAP.md) for the full plan.
 

@@ -124,7 +124,7 @@ The questions that this draft left open, as the maintainer decided them on 2026-
 
 | Question | Decision | Done in |
 |---|---|---|
-| A public candidate period | Yes: 1.0.0-RC1 on Maven Central for at least four weeks, and 1.0 only after two or three projects outside this repository have tried it and their reports are handled. Decided on 2026-11-11, after an independent review | the roadmap, the checklist below |
+| A public candidate period | Yes: 1.0.0-RC1 on Maven Central for at least two weeks, and 1.0 only after the maintainer has tried it in a project outside this repository and the reports are handled. Decided on 2026-11-11, after an independent review; shortened on 2026-11-12 from four weeks and two or three outside projects, because DDK has few users so far | the roadmap, the checklist below |
 | How much 1.0 freezes | Less than all of it: the MCP and tracer starters and the projection SPI are previews in 1.0, listed above, and may change in a 1.x minor release | this page |
 | When to release 1.0 | After 0.12, not right after 0.11. 0.12 makes the changes below while a minor release may still break; 1.0 adds no code, only the freeze, the rehearsal and the documentation | the roadmap |
 | The HTTP answer to a cancelled request | A code of its own: `CommonError.REQUEST_CANCELLED` with 503, instead of 500 `SYSTEM_ERROR`. The request was fine and can be retried, and it no longer counts as a server fault | 0.12, listed under **Breaking** |
@@ -139,7 +139,7 @@ The questions that this draft left open, as the maintainer decided them on 2026-
 - [x] 0.12.0 carries the changes the decisions need, is released, and its fixtures and API baseline follow the same way; `ddk-seata-starter` is removed
 - [x] An upgrade and rollback rehearsal from 0.12 to the 1.0 candidate, on a project generated from 0.12.1, the same way as from 0.11 to 0.12. It also follows the three changes made before the candidate: `ObjectMapper` renamed to `BeanMapper`, `EnumMapper` rejecting unknown values, `Operator` as a final class
 - [x] The candidate passes Java 21 and 25, generated projects, the API check and the native image job
-- [ ] 1.0.0-RC1 is on Maven Central for at least four weeks, two or three projects outside this repository have tried it, and their reports are handled
+- [ ] 1.0.0-RC1 is on Maven Central for at least two weeks (until 2026-11-25), the maintainer has tried it in a project outside this repository, and the reports are handled
 - [ ] This section's "draft" is removed, and the [support matrix](./ROADMAP.md#support-status) matches this page
 
 ## Before 1.0
