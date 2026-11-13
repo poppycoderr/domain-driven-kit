@@ -207,7 +207,7 @@ With orderly consumption, the default, a failed message is retried on its queue 
 - the contract is `rejectOtherVersions()` and the version is unknown;
 - the handler has a bug that fails on this payload every time.
 
-Every retry logs a warning; from the tenth failure in a row it logs an error instead. With Micrometer present, `ddk.event.consume.failures{group}` reports how many times the longest failing queue of the group has failed in a row, and drops to 0 once it moves on. Alert when it keeps growing. To move on, fix the cause and redeploy, or catch the failure in the consumer and handle the message another way, for example by recording it for later. With concurrent consumption, RocketMQ's retry limit applies instead and the message ends in the dead-letter queue.
+Every retry logs a warning; from the tenth failure in a row it logs an error instead. With Micrometer present, `ddk.event.consume.failures{group}` reports how many times the longest failing queue of the group has failed in a row, and drops to 0 once it moves on. A queue that has not failed on this instance for five minutes no longer counts, for example after a rebalance gives it to another instance, which then reports it. Alert when it keeps growing. To move on, fix the cause and redeploy, or catch the failure in the consumer and handle the message another way, for example by recording it for later. With concurrent consumption, RocketMQ's retry limit applies instead and the message ends in the dead-letter queue.
 
 ## Tracing and metrics
 

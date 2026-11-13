@@ -13,6 +13,10 @@ import org.springframework.boot.test.system.CapturedOutput;
 import org.springframework.boot.test.system.OutputCaptureExtension;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -76,6 +80,25 @@ class RocketMqConsumerFailuresTest {
     }
 
     @Test
+    @DisplayName("队列转给别的实例后，本实例不再收到它的消息：超过时效的失败记录不再计入")
+    void forgetsQueuesThatStoppedFailingHere() {
+        MutableClock clock = new MutableClock();
+        RocketMqEventConsumers consumers = new RocketMqEventConsumers(dispatcher, "localhost:9876", true, clock);
+        consumers.consume("inventory", List.of(message(1, 6)));
+        clock.advance(Duration.ofMinutes(1));
+        consumers.consume("inventory", List.of(message(2, 2)));
+
+        clock.advance(RocketMqEventConsumers.STALE_AFTER.minusSeconds(30));
+        assertThat(consumers.consecutiveFailures("inventory")).as("queue 1 went quiet, queue 2 is still recent").isEqualTo(3);
+
+        clock.advance(Duration.ofMinutes(1));
+        assertThat(consumers.consecutiveFailures("inventory")).isZero();
+
+        consumers.consume("inventory", List.of(message(1, 7)));
+        assertThat(consumers.consecutiveFailures("inventory")).as("failing here again counts again").isEqualTo(8);
+    }
+
+    @Test
     @DisplayName("有 MeterRegistry 时每个消费组注册一个 gauge")
     void registersAGaugePerGroup() {
         RocketMqEventConsumers consumers = new RocketMqEventConsumers(dispatcher, "localhost:9876", true);
@@ -100,5 +123,29 @@ class RocketMqConsumerFailuresTest {
         message.setReconsumeTimes(reconsumeTimes);
         message.setBody("{}".getBytes(StandardCharsets.UTF_8));
         return message;
+    }
+
+    private static final class MutableClock extends Clock {
+
+        private Instant now = Instant.parse("2026-11-13T08:00:00Z");
+
+        void advance(Duration duration) {
+            now = now.plus(duration);
+        }
+
+        @Override
+        public ZoneOffset getZone() {
+            return ZoneOffset.UTC;
+        }
+
+        @Override
+        public Clock withZone(java.time.ZoneId zone) {
+            return this;
+        }
+
+        @Override
+        public Instant instant() {
+            return now;
+        }
     }
 }
