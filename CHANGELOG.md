@@ -13,6 +13,10 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ## [Unreleased]
 
+### Changed
+
+- Redisson 4.8.0 (was 4.7.0) and ShedLock 7.11.0 (was 7.10.1). Both are minor updates with no change to the API that DDK or applications use; ShedLock retries extending a kept-alive lock after a transient failure.
+
 ## [1.0.0] - 2026-11-13
 
 DDK 1.0. The contract in [COMPATIBILITY.md](./COMPATIBILITY.md) now holds: breaking changes only in a major release, checked by the API check against the last release and by the compatibility fixtures of every release since 0.10.0. The MCP and tracer starters and the projection SPI stay previews and may change in a 1.x minor release. The published code is the same as [1.0.0-RC1](#100-rc1---2026-11-11), whose section below lists the four breaking changes from 0.12 and the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) the steps; from 1.0.0-RC1 only the version changes. The candidate period was ended early without an outside trial, as recorded in COMPATIBILITY.md.
