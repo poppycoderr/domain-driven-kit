@@ -3,14 +3,20 @@ package com.ddk.mybatis.query;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.TableFieldInfo;
+import com.baomidou.mybatisplus.core.metadata.TableInfo;
+import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
 import com.ddk.core.exception.BusinessException;
 import com.ddk.core.exception.CommonError;
 import com.ddk.core.page.Sort;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
@@ -36,12 +42,30 @@ public class QueryParser {
      * @return MyBatis-Plus QueryWrapper
      */
     public static <T> QueryWrapper<T> parse(Object query) {
+        return parse(query, null);
+    }
+
+    /**
+     * 解析查询条件，排序字段限定在持久化对象的列上
+     * <p>
+     * 排序字段可以写属性名（{@code createTime}）或列名（{@code create_time}），按 MyBatis-Plus 的表信息换成列名，所以
+     * {@code @TableField} 改过名的列也能排序。不是这张表的列、或者标了 {@code @TableField(select = false)} 的列，
+     * 以 {@link CommonError#VALIDATION_ERROR} 拒绝：前者会到数据库才失败，后者不在响应里，按它排序能推断出它的大小。
+     * 表信息还没有初始化时（没有对应的 Mapper），退回 {@link #parse(Object)} 的规则。
+     *
+     * @param query       查询条件对象
+     * @param entityClass 持久化对象的类型，为 {@code null} 时同 {@link #parse(Object)}
+     * @param <T>         持久化对象类型
+     * @return MyBatis-Plus QueryWrapper
+     */
+    public static <T> QueryWrapper<T> parse(Object query, @Nullable Class<T> entityClass) {
         QueryWrapper<T> wrapper = new QueryWrapper<>();
+        TableInfo table = entityClass != null ? TableInfoHelper.getTableInfo(entityClass) : null;
 
         Field[] fields = ReflectUtil.getFields(query.getClass());
         for (Field field : fields) {
             Object fieldValue = ReflectUtil.getFieldValue(query, field);
-            parseSort(wrapper, field, fieldValue);
+            parseSort(wrapper, field, fieldValue, table);
 
             Query annotation = field.getAnnotation(Query.class);
             if (annotation == null) {
@@ -58,7 +82,7 @@ public class QueryParser {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> void parseSort(QueryWrapper<T> wrapper, Field field, Object fieldValue) {
+    private static <T> void parseSort(QueryWrapper<T> wrapper, Field field, Object fieldValue, @Nullable TableInfo table) {
         if (isSortList(field) && fieldValue != null) {
             for (Sort sort : (List<Sort>) fieldValue) {
                 String sortField = sort.getSortField();
@@ -68,10 +92,27 @@ public class QueryParser {
                 if (!SORT_FIELD.matcher(sortField).matches()) {
                     throw new BusinessException(CommonError.VALIDATION_ERROR);
                 }
-                String column = StrUtil.toUnderlineCase(sortField);
+                String column = table != null
+                        ? sortableColumn(table, sortField).orElseThrow(() -> new BusinessException(CommonError.VALIDATION_ERROR))
+                        : StrUtil.toUnderlineCase(sortField);
                 wrapper.orderBy(StrUtil.isNotEmpty(column), "ASC".equals(sort.getSortOrder()), column);
             }
         }
+    }
+
+    private static Optional<String> sortableColumn(TableInfo table, String sortField) {
+        if (table.havePK() && matches(sortField, table.getKeyProperty(), table.getKeyColumn())) {
+            return Optional.of(table.getKeyColumn());
+        }
+        return table.getFieldList().stream()
+                .filter(TableFieldInfo::isSelect)
+                .filter(column -> matches(sortField, column.getProperty(), column.getColumn()))
+                .map(TableFieldInfo::getColumn)
+                .findFirst();
+    }
+
+    private static boolean matches(String sortField, String property, String column) {
+        return sortField.equals(property) || sortField.toLowerCase(Locale.ROOT).equals(column.toLowerCase(Locale.ROOT));
     }
 
     private static boolean isSortList(Field field) {
