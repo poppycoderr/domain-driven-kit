@@ -10,7 +10,7 @@ DDK 由一个人维护：[@poppycoderr](https://github.com/poppycoderr)，AI 编
 
 ## 哪些版本会得到修复
 
-最新的次版本线会得到修复，以补丁版本发布。目前是 **1.0.x**。主版本发布后，它之前的最后一个次版本线还会在三个月内得到安全修复，这样拿到安全修复不需要先做一次有破坏性变更的升级：**0.12.x** 到 2027-02-13 为止。其他版本线不再修复，需要修复时请升级到最新版本线，按[升级指南](https://domaindrivenkit.com/ddk/upgrade)一次升一个次版本。
+最新的次版本线会得到修复，以补丁版本发布。目前是 **1.0.x**。主版本发布后，它之前的最后一个次版本线还会在三个月内得到安全修复，这样拿到安全修复不需要先做一次有破坏性变更的升级：**0.12.x** 到 2027-02-13 为止。其他版本线不再修复，需要修复时请升级到最新版本线，按[升级指南](https://domaindrivenkit.com/ddk/upgrade)逐个版本升级。
 
 ## 测试过的环境
 
@@ -26,7 +26,7 @@ DDK 由一个人维护：[@poppycoderr](https://github.com/poppycoderr)，AI 编
 | Elasticsearch | 9.4（在 `ddk-mall` 里） |
 | DDK 依赖的库 | MyBatis-Plus 3.5.18.1、Redisson 4.8.0、ShedLock 7.11.0、Spring Modulith 2.1.2、Spring AI 2.0.2、springdoc 3.2.0 |
 
-各模块验证到什么程度、有哪些已知限制，见[支持状态](./ROADMAP.zh-CN.md#支持状态)。标为「仅装配」的模块是实验性的，见 [COMPATIBILITY.zh-CN.md](./COMPATIBILITY.zh-CN.md#不稳定的部分)。虚拟线程下的语义见[虚拟线程](https://domaindrivenkit.com/ddk/core/virtual-threads)一页。
+各模块验证到什么程度、有哪些已知限制，见[支持状态](./ROADMAP.zh-CN.md#支持状态)。1.0 中仍是实验性的部分，例如 MCP starter、tracer starter 和投影 SPI，见 [COMPATIBILITY.zh-CN.md](./COMPATIBILITY.zh-CN.md#10-中保持实验性)。虚拟线程下的语义见[虚拟线程](https://domaindrivenkit.com/ddk/core/virtual-threads)一页。
 
 ## GraalVM 原生镜像
 
@@ -42,7 +42,7 @@ CI 还会在一个 Redis 服务上编译 `ddk-example-inventory`，运行 `scrip
 | `ddk-redis-starter`、`ddk-cache-starter` | CI 已验证：两级缓存的读取、失效，以及发出的失效消息。应用存进 Redis 的类型由应用自己登记反射，例如用 `@RegisterReflectionForBinding` |
 | `ddk-projection-starter` | CI 已验证：标记随事务写入、提交后刷新，在 H2 上 |
 | `ddk-mcp-starter` | CI 已验证：同步服务端、streamable HTTP、工具调用 |
-| archetype | 用 0.10.0 生成的项目手动编译并启动过一次，不在 CI 里 |
+| archetype | 只有用 0.10.0 生成的项目手动编译并启动过一次，之后的版本没有再验证，不在 CI 里 |
 | 其他模块 | 未验证。也许可用，但没有测试覆盖 |
 
 `ddk-mybatis-starter` 自动登记 MyBatis-Plus 和默认 ID 生成器在原生镜像里需要的反射，`ddk-cache-starter` 登记一级缓存用到的 Caffeine 类，`ddk-concurrency-starter` 登记 key 表达式读取的参数，应用不用为此做任何事。CI 覆盖到某个模块之后，它才会在上表里升级。

@@ -10,7 +10,7 @@ DDK is maintained by one person, [@poppycoderr](https://github.com/poppycoderr),
 
 ## Versions that get fixes
 
-The newest minor release line gets fixes, as patch releases. Today that is **1.0.x**. When a major release comes out, the last minor line before it still gets security fixes for three months, so that a security fix never requires an upgrade with breaking changes: **0.12.x** gets them until 2027-02-13. Other lines get no fixes, so a fix needs an upgrade to the newest line, following the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) one minor step at a time.
+The newest minor release line gets fixes, as patch releases. Today that is **1.0.x**. When a major release comes out, the last minor line before it still gets security fixes for three months, so that a security fix never requires an upgrade with breaking changes: **0.12.x** gets them until 2027-02-13. Other lines get no fixes, so a fix needs an upgrade to the newest line, following the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) one release step at a time.
 
 ## What DDK is tested against
 
@@ -26,7 +26,7 @@ Every change runs the full test suite in CI on these versions. Other versions ma
 | Elasticsearch | 9.4 (in `ddk-mall`) |
 | Libraries DDK builds on | MyBatis-Plus 3.5.18.1, Redisson 4.8.0, ShedLock 7.11.0, Spring Modulith 2.1.2, Spring AI 2.0.2, springdoc 3.2.0 |
 
-How thoroughly each module is verified, and its known limits, is in the [support matrix](./ROADMAP.md#support-status). Modules marked wiring only are experimental: see [COMPATIBILITY.md](./COMPATIBILITY.md#what-is-not-stable). The semantics on virtual threads are on the [virtual threads page](https://domaindrivenkit.com/ddk/core/virtual-threads).
+How thoroughly each module is verified, and its known limits, is in the [support matrix](./ROADMAP.md#support-status). The parts that stay experimental in 1.0, such as the MCP and tracer starters and the projection SPI, are listed in [COMPATIBILITY.md](./COMPATIBILITY.md#experimental-in-10). The semantics on virtual threads are on the [virtual threads page](https://domaindrivenkit.com/ddk/core/virtual-threads).
 
 ## GraalVM native images
 
@@ -42,7 +42,7 @@ CI also builds `ddk-example-inventory` against a Redis service and runs `scripts
 | `ddk-redis-starter`, `ddk-cache-starter` | Verified in CI: two-level cache reads, eviction, the invalidation message it publishes. The types an application stores in Redis are its own to register for reflection, for example with `@RegisterReflectionForBinding` |
 | `ddk-projection-starter` | Verified in CI: a mark written with the transaction and refreshed after commit, on H2 |
 | `ddk-mcp-starter` | Verified in CI: synchronous server over streamable HTTP, tool calls |
-| Archetypes | A project generated from 0.10.0 compiled and started once by hand; not in CI |
+| Archetypes | Only a project generated from 0.10.0 was compiled and started once by hand; later releases were not checked, and it is not in CI |
 | Every other module | Not verified. It may work; nothing tests it |
 
 `ddk-mybatis-starter` registers the reflection that MyBatis-Plus and the default ID generator need on a native image, `ddk-cache-starter` the Caffeine classes of its local level, and `ddk-concurrency-starter` the parameters its key expressions read, so applications add nothing for them. A module moves up this table when CI exercises it.

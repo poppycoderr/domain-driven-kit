@@ -11,6 +11,8 @@ mvn -B -ntp install -Parchetype-it,release   # everything CI tests in one comman
 scripts/install-api-baseline.sh && mvn verify -Papi-check   # compare the public API with the last release
 ```
 
+Building DDK needs JDK 21.0.8 or newer, because NullAway's JSpecify mode needs `-XDaddTypeAnnotationsToSymbol`; applications built on DDK need only Java 21.
+
 CI (`.github/workflows/build.yml`) runs the same checks as separate steps, so a failure names its stage: the BOM check (`scripts/check-bom.py`), the installer test, unit, wiring and middleware tests, generated projects, a check that no test was skipped (`scripts/check-test-reports.py`), and API compatibility. A separate job builds `ddk-example-user` as a GraalVM native image and runs `scripts/native-smoke.sh` against it. In CI, container tests fail instead of skipping when Docker is missing.
 
 `mvn verify` fails on any of these, and none of them may be weakened to get a green build:
@@ -19,7 +21,7 @@ CI (`.github/workflows/build.yml`) runs the same checks as separate steps, so a 
 - JaCoCo: at least 70% line and 50% branch coverage per module
 - NullAway: main code is `@NullMarked`; mark anything that may be `null` with JSpecify `@Nullable`. NullAway only runs on modules that recompile, so run `mvn clean compile` when checking nullness findings
 - ArchUnit: `DomainPackagePurityTest` in `ddk-core`, and the architecture tests in the example and generated projects
-- API compatibility (CI, `-Papi-check`): japicmp compares every module with the release named in `api.baseline.version`. A binary or source incompatible change to a public or protected member outside `*.internal` fails the build. An intended break goes into the `excludes` of the `api-check` profile in the root pom and under **Breaking** in `CHANGELOG.md`. After a release, set `api.baseline.version` to it and empty the list
+- API compatibility (CI, `-Papi-check`): japicmp compares every module with the release named in `api.baseline.version`. A binary or source incompatible change to a public or protected member outside `*.internal` fails the build. An intended break goes into the `excludes` of the `api-check` profile in the root pom and under **Breaking** in `CHANGELOG.md`. A change to a part that COMPATIBILITY.md lists as experimental in 1.0 (the MCP and tracer starters, the projection SPI) may go into a minor release: exclude it the same way and list it under **Changed**, marked as a preview change. After a release, set `api.baseline.version` to it and empty the list
 
 Integration tests for the cache starter use Testcontainers and need a running Docker daemon.
 
