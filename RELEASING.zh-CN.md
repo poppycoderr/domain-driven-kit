@@ -18,7 +18,7 @@ git tag vX.Y.Z
 git push origin vX.Y.Z
 ```
 
-`.github/workflows/release.yml` 按 tag 设置版本号，执行 `mvn -B -ntp install -Parchetype-it,release`，为每个文件生成构建来源证明，再以 CHANGELOG 的那一节为说明创建 GitHub Release。确认流程运行和 Release 都正常后再继续。
+`.github/workflows/release.yml` 按 tag 设置版本号，执行 `mvn -B -ntp install -Parchetype-it,release`，为每个文件生成构建来源证明，再以 CHANGELOG 的那一节为说明创建 GitHub Release。只有版本号最高的发布会成为 Latest：旧版本线上的补丁（例如 1.0.1 之后的 0.12.2）以 `--latest=false` 创建。确认流程运行和 Release 都正常后再继续。
 
 ## 三、Maven 中央仓库
 

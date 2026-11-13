@@ -18,7 +18,7 @@ git tag vX.Y.Z
 git push origin vX.Y.Z
 ```
 
-`.github/workflows/release.yml` sets the version from the tag, runs `mvn -B -ntp install -Parchetype-it,release`, attests the build provenance of every file and creates the GitHub Release with the changelog section as its notes. Check the run and the release before going on.
+`.github/workflows/release.yml` sets the version from the tag, runs `mvn -B -ntp install -Parchetype-it,release`, attests the build provenance of every file and creates the GitHub Release with the changelog section as its notes. Only the highest release becomes Latest: a patch on an older line, such as 0.12.2 after 1.0.1, is created with `--latest=false`. Check the run and the release before going on.
 
 ## 3. Maven Central
 
