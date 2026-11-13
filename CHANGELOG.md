@@ -13,6 +13,10 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ## [Unreleased]
 
+### Fixed
+
+- `scripts/ddk.sh` failed on JDK 21 updates before 21.0.8, deep in the Error Prone compiler, because it built every version from source. It now downloads a release from 0.10.0 on from Maven Central, which needs only Java 21, and checks for JDK 21.0.8 before it builds a snapshot from source. Releases before 0.10.0 still build on any JDK 21
+
 ### Changed
 
 - Redisson 4.8.0 (was 4.7.0) and ShedLock 7.11.0 (was 7.10.1). Both are minor updates with no change to the API that DDK or applications use; ShedLock retries extending a kept-alive lock after a transient failure.

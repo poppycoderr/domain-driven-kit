@@ -142,13 +142,13 @@ The jars on [GitHub Releases](https://github.com/poppycoderr/domain-driven-kit/r
 
 ### Snapshots and older releases
 
-Development snapshots and releases before 0.10.0 (groupId `com.ddk`) are not on Maven Central. `scripts/ddk.sh` builds the requested version from source, installs it into your local Maven repository and runs the archetype:
+Development snapshots and releases before 0.10.0 (groupId `com.ddk`) are not on Maven Central. `scripts/ddk.sh` builds them from source, installs them into your local Maven repository and runs the archetype; a release from 0.10.0 on it downloads from Maven Central instead. Building from source needs JDK 21.0.8 or newer, which the script checks; applications need only Java 21:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/poppycoderr/domain-driven-kit/main/scripts/ddk.sh | DDK_REF=main bash -s -- new order-service --group com.acme
 ```
 
-Without `DDK_REF` it builds the newest release. `DDK_REF=v0.9.0` picks a specific release, `--layers 3` the three-layer skeleton, and `ddk.sh help` lists all options. A later run reuses an install only when it is the same ref, at the same commit, with its Maven artifacts still present. To build by hand instead, run `mvn -B install` in a clone of this repository.
+Without `DDK_REF` it uses the newest release. `DDK_REF=v0.9.0` picks a specific release, `--layers 3` the three-layer skeleton, and `ddk.sh help` lists all options. A later run reuses an install only when it is the same ref, at the same commit, with its Maven artifacts still present. To build by hand instead, run `mvn -B install` in a clone of this repository.
 
 ## Modules
 
