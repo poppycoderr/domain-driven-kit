@@ -15,6 +15,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.SmartLifecycle;
 
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -33,12 +36,17 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  * 顺序消费时，一条每次都失败的消息会让它所在的队列一直等待，RocketMQ 客户端对顺序消费的重试没有上限。所以这里按队列记下连续失败的次数：
  * 成功消费后清零，{@link #consecutiveFailures(String)} 给出一个消费组里失败最久的队列，失败达到 {@value #STUCK_AFTER} 次时记一条 ERROR。
+ * <p>
+ * 队列在重平衡时会转给别的实例，本实例再也收不到它的消息，也就等不到那次清零的成功。所以失败记录有时效：顺序消费默认每秒重试一次，
+ * 超过 {@link #STALE_AFTER} 没有再失败的队列不再计入，否则这个数会停在最后的值上，直到重启。
  */
 public class RocketMqEventConsumers implements SmartLifecycle {
 
     private static final Logger log = LoggerFactory.getLogger(RocketMqEventConsumers.class);
 
     static final int STUCK_AFTER = 10;
+
+    static final Duration STALE_AFTER = Duration.ofMinutes(5);
 
     private final IntegrationEventDispatcher dispatcher;
 
@@ -49,16 +57,23 @@ public class RocketMqEventConsumers implements SmartLifecycle {
     private final List<DefaultMQPushConsumer> consumers = new ArrayList<>();
 
     /**
-     * 消费组 → 队列 → 连续失败次数。只记正在失败的队列。
+     * 消费组 → 队列 → 连续失败次数和最近一次失败的时间。只记正在失败的队列。
      */
-    private final Map<String, Map<String, Integer>> failing = new ConcurrentHashMap<>();
+    private final Map<String, Map<String, Failure>> failing = new ConcurrentHashMap<>();
+
+    private final Clock clock;
 
     private volatile boolean running;
 
     public RocketMqEventConsumers(IntegrationEventDispatcher dispatcher, String nameServer, boolean orderly) {
+        this(dispatcher, nameServer, orderly, Clock.systemUTC());
+    }
+
+    RocketMqEventConsumers(IntegrationEventDispatcher dispatcher, String nameServer, boolean orderly, Clock clock) {
         this.dispatcher = dispatcher;
         this.nameServer = nameServer;
         this.orderly = orderly;
+        this.clock = clock;
     }
 
     @Override
@@ -115,7 +130,7 @@ public class RocketMqEventConsumers implements SmartLifecycle {
                 dispatcher.dispatch(group, message.getTopic(), message.getTags(), headers, new String(message.getBody(), StandardCharsets.UTF_8));
             } catch (RuntimeException e) {
                 int failures = message.getReconsumeTimes() + 1;
-                failing.computeIfAbsent(group, ignored -> new ConcurrentHashMap<>()).put(queue(message), failures);
+                failing.computeIfAbsent(group, ignored -> new ConcurrentHashMap<>()).put(queue(message), new Failure(failures, clock.instant()));
                 if (orderly && failures >= STUCK_AFTER) {
                     log.error("Consuming {}:{} [{}] in group {} has failed {} times in a row; its queue waits until the message succeeds. "
                             + "Fix the cause, or skip the message in the consumer", message.getTopic(), message.getTags(), message.getMsgId(),
@@ -127,7 +142,7 @@ public class RocketMqEventConsumers implements SmartLifecycle {
                 return false;
             }
         }
-        Map<String, Integer> queues = failing.get(group);
+        Map<String, Failure> queues = failing.get(group);
         if (queues != null) {
             messages.forEach(message -> queues.remove(queue(message)));
         }
@@ -135,11 +150,16 @@ public class RocketMqEventConsumers implements SmartLifecycle {
     }
 
     /**
-     * 一个消费组里连续失败最多的队列失败了几次；没有正在失败的队列时为 0。
+     * 一个消费组里连续失败最多的队列失败了几次；没有正在失败的队列时为 0。超过 {@link #STALE_AFTER} 没有再失败的队列不计入，并被清掉。
      */
     public int consecutiveFailures(String group) {
-        Map<String, Integer> queues = failing.get(group);
-        return queues == null ? 0 : queues.values().stream().mapToInt(Integer::intValue).max().orElse(0);
+        Map<String, Failure> queues = failing.get(group);
+        if (queues == null) {
+            return 0;
+        }
+        Instant staleBefore = clock.instant().minus(STALE_AFTER);
+        queues.values().removeIf(failure -> failure.at().isBefore(staleBefore));
+        return queues.values().stream().mapToInt(Failure::count).max().orElse(0);
     }
 
     /**
@@ -151,6 +171,11 @@ public class RocketMqEventConsumers implements SmartLifecycle {
 
     private static String queue(MessageExt message) {
         return message.getTopic() + "@" + message.getBrokerName() + "#" + message.getQueueId();
+    }
+
+    private record Failure(
+            int count,
+            Instant at) {
     }
 
     @Override
