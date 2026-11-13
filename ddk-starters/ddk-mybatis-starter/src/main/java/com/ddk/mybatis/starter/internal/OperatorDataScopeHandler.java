@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  * 和多租户一样，取不到操作者时直接抛异常，而不是放行。只作用于配置里列出的表；个别不受限制的语句在 Mapper 方法上用
  * {@code @InterceptorIgnore(dataPermission = "true")} 显式豁免。
  * <p>
- * 条件拼成字符串再解析成表达式，而不是直接构造语法树节点：值只有两种来源，数字经过解析校验，字符串把单引号转义，
+ * 条件拼成字符串再解析成表达式，而不是直接构造语法树节点：值只有两种来源，数字经过解析校验，字符串拒绝反斜杠和控制字符、把单引号转义，
  * 这样不依赖 JSqlParser 各版本之间变动较多的节点类。
  */
 public class OperatorDataScopeHandler implements MultiDataPermissionHandler {
@@ -85,8 +85,21 @@ public class OperatorDataScopeHandler implements MultiDataPermissionHandler {
         return value != null ? value : fallback;
     }
 
+    /**
+     * 单引号按标准 SQL 写成两个，但 MySQL 默认还把反斜杠当转义符：以反斜杠结尾的值会吞掉自己的结束引号，让后面的内容变成 SQL。
+     * 反斜杠在各数据库里的含义不同，转义不可靠，所以含反斜杠或控制字符的值一律拒绝。部门编号可能由租户自己的管理员起名。
+     */
     private static String literal(String value, boolean numeric) {
-        return numeric ? String.valueOf(Long.parseLong(value)) : "'" + value.replace("'", "''") + "'";
+        if (numeric) {
+            return String.valueOf(Long.parseLong(value));
+        }
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            if (c == '\\' || Character.isISOControl(c)) {
+                throw new IllegalStateException("Data scope id contains a backslash or a control character and cannot be used in SQL");
+            }
+        }
+        return "'" + value.replace("'", "''") + "'";
     }
 
     private static Expression parse(String condition) {
