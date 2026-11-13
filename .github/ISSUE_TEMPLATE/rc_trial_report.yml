@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for trying the candidate. 1.0 is released only after projects outside this repository have tried it and their reports are handled, so this report decides when 1.0 ships.
+        Thanks for trying the candidate. Every report is handled before 1.0 is released, so what you find here can still change 1.0.
         A bug you found can go here or in its own bug report. Security problems go through the Security tab instead, see SECURITY.md.
   - type: input
     id: version
