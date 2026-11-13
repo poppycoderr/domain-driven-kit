@@ -16,6 +16,7 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 ### Fixed
 
 - `scripts/ddk.sh` failed on JDK 21 updates before 21.0.8, deep in the Error Prone compiler, because it built every version from source. It now downloads a release from 0.10.0 on from Maven Central, which needs only Java 21, and checks for JDK 21.0.8 before it builds a snapshot from source. Releases before 0.10.0 still build on any JDK 21
+- `GenericRepository.page` only sorts by a column of the repository's PO. A sort field may be the property name or the column name, and a column renamed with `@TableField` now sorts correctly. A field that is not a column, or a column marked `@TableField(select = false)`, fails with `VALIDATION_ERROR`, which the web starter answers with 400. Before, an unknown field reached the database and came back as 500 `SYSTEM_ERROR`. A column that is never selected, such as a password hash, could also be used to sort, and the order of the results gave away its relative values. `QueryParser.parse(query, entityClass)` is the new overload behind this; `parse(query)` keeps the identifier check only
 
 ### Changed
 
