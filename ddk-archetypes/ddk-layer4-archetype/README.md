@@ -14,7 +14,7 @@
 mvn archetype:generate \
   -DarchetypeGroupId=com.domaindrivenkit \
   -DarchetypeArtifactId=ddk-layer4-archetype \
-  -DarchetypeVersion=1.0.0 \
+  -DarchetypeVersion=1.0.1 \
   -DgroupId=com.acme \
   -DartifactId=order-service \
   -Dpackage=com.acme.order \
