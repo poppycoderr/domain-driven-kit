@@ -10,7 +10,7 @@ DDK is maintained by one person, [@poppycoderr](https://github.com/poppycoderr),
 
 ## Versions that get fixes
 
-Only the newest minor release line gets fixes, as patch releases. Today that is **1.0.x**. An older line gets no fixes, so a fix needs an upgrade to the newest line, following the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) one minor step at a time.
+The newest minor release line gets fixes, as patch releases. Today that is **1.0.x**. When a major release comes out, the last minor line before it still gets security fixes for three months, so that a security fix never requires an upgrade with breaking changes: **0.12.x** gets them until 2027-02-13. Other lines get no fixes, so a fix needs an upgrade to the newest line, following the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) one minor step at a time.
 
 ## What DDK is tested against
 

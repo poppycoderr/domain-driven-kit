@@ -17,6 +17,14 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 - Redisson 4.8.0 (was 4.7.0) and ShedLock 7.11.0 (was 7.10.1). Both are minor updates with no change to the API that DDK or applications use; ShedLock retries extending a kept-alive lock after a transient failure.
 
+## [1.0.1] - 2026-11-13
+
+A security release. It fixes a way to inject SQL through the row-level data scope of `ddk-mybatis-starter` when group or owner ids are strings. Applications that set `ddk.mybatis.data-scope.numeric-group-id` or `numeric-owner-id` to `false` should upgrade. Nothing else changes, and nothing needs to change in the application. The advisory is [GHSA-9cw9-2935-ch77](https://github.com/poppycoderr/domain-driven-kit/security/advisories/GHSA-9cw9-2935-ch77); 0.12.2 carries the same fix.
+
+### Security
+
+- A string data scope id can no longer inject SQL. With string group or owner ids, the data scope condition doubled single quotes but kept backslashes, which MySQL treats as escapes by default: a group id ending in a backslash made the next group id SQL, and read the rows of every tenant. A string data scope id that contains a backslash or a control character is now rejected before any SQL runs; ids with single quotes still work. Numeric ids, the default, were not affected. Affects every release since 0.8.0
+
 ## [1.0.0] - 2026-11-13
 
 DDK 1.0. The contract in [COMPATIBILITY.md](./COMPATIBILITY.md) now holds: breaking changes only in a major release, checked by the API check against the last release and by the compatibility fixtures of every release since 0.10.0. The MCP and tracer starters and the projection SPI stay previews and may change in a 1.x minor release. The published code is the same as [1.0.0-RC1](#100-rc1---2026-11-11), whose section below lists the four breaking changes from 0.12 and the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) the steps; from 1.0.0-RC1 only the version changes. The candidate period was ended early without an outside trial, as recorded in COMPATIBILITY.md.
@@ -54,6 +62,14 @@ The first release candidate of 1.0. From 1.0 on, the contract in [COMPATIBILITY.
 - The cache's level 2 no longer falls back to JDK serialization when the Redis starter's allow-listed serializer is missing, for example because the application excluded the Redis starter's auto-configuration. It used to, silently: anyone who could write to Redis could then make the application instantiate any class, and the values were binary instead of JSON. It now builds the same allow-listed JSON serializer, trusting the application's packages, and logs a warning
 - The Javadoc of `DomainEventPublisher` and the event starter's README said that every subscriber must use `@TransactionalEventListener(AFTER_COMMIT)`. Since the outbox, events are published after the write and before the commit, and the generated `AGENTS.md` already told the other half: work that must commit with the business, such as translating to an integration event, uses `@EventListener`. Both now give the two cases
 - The concurrency starter's README states that the keys of `@Idempotent`, `@RateLimit` and `@AggregateLock` do not include the tenant, and shows how to add it
+
+## [0.12.2] - 2026-11-13
+
+A security release for the 0.12 line, with the same fix as 1.0.1. It fixes a way to inject SQL through the row-level data scope of `ddk-mybatis-starter` when group or owner ids are strings. Applications that set `ddk.mybatis.data-scope.numeric-group-id` or `numeric-owner-id` to `false` should upgrade. Nothing else changes, and nothing needs to change in the application. The advisory is [GHSA-9cw9-2935-ch77](https://github.com/poppycoderr/domain-driven-kit/security/advisories/GHSA-9cw9-2935-ch77).
+
+### Security
+
+- A string data scope id can no longer inject SQL. With string group or owner ids, the data scope condition doubled single quotes but kept backslashes, which MySQL treats as escapes by default: a group id ending in a backslash made the next group id SQL, and read the rows of every tenant. A string data scope id that contains a backslash or a control character is now rejected before any SQL runs; ids with single quotes still work. Numeric ids, the default, were not affected. Affects every release since 0.8.0
 
 ## [0.12.1] - 2026-11-11
 
@@ -346,9 +362,11 @@ The first release: the DDD foundation on a Spring Boot 4.1 baseline.
 Starter implementation classes live in `com.ddk.<starter>.starter.internal` packages and are not public API: `CacheInvalidationListener`, `CacheInvalidationMessage`, `RedisCacheInvalidationPublisher`, `MicrometerCacheMetrics`, `JitteredTtlFunction`, `SpringDomainEventPublisher` and `TraceIdResponseFilter`. Generated projects check this with `DDK_INTERNALS_MUST_NOT_BE_USED`.
 - The springdoc dependency from `ddk-web-starter`; add it in the application when API docs are needed
 
-[Unreleased]: https://github.com/poppycoderr/domain-driven-kit/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/poppycoderr/domain-driven-kit/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/poppycoderr/domain-driven-kit/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v1.0.0-RC1...v1.0.0
 [1.0.0-RC1]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.12.1...v1.0.0-RC1
+[0.12.2]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.12.1...v0.12.2
 [0.12.1]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.11.0...v0.12.0
 [0.11.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.10.0...v0.11.0
