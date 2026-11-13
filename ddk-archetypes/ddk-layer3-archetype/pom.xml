@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.domaindrivenkit</groupId>
         <artifactId>ddk-archetypes</artifactId>
-        <version>0.12.1-SNAPSHOT</version>
+        <version>0.12.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>ddk-layer3-archetype</artifactId>
