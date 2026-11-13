@@ -2,7 +2,7 @@
 
 [简体中文](./COMPATIBILITY.zh-CN.md)
 
-What DDK promises to keep working between releases, and what it does not. Until 1.0 the promise is weaker (see [Before 1.0](#before-10)); this page is also the list of what 1.0 freezes, and the [freeze checklist](#10-freeze-checklist-draft) says what is still open.
+What DDK promises to keep working between releases, and what it does not. It holds from 1.0.0 on; 0.x releases had a weaker promise (see [Before 1.0](#before-10)). The [freeze checklist](#10-freeze-checklist) says what 1.0 froze, what stays experimental and what was decided for it.
 
 ## Versioning
 
@@ -85,9 +85,9 @@ An existing rule in `CommonArchRules` does not become stricter in a minor releas
 - **Log messages, metric tag sets beyond the documented ones, and exception messages.** Write code against exception types and error codes, not message text.
 - **Generated project templates.** A new release of an archetype generates a different skeleton; projects generated earlier are not changed.
 
-## 1.0 freeze checklist (draft)
+## 1.0 freeze checklist
 
-A draft for the 1.0 decision, written after the 0.10 → 0.11 rehearsal. It says, for each part of the contract above, what 1.0 would freeze, what checks it, and what was decided. Nothing here is a promise until 1.0 is released; until then [Before 1.0](#before-10) applies.
+Written as a draft after the 0.10 → 0.11 rehearsal and settled with 1.0.0 on 2026-11-13. It says, for each part of the contract above, what 1.0 freezes, what checks it, and what was decided.
 
 ### Frozen in 1.0
 
@@ -124,7 +124,7 @@ The questions that this draft left open, as the maintainer decided them on 2026-
 
 | Question | Decision | Done in |
 |---|---|---|
-| A public candidate period | Yes: 1.0.0-RC1 on Maven Central for at least two weeks, and 1.0 only after the maintainer has tried it in a project outside this repository and the reports are handled. Decided on 2026-11-11, after an independent review; shortened on 2026-11-12 from four weeks and two or three outside projects, because DDK has few users so far | the roadmap, the checklist below |
+| A public candidate period | Yes: 1.0.0-RC1 on Maven Central for at least two weeks, and 1.0 only after the maintainer has tried it in a project outside this repository and the reports are handled. Decided on 2026-11-11, after an independent review; shortened on 2026-11-12 from four weeks and two or three outside projects, because DDK has few users so far. Ended on 2026-11-13 by the maintainer, without an outside trial: DDK has few users to try it, and no source code of the published modules changed after RC1 | the roadmap, the checklist below |
 | How much 1.0 freezes | Less than all of it: the MCP and tracer starters and the projection SPI are previews in 1.0, listed above, and may change in a 1.x minor release | this page |
 | When to release 1.0 | After 0.12, not right after 0.11. 0.12 makes the changes below while a minor release may still break; 1.0 adds no code, only the freeze, the rehearsal and the documentation | the roadmap |
 | The HTTP answer to a cancelled request | A code of its own: `CommonError.REQUEST_CANCELLED` with 503, instead of 500 `SYSTEM_ERROR`. The request was fine and can be retried, and it no longer counts as a server fault | 0.12, listed under **Breaking** |
@@ -139,8 +139,8 @@ The questions that this draft left open, as the maintainer decided them on 2026-
 - [x] 0.12.0 carries the changes the decisions need, is released, and its fixtures and API baseline follow the same way; `ddk-seata-starter` is removed
 - [x] An upgrade and rollback rehearsal from 0.12 to the 1.0 candidate, on a project generated from 0.12.1, the same way as from 0.11 to 0.12. It also follows the three changes made before the candidate: `ObjectMapper` renamed to `BeanMapper`, `EnumMapper` rejecting unknown values, `Operator` as a final class
 - [x] The candidate passes Java 21 and 25, generated projects, the API check and the native image job
-- [ ] 1.0.0-RC1 is on Maven Central for at least two weeks (until 2026-11-25), the maintainer has tried it in a project outside this repository, and the reports are handled
-- [ ] This section's "draft" is removed, and the [support matrix](./ROADMAP.md#support-status) matches this page
+- [x] 1.0.0-RC1 is on Maven Central as a candidate; its period was ended on 2026-11-13, see the decision above
+- [x] This section's "draft" is removed, and the [support matrix](./ROADMAP.md#support-status) matches this page
 
 ## Before 1.0
 

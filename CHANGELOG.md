@@ -13,6 +13,14 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-13
+
+DDK 1.0. The contract in [COMPATIBILITY.md](./COMPATIBILITY.md) now holds: breaking changes only in a major release, checked by the API check against the last release and by the compatibility fixtures of every release since 0.10.0. The MCP and tracer starters and the projection SPI stay previews and may change in a 1.x minor release. The published code is the same as [1.0.0-RC1](#100-rc1---2026-11-11), whose section below lists the four breaking changes from 0.12 and the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) the steps; from 1.0.0-RC1 only the version changes. The candidate period was ended early without an outside trial, as recorded in COMPATIBILITY.md.
+
+### Changed
+
+- Built with Error Prone 2.52.0 and maven-compiler-plugin 3.16.0. Building DDK from source needs JDK 21.0.8 or later, as before.
+
 ## [1.0.0-RC1] - 2026-11-11
 
 The first release candidate of 1.0. From 1.0 on, the contract in [COMPATIBILITY.md](./COMPATIBILITY.md) holds: breaking changes only in a major release, checked by the API check against the last release and by the compatibility fixtures of every release since 0.10.0. Before the freeze, four things change that could not change afterwards: `ddk-seata-starter` is removed, `ObjectMapper` is renamed to `BeanMapper`, `EnumMapper` rejects an unknown value instead of returning `null`, and `Operator` becomes a final class with the same API. The MCP and tracer starters and the projection SPI are previews in 1.0 and may still change in a 1.x minor release. This candidate includes the security fixes of 0.12.1. It stays a candidate for at least two weeks, until it has been tried in a project outside this repository; the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) lists the steps from 0.12, and reports go to the [issue tracker](https://github.com/poppycoderr/domain-driven-kit/issues).
@@ -334,7 +342,8 @@ The first release: the DDD foundation on a Spring Boot 4.1 baseline.
 Starter implementation classes live in `com.ddk.<starter>.starter.internal` packages and are not public API: `CacheInvalidationListener`, `CacheInvalidationMessage`, `RedisCacheInvalidationPublisher`, `MicrometerCacheMetrics`, `JitteredTtlFunction`, `SpringDomainEventPublisher` and `TraceIdResponseFilter`. Generated projects check this with `DDK_INTERNALS_MUST_NOT_BE_USED`.
 - The springdoc dependency from `ddk-web-starter`; add it in the application when API docs are needed
 
-[Unreleased]: https://github.com/poppycoderr/domain-driven-kit/compare/v1.0.0-RC1...HEAD
+[Unreleased]: https://github.com/poppycoderr/domain-driven-kit/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v1.0.0-RC1...v1.0.0
 [1.0.0-RC1]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.12.1...v1.0.0-RC1
 [0.12.1]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/poppycoderr/domain-driven-kit/compare/v0.11.0...v0.12.0

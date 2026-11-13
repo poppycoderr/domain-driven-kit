@@ -98,7 +98,7 @@ DDK has one version number, but its modules are not equally proven. Each one has
 
 **Goal: freeze only what has been verified.**
 
-- [ ] Freeze the verified core API and the support matrix above; strict semantic versioning from then on. What is frozen, what stays experimental and what was decided for it is in the [freeze checklist](./COMPATIBILITY.md#10-freeze-checklist-draft)
+- [ ] Freeze the verified core API and the support matrix above; strict semantic versioning from then on. What is frozen, what stays experimental and what was decided for it is in the [freeze checklist](./COMPATIBILITY.md#10-freeze-checklist)
 - [ ] A public candidate: 1.0.0-RC1 on Maven Central for at least two weeks, tried by the maintainer in a project outside this repository before 1.0
 - [x] Context semantics on virtual threads: operator, trace, lock ordering, cancellation and pool reuse, not only "it starts"
 - [x] GraalVM support declared per module, starting with a minimal example, instead of all starters at once: verified in CI with `ddk-example-user`, and with `ddk-example-inventory` for the Redis-backed starters, projections and the publication registry; listed in [SUPPORT.md](./SUPPORT.md#graalvm-native-images)
