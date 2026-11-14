@@ -294,7 +294,7 @@ Released so far:
 
 13. **v1.0 Freeze**: only what has been verified, with a support matrix and strict semantic versioning from now on; released on 2026-11-13
 
-Next: no release is scheduled yet; the [candidate pool](./ROADMAP.md#candidate-pool) lists what may come.
+Next: **v1.1, after failure and tenants all the way through**: a way out for failing messages, tenant-aware keys, dashboards and alert rules, the tracer starter out of preview. See [the next release](./ROADMAP.md#next-release-11).
 
 See [ROADMAP.md](./ROADMAP.md) for the full plan.
 

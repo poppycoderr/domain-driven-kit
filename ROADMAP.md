@@ -6,7 +6,7 @@
   <img src="./assets/diagrams/ddk-roadmap.en.svg" alt="DDK roadmap" />
 </p>
 
-This roadmap has three parts: **what is supported today** and how well each part is verified, **the latest release**, and a **pool of candidates** without order or dates. The scope of 1.1 is not settled yet; once it is, it gets a section here. What earlier releases delivered is summarized under [History](#history) and listed in full in the [changelog](./CHANGELOG.md).
+This roadmap has four parts: **what is supported today** and how well each part is verified, **the next release**, **the latest release**, and a **pool of candidates** without order or dates. What earlier releases delivered is summarized under [History](#history) and listed in full in the [changelog](./CHANGELOG.md).
 
 ## Positioning
 
@@ -81,6 +81,22 @@ DDK has one version number, but its modules are not equally proven. Each one has
 | Archetypes (three and four layers) | Verified | Generated projects are built and tested in CI | |
 | `ddk-mall` | Verified, as a reference | MySQL, Redis, RocketMQ, Elasticsearch | Simulated payment channel; demo users in the `secure` profile |
 
+## Next release: 1.1
+
+**Goal: what happens after a failure, and tenants carried all the way through.** Everything here is an addition: new types, properties and optional rules, so it fits a minor release. Planned on 2026-11-13 after the review that followed 1.0; the order is the order of work.
+
+Already on `main`: page sorts limited to the columns of the PO, the consume failure gauge no longer stuck after a rebalance, and the installer taking releases from Maven Central.
+
+- [ ] **A way out for failing messages.** A limit on retries in orderly consumption, with a handler for what happens after it: keep waiting (the default) or park the message and move on. A limit on resubmitting failed publications. `IntegrationEventConsumer` is frozen, so the extension point comes as default methods
+- [ ] **Tenants all the way through.** Cache keys and the keys of `@Idempotent` and `@RateLimit` can include the tenant, off by default because key formats are part of the compatibility contract. `ddk-example-inventory` gets a tenant profile and a smoke path for it
+- [ ] **Operations.** An expiry index and batched cleanup for the processed message table; a projection's failure count no longer reset by a new mark; Grafana dashboards and a set of alert rules for the projection, event and cache metrics
+- [ ] **MCP write tools.** In the examples, write tools take a `requestId` and are `@Idempotent`, and audit logs carry the operator and tenant. The MCP starter is a preview, so this is not bound by the freeze
+- [ ] **Reproducible builds.** `project.build.outputTimestamp`, and a release check that compares the SHA-256 of the files on Maven Central and on the GitHub Release
+- [ ] **The tracer starter leaves preview.** A test that exports to an OTLP collector container in CI, the condition that COMPATIBILITY.md sets. The MCP starter stays a preview until the Spring AI support for the 2026-07-28 MCP revision settles; SUPPORT.md will name the MCP version CI uses
+- [ ] **Outside use.** Before 1.1 is released, at least one project outside this repository has run on 1.0.x and left a trial report. The maintainer starts one from the archetype; two design articles (the generation and token protocol of projections, and the defaults that fail where the mistake is made); Discussions opened
+
+Guardrails (context isolation rules, aggregate-level rules, a domain catalog) are planned for 1.2. An evaluation set for coding agents can run alongside 1.1, since it changes no library code.
+
 ## Latest release: 1.0
 
 [1.0.0](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v1.0.0), released on 2026-11-13. **Goal: freeze only what has been verified.** The contract in [COMPATIBILITY.md](./COMPATIBILITY.md) holds from now on: breaking changes only in a major release. What 1.0 froze, what stays a preview and what was decided for it is in the [freeze checklist](./COMPATIBILITY.md#10-freeze-checklist).
@@ -102,8 +118,7 @@ No order and no dates. An item moves into a release when there is a concrete nee
 | S3-compatible object storage | File references as value objects; the domain never touches the SDK |
 | Elasticsearch helpers for projections | Index management and alias switching on rebuild |
 | One-command project creation and an online generator | `jbang ddk@poppycoderr new my-app`, a Spring Initializr-like page; after the installer's version selection has settled |
-| Preset Grafana dashboards for `ddk-mall` | On top of the projection, event and cache metrics |
-| Community | Discussions, a design article per release; templates and `good first issue` landed in 0.12 |
+| Community | A design article per release after the two planned for 1.1; templates and `good first issue` landed in 0.12, Discussions open in 1.1 |
 
 ## History
 
