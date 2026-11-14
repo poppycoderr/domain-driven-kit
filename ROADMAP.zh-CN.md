@@ -6,7 +6,7 @@
   <img src="./assets/diagrams/ddk-roadmap.svg" alt="DDK roadmap" />
 </p>
 
-这份路线图分三部分：**现在支持什么**、各部分验证到什么程度；**最新版本**；以及没有顺序和日期的**候选池**。1.1 的范围还没有定，定下来之后在这里加一节。已发布版本做了什么，概要见[历史](#历史)，完整内容见 [CHANGELOG](./CHANGELOG.md)。
+这份路线图分四部分：**现在支持什么**、各部分验证到什么程度；**下一个版本**；**最新版本**；以及没有顺序和日期的**候选池**。已发布版本做了什么，概要见[历史](#历史)，完整内容见 [CHANGELOG](./CHANGELOG.md)。
 
 ## 定位
 
@@ -81,6 +81,22 @@ DDK 只有一个版本号，但各模块经受的验证并不一样。每个模�
 | Archetype（三层、四层） | 已验证 | 生成的项目在 CI 里构建和测试 | |
 | `ddk-mall` | 已验证，作为参考实现 | MySQL、Redis、RocketMQ、Elasticsearch | 支付渠道是模拟的；`secure` profile 用演示用户 |
 
+## 下一个版本：1.1
+
+**目标：失败之后怎么办，以及租户贯通到底。** 全部是新增：新的类型、配置项和可选规则，符合次版本的规则。2026-11-13 在 1.0 之后的复评基础上规划；下面的顺序就是做的顺序。
+
+已经在 `main` 上的：分页排序只接受 PO 的列；重平衡后消费失败指标不再停在旧值；安装脚本从中央仓库获取发布版本。
+
+- [ ] **失败消息的出口。** 顺序消费的最大重试次数，以及超过之后的处理：继续等待（默认），或者搁置这条消息、放行后面的。失败发布的重投上限。`IntegrationEventConsumer` 已经冻结，扩展点以默认方法的形式加入
+- [ ] **租户贯通。** 缓存的 key，以及 `@Idempotent`、`@RateLimit` 的 key 可以带上租户，默认关闭，因为 key 格式属于兼容性契约。`ddk-example-inventory` 加一个租户 profile 和对应的冒烟路径
+- [ ] **运维面。** 去重表的到期索引和分批清理；投影的失败次数不再被新的标记清零；基于投影、事件和缓存指标的 Grafana 看板和一份告警规则
+- [ ] **MCP 写工具。** 示例里的写工具带 `requestId` 并标 `@Idempotent`，审计日志带上操作者和租户。MCP starter 是预览，不受冻结约束
+- [ ] **可重现构建。** `project.build.outputTimestamp`，以及一项发布检查：比对中央仓库和 GitHub Release 上文件的 SHA-256
+- [ ] **tracer starter 转正。** CI 里加一个导出到 OTLP 收集器容器的测试，这是 COMPATIBILITY.zh-CN.md 定的条件。MCP starter 继续是预览，等 Spring AI 对 2026-07-28 那次 MCP 修订的支持稳定；SUPPORT.zh-CN.md 会写明 CI 用的 MCP 版本
+- [ ] **仓库外的使用。** 1.1 发布之前，至少有一个本仓库之外的项目在 1.0.x 上跑过，并留下一份试用报告。维护者先用 archetype 起一个项目；两篇设计文章（投影的代次与令牌协议、「用错就当场报错」的默认值）；开启 Discussions
+
+护栏方向（上下文隔离规则、聚合级规则、领域目录）计划放在 1.2。代理评测集不改库代码，可以和 1.1 并行做。
+
 ## 最新版本：1.0
 
 [1.0.0](https://github.com/poppycoderr/domain-driven-kit/releases/tag/v1.0.0) 于 2026-11-13 发布。**目标：只冻结经过验证的部分。** 从此 [COMPATIBILITY.zh-CN.md](./COMPATIBILITY.zh-CN.md) 里的契约生效：破坏性变更只出现在主版本。1.0 冻结了什么、哪些仍是预览、为此作了哪些决定，见[冻结清单](./COMPATIBILITY.zh-CN.md#10-冻结清单)。
@@ -102,8 +118,7 @@ DDK 只有一个版本号，但各模块经受的验证并不一样。每个模�
 | S3 兼容的对象存储 | 文件引用作为值对象，领域层不接触 SDK |
 | 投影的 Elasticsearch 辅助功能 | 索引管理、重建时切换别名 |
 | 一行命令创建项目、在线项目生成器 | `jbang ddk@poppycoderr new my-app`，类似 Spring Initializr 的页面；等安装脚本的版本选择稳定之后 |
-| `ddk-mall` 的预置 Grafana 看板 | 基于投影、事件和缓存的指标 |
-| 社区 | Discussions、每次发布配一篇设计文章；模板和 `good first issue` 已在 0.12 完成 |
+| 社区 | 1.1 的两篇之后，每次发布配一篇设计文章；模板和 `good first issue` 已在 0.12 完成，Discussions 在 1.1 开启 |
 
 ## 历史
 
