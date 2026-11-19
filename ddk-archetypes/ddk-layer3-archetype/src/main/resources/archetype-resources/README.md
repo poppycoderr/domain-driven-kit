@@ -19,7 +19,7 @@ mvn spring-boot:run
 - Flyway 提示 H2 的版本比它验证过的新：H2 的版本由 Spring Boot 管理，本地开发可以忽略。
 - `ddk.mybatis.worker-id and ddk.mybatis.datacenter-id are not both set`：单机开发可以忽略。多实例部署时给每个实例设置不同的 `ddk.mybatis.worker-id` 和 `ddk.mybatis.datacenter-id`，否则雪花 ID 可能重复。
 
-接口返回的 JSON 里，`Long` 和 `long` 字段都写成字符串，避免 JavaScript 丢失雪花 ID 的精度；金额、数量这类字段也一样。不需要时设置 `ddk.web.write-long-as-string=false`。项目不带接口文档，需要时加入 `org.springdoc:springdoc-openapi-starter-webmvc-ui`，版本由 DDK 的 BOM 管理，DDK 的 Web starter 会在文档里补上统一的错误响应和错误码。
+接口返回的 JSON 里，`Long` 和 `long` 字段都写成字符串，避免 JavaScript 丢失雪花 ID 的精度；金额、数量这类字段也一样。不需要时设置 `ddk.web.write-long-as-string=false`。参数校验失败的消息随请求的 `Accept-Language` 切换语言（`zh-CN` 时是「不能为null」），业务错误的文案来自错误码枚举，固定是枚举里写的语言。项目不带接口文档，需要时加入 `org.springdoc:springdoc-openapi-starter-webmvc-ui`，版本由 DDK 的 BOM 管理，DDK 的 Web starter 会在文档里补上统一的错误响应和错误码。
 
 $h2 分层
 
