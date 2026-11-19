@@ -63,7 +63,7 @@ CI 在每次改动时检查这一点：japicmp 把每个模块与上一个发布
 |---|---|---|
 | 集成事件消息 | 消息头名称 `ddk-event-id`、`ddk-event-type`、`ddk-event-version`、`ddk-event-tenant`。取值：`@IntegrationEvent(id)` 指定的事件标识；类型（`type`，或事件类的简单类名）；十进制字符串形式的版本；租户。消息体是事件的 JSON，带类型的标识写成原始值。主题和标签来自 `@IntegrationEvent(value)` 的 `主题:标签`，消息 key 来自 `key` | Event starter |
 | 去重消费方的身份 | 已处理的消息按 `消费组:consumerId` 加事件标识记录；`consumerId()` 默认是消费方类的简单类名。改消费方的类名或 `consumerId()`，重投的事件会再处理一次 | Event starter |
-| 表 `ddk_projection_pending` 和 `ddk_processed_message`（表名可配置） | 列、主键和到期索引；上一个版本写下的标记，下一个版本照常处理 | Projection 和 Event starter |
+| 表 `ddk_projection_pending` 和 `ddk_processed_message`（表名可配置） | 列、主键、`ddk_projection_pending` 的到期索引，以及 1.1 起 `ddk_processed_message` 的到期索引；上一个版本写下的标记，下一个版本照常处理 | Projection 和 Event starter |
 | Outbox（`event_publication`） | 表结构和状态值属于 Spring Modulith，DDK 在 Modulith 默认的 JDBC 结构上验证。DDK 负责写进去的内容：`event_type` 是事件类的全名，`serialized_event` 是事件的 JSON。移动或改名事件类会让它还没完成的发布无法处理，所以先等它们完成 | Event starter、Spring Modulith |
 | Redis key | 锁 `ddk:lock:<类型>:<标识>`、防重复提交 `ddk:idempotent:<scope>:<key>`、限流 `ddk:rate:<scope>:<额度>/<周期>ms:<key>`、缓存 `ddk:cache:<缓存名>::<key>`，前缀都可配置。打开 `tenant-scoped`（1.1）后，防重复提交、限流和缓存的 key 在 `<key>` 前面加 `@<租户>:`（防重复提交和限流没有租户时加 `-:`）；不打开时格式不变。定时任务锁的 key 属于 ShedLock，DDK 设置它的前缀 `ddk:job-lock:<应用名>:` | Concurrency、Cache、Job starter |
 | Redis 值 | Redis starter 带类型信息的 JSON（`@class`，集合和数字用带类型标注的数组）。DDK 保持这种编码；里面装的类以及它们怎么演进，由应用负责 | Redis 和 Cache starter |

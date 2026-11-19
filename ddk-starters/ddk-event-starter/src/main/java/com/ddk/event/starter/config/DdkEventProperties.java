@@ -111,13 +111,18 @@ public class DdkEventProperties {
         private Duration inboxRetention = Duration.ofDays(7);
 
         /**
+         * 清理已处理消息表时每批删除多少条。每批单独提交，积压很多时也不会一条语句锁住大量行。
+         */
+        private int inboxPurgeBatchSize = 1000;
+
+        /**
          * @throws IllegalStateException 间隔或最小年龄不为正、批量小于 1、重投上限或保留期为负
          */
         public void validate() {
-            if (!interval.isPositive() || !resubmitMinAge.isPositive() || resubmitBatchSize < 1 || resubmitMaxAttempts < 0
+            if (!interval.isPositive() || !resubmitMinAge.isPositive() || resubmitBatchSize < 1 || inboxPurgeBatchSize < 1 || resubmitMaxAttempts < 0
                     || deleteCompletedAfter.isNegative() || inboxRetention.isNegative()) {
                 throw new IllegalStateException("Invalid ddk.event.maintenance settings: interval and resubmit-min-age must be positive, "
-                        + "resubmit-batch-size at least 1, and resubmit-max-attempts and the retention periods zero or positive");
+                        + "resubmit-batch-size and inbox-purge-batch-size at least 1, and resubmit-max-attempts and the retention periods zero or positive");
             }
         }
     }
@@ -177,7 +182,7 @@ public class DdkEventProperties {
         private String table = "ddk_processed_message";
 
         /**
-         * 启动时是否执行 {@code CREATE TABLE IF NOT EXISTS}。由迁移工具管理表结构时关闭。
+         * 启动时是否建表并补上 {@code processed_at} 上的到期索引。由迁移工具管理表结构时关闭，这时缺少到期索引只记录一条警告。
          */
         private boolean initializeSchema = true;
     }
