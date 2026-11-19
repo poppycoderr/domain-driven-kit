@@ -1,0 +1,4 @@
+{
+  "archetype": "ddk-layer4-archetype",
+  "summary": "A new aggregate end to end: order placement, lookup and cancellation, with a domain event that carries the order ID"
+}

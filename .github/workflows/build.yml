@@ -53,6 +53,11 @@ jobs:
       - name: Generated projects
         run: mvn -B -ntp install -Parchetype-it -pl ddk-archetypes/ddk-layer3-archetype,ddk-archetypes/ddk-layer4-archetype
 
+      # 编码代理评测集的评分测试：每个任务在空项目上必须失败，套上参考实现后必须通过。不运行代理
+      - name: Agent evaluation graders
+        if: matrix.java == '21'
+        run: python3 scripts/run-agent-eval.py --check
+
       # 包括生成项目的测试报告；任何被跳过的测试都让构建失败
       - name: Require that no test was skipped
         run: python3 scripts/check-test-reports.py
