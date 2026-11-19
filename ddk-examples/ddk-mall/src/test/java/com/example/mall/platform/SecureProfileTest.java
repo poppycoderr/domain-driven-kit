@@ -89,7 +89,7 @@ class SecureProfileTest {
         McpSchema.CallToolResult impersonation = call("54", "get_order", Map.of("customerId", 53, "orderId", orderId));
         assertThat(impersonation.isError()).isTrue();
         assertThat(text(impersonation)).contains("ACTING_FOR_OTHER_CUSTOMER");
-        assertThat(text(call("54", "cancel_order", Map.of("customerId", 53, "orderId", orderId, "reason", "冒充"))))
+        assertThat(text(call("54", "cancel_order", Map.of("requestId", "impersonation-" + orderId, "customerId", 53, "orderId", orderId, "reason", "冒充"))))
                 .contains("ACTING_FOR_OTHER_CUSTOMER");
         assertThat(text(call("53", "get_order_reservations", Map.of("orderId", orderId)))).contains("SUPPORT_REQUIRED");
 
