@@ -58,13 +58,28 @@ The server listens on `/mcp` over streamable HTTP.
 | Error codes | `BusinessException` and `SystemException` become tool errors that start with their code, e.g. `USER_NOT_FOUND: 用户不存在：42`, so the model can decide whether to retry |
 | Cancellation | A tool whose thread is interrupted, for example while it waits for an aggregate lock during shutdown, returns `REQUEST_CANCELLED: 请求被取消，请稍后重试` |
 | No leaked internals | Any other exception returns `SYSTEM_ERROR: 服务器内部错误`; the original message and stack trace go to the log only |
-| Audit log | One line per call: `MCP tool [get_user] -> USER_NOT_FOUND in 3 ms`. Argument values are not logged |
+| Audit log | One line per call with the operator and tenant from `OperatorContext`, `-` when there is none: `MCP tool [get_user] by [alice] in tenant [t1] -> USER_NOT_FOUND in 3 ms`. Argument values are not logged |
 
 ## Operator and tenant
 
 MCP calls arrive at `/mcp` as ordinary HTTP requests, so `ddk-web-starter`'s `OperatorContextFilter`, or your own filter, sets `OperatorContext` for them. With the default synchronous server and the streamable HTTP transport, the tool runs on the request thread and sees that operator, including the tenant, and the filter clears it when the request ends. `McpOperatorContextTest` pins this behavior. An asynchronous server (`spring.ai.mcp.server.type=ASYNC`) runs tools on other threads and does not get the context.
 
 The starter does not decide who may call which tool; see [Not covered](#not-covered).
+
+## Write tools
+
+An agent retries a call that timed out, and the first call may have gone through. A tool that changes state should take a request ID that the agent generates and repeats on a retry, and carry `ddk-concurrency-starter`'s `@Idempotent`:
+
+```java
+@McpTool(name = "cancel_order", description = "... Generate a new requestId for each cancellation and send the same one again when you retry it. "
+        + "DUPLICATE_REQUEST means that requestId was already used: check the order with get_order instead of retrying.")
+@Idempotent(key = "#requestId")
+public OrderResponse cancel(
+        @McpToolParam(description = "A unique ID for this cancellation, such as a UUID; the same ID on a retry") @NotBlank String requestId,
+        ...) {
+```
+
+The tool interception is the outermost layer around `@Idempotent`, `@AggregateLock` and `@RateLimit` on the same method. Arguments are validated before a request ID is registered, and a repeated request returns `DUPLICATE_REQUEST: ...` like any other error code and appears in the audit log. `@Idempotent` only rejects the repeat; it does not replay the first result, so tell the agent in the description how to check the outcome. `McpConcurrencyTest` pins the order. A tool that is idempotent by its domain rules, such as disabling a user who is already disabled, needs no request ID.
 
 ## Configuration
 

@@ -23,7 +23,8 @@ import org.springframework.core.env.Environment;
  * 工具类应放在适配层（例如 {@code adapter.mcp}），像控制器一样只调用应用服务，
  * 由 {@code CommonArchRules.MCP_TOOLS_MUST_RESIDE_IN_ADAPTER} 在架构测试中约束。
  */
-@AutoConfiguration(after = ValidationAutoConfiguration.class)
+@AutoConfiguration(after = ValidationAutoConfiguration.class,
+        afterName = "com.ddk.concurrency.starter.config.DdkConcurrencyAutoConfiguration")
 @ConditionalOnClass(McpTool.class)
 @ConditionalOnProperty(prefix = DdkMcpProperties.PREFIX, name = "enabled", matchIfMissing = true)
 @EnableConfigurationProperties(DdkMcpProperties.class)

@@ -23,7 +23,7 @@ public class DdkMcpProperties {
     private boolean validation = true;
 
     /**
-     * 是否为每次工具调用输出一行审计日志：工具名、结果与耗时。出于隐私考虑不记录参数值。
+     * 是否为每次工具调用输出一行审计日志：工具名、操作者与租户、结果与耗时。出于隐私考虑不记录参数值。
      */
     private boolean auditLog = true;
 }

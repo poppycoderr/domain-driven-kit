@@ -1,5 +1,7 @@
 package com.ddk.mcp.starter.internal;
 
+import com.ddk.core.context.Operator;
+import com.ddk.core.context.OperatorContext;
 import com.ddk.core.exception.AbstractException;
 import com.ddk.core.exception.BusinessException;
 import com.ddk.core.exception.CommonError;
@@ -23,7 +25,8 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 /**
- * 包在每个 {@code @McpTool} 方法外的调用拦截：先校验参数，再把异常翻译成带错误码的工具错误，并记录审计日志。
+ * 包在每个 {@code @McpTool} 方法外的调用拦截：先校验参数，再把异常翻译成带错误码的工具错误，并记录审计日志：
+ * 工具名、当前操作者与租户、结果与耗时，不记录参数值。
  * <p>
  * 运行时异常会被 Spring AI 转成返回给模型的工具错误，消息原样可见。因此这里只放出可预期的业务信息：
  * {@link AbstractException} 带上错误码与文案，参数校验失败列出字段与原因，其余异常统一为
@@ -88,7 +91,10 @@ public class McpToolInvocationInterceptor implements MethodInterceptor {
 
     private void audit(String tool, String outcome, long start) {
         if (auditLog) {
-            log.info("MCP tool [{}] -> {} in {} ms", tool, outcome, (System.nanoTime() - start) / 1_000_000);
+            Operator operator = OperatorContext.current().orElse(null);
+            String tenant = operator == null ? null : operator.tenantId();
+            log.info("MCP tool [{}] by [{}] in tenant [{}] -> {} in {} ms", tool, operator == null ? "-" : operator.id(),
+                    tenant == null ? "-" : tenant, outcome, (System.nanoTime() - start) / 1_000_000);
         }
     }
 
