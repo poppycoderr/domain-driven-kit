@@ -42,6 +42,11 @@
         <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <!--
+            可复现构建：jar 里每个条目的时间都取这个值，同一份源码在任何机器上打出逐字节相同的包。
+            发布时改成被打 tag 的提交的时间（见 RELEASING.md 与 release.yml），平时保持不变
+        -->
+        <project.build.outputTimestamp>2026-11-13T00:00:00Z</project.build.outputTimestamp>
 
         <!-- Spring Boot -->
         <spring-boot.version>4.1.2</spring-boot.version>

@@ -22,13 +22,13 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # 仓库里始终是 SNAPSHOT 版本，发布时按 tag 改写版本号；ddk-dependencies 不继承父 pom，它的 ddk.version 属性单独改
+      # 仓库里始终是 SNAPSHOT 版本，发布时按 tag 改写版本号，打包时间取被打 tag 的提交时间。
+      # 维护者往 Maven Central 发布时用同一个脚本，两边的构建逐字节相同，发布后用 check-release-checksums.py 核对
       - name: Set release version
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-          mvn -B -ntp versions:set -DnewVersion="$VERSION" -DprocessAllModules=true -DgenerateBackupPoms=false
-          sed -i "s|<ddk.version>.*</ddk.version>|<ddk.version>$VERSION</ddk.version>|" ddk-dependencies/pom.xml
+          scripts/set-release-version.sh "$VERSION"
 
       - name: Build and test
         run: mvn -B -ntp install -Parchetype-it,release

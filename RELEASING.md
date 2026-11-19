@@ -2,7 +2,7 @@
 
 [简体中文](./RELEASING.zh-CN.md)
 
-A release goes to two places from the same tag: a **GitHub Release**, built by CI with build provenance, and **Maven Central** under `com.domaindrivenkit`, built and signed by the maintainer. Releasing is the maintainer's decision; this page is the procedure. Keys, passphrases and tokens never enter this repository, its history, CI logs or evidence files.
+A release goes to two places from the same tag: a **GitHub Release**, built by CI with build provenance, and **Maven Central** under `com.domaindrivenkit`, built and signed by the maintainer. The build is reproducible, so the two builds produce the same files byte for byte, and a check after publishing proves it. Releasing is the maintainer's decision; this page is the procedure. Keys, passphrases and tokens never enter this repository, its history, CI logs or evidence files.
 
 ## 1. Prepare
 
@@ -18,7 +18,7 @@ git tag vX.Y.Z
 git push origin vX.Y.Z
 ```
 
-`.github/workflows/release.yml` sets the version from the tag, runs `mvn -B -ntp install -Parchetype-it,release`, attests the build provenance of every file and creates the GitHub Release with the changelog section as its notes. Only the highest release becomes Latest: a patch on an older line, such as 0.12.2 after 1.0.1, is created with `--latest=false`. Check the run and the release before going on.
+`.github/workflows/release.yml` sets the version from the tag with `scripts/set-release-version.sh`, runs `mvn -B -ntp install -Parchetype-it,release`, attests the build provenance of every file and creates the GitHub Release with the changelog section as its notes. Only the highest release becomes Latest: a patch on an older line, such as 0.12.2 after 1.0.1, is created with `--latest=false`. Check the run and the release before going on.
 
 ## 3. Maven Central
 
@@ -76,13 +76,12 @@ Work in a fresh clone of the tag, not in your working copy:
 ```bash
 git clone --depth 1 --branch vX.Y.Z https://github.com/poppycoderr/domain-driven-kit.git ddk-release
 cd ddk-release
-VERSION=X.Y.Z
-mvn -B -ntp versions:set -DnewVersion="$VERSION" -DprocessAllModules=true -DgenerateBackupPoms=false
-sed -i.bak "s|<ddk.version>.*</ddk.version>|<ddk.version>$VERSION</ddk.version>|" ddk-dependencies/pom.xml
-rm ddk-dependencies/pom.xml.bak
+scripts/set-release-version.sh X.Y.Z
 python3 scripts/check-bom.py
 mvn -B -ntp install -Parchetype-it,release
 ```
+
+`set-release-version.sh` is the same script the release workflow runs. Besides the version, it sets `project.build.outputTimestamp` to the commit time of the tag, which every jar entry takes as its time, so this build and the one behind the GitHub Release produce the same files. Build with JDK 21 like the workflow; CI rebuilds every change and compares the files, so a plugin that stops being reproducible fails there first.
 
 Then sign and upload. The `central` profile signs with BouncyCastle, so no `gpg` binary is needed, and with `bestPractices` it reads the key and passphrase only from these two environment variables:
 
@@ -109,6 +108,14 @@ curl -fsSO https://repo.maven.apache.org/maven2/com/domaindrivenkit/ddk-core/X.Y
 curl -fsSO https://repo.maven.apache.org/maven2/com/domaindrivenkit/ddk-core/X.Y.Z/ddk-core-X.Y.Z.jar.asc
 gpg --verify ddk-core-X.Y.Z.jar.asc ddk-core-X.Y.Z.jar
 ```
+
+Then compare every file of the GitHub Release with the file of the same name on Maven Central:
+
+```bash
+python3 scripts/check-release-checksums.py X.Y.Z
+```
+
+It downloads both and compares their SHA-256; every line must be `ok`, and the last one says how many files match. A file that differs means the two builds did not start from the same sources or settings: find out why before announcing the release. Releases before 1.1.0 were not reproducible, so for them most files differ.
 
 ### If the upload fails
 

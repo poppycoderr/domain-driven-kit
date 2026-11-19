@@ -77,6 +77,12 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
+      # 可复现构建：前面的 install 留下的包作为参照，清空后再构建一遍，每个文件都要逐字节相同。
+      # 放在上传测试报告之后，因为 clean 会删掉报告
+      - name: Rebuild and compare (reproducible build)
+        if: matrix.java == '21'
+        run: mvn -B -ntp -Prelease -DskipTests clean verify org.apache.maven.plugins:maven-artifact-plugin:3.7.0:compare
+
   # GraalVM 原生镜像：编译示例，再对可执行文件跑冒烟测试。ddk-example-user 覆盖 web、mybatis、event、mcp，
   # ddk-example-inventory 覆盖并发、Redis、两级缓存、投影和发布登记；声明为原生已验证的模块以它们为准
   native:
