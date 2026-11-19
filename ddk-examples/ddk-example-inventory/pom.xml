@@ -82,6 +82,17 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
+            <!-- Netty 4.2 frees direct buffers through Arena.ofShared on JDK 25. A native image needs shared arenas enabled,
+                 or Lettuce's event loop threads fail on shutdown and the application never exits after SIGTERM -->
+            <plugin>
+                <groupId>org.graalvm.buildtools</groupId>
+                <artifactId>native-maven-plugin</artifactId>
+                <configuration>
+                    <buildArgs>
+                        <buildArg>-H:+SharedArenaSupport</buildArg>
+                    </buildArgs>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
