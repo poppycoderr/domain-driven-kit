@@ -29,6 +29,12 @@ ddk:
   concurrency:
     key-prefix: "inventory:"
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+
 # 可售数量低于它的商品进入「库存偏低」读模型
 inventory:
   low-stock-threshold: 5

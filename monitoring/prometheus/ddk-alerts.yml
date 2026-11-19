@@ -1,0 +1,71 @@
+# Alert rules for the metrics of Domain Driven Kit. Thresholds follow the defaults of the starters; adjust the ones
+# marked "tune" to your traffic. Checked in CI with promtool against ddk-alerts.test.yml.
+groups:
+  - name: ddk-projections
+    rules:
+      - alert: DdkProjectionRefreshFailing
+        # Longer than ddk.projection.max-retry-delay (5m by default), so a mark had several retries
+        expr: max by (job, projection) (ddk_projection_failing) > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Projection {{ $labels.projection }} keeps failing to refresh"
+          description: "{{ $value }} marks of {{ $labels.projection }} in {{ $labels.job }} failed and are being retried. Find them with Projections.failures, fix the cause, then call Projections.retryFailed."
+      - alert: DdkProjectionLagging
+        # tune: a few sweep intervals (ddk.projection.sweep-interval, 30s by default)
+        expr: max by (job, projection) (ddk_projection_oldest_age_seconds) > 300
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Projection {{ $labels.projection }} is falling behind"
+          description: "The oldest due mark of {{ $labels.projection }} in {{ $labels.job }} has waited {{ $value | humanizeDuration }}. Check that workers run, and the refresh duration."
+
+  - name: ddk-events
+    rules:
+      - alert: DdkEventPublicationsFailed
+        expr: max by (job) (ddk_event_publications{status="failed"}) > 0
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Event publications failed in {{ $labels.job }}"
+          description: "{{ $value }} publications are FAILED and not resubmitted. Turn on ddk.event.maintenance, or resubmit them through Spring Modulith once the cause is fixed."
+      - alert: DdkEventPublicationMetricsStale
+        # ten sample intervals (ddk.event.metrics.publications.interval, 1m by default)
+        expr: max by (job, instance) (ddk_event_publications_sample_age_seconds) > 600
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Publication counts of {{ $labels.instance }} are stale"
+          description: "The publication counts were last sampled {{ $value | humanizeDuration }} ago, so DdkEventPublicationsFailed cannot fire. Check the database connection of {{ $labels.instance }}."
+      - alert: DdkEventConsumerStuck
+        # The consumer logs an error from the tenth failure in a row; in orderly consumption the queue waits meanwhile
+        expr: max by (job, group) (ddk_event_consume_failures) >= 10
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Consumer group {{ $labels.group }} is stuck on a message"
+          description: "A queue of {{ $labels.group }} in {{ $labels.job }} has failed {{ $value }} times in a row and waits until the message succeeds. Fix the cause, or set ddk.event.rocketmq.consumer.max-attempts with an UndeliverableEventHandler."
+      - alert: DdkEventPublishErrors
+        expr: sum by (job, messaging_destination_name) (rate(ddk_event_publish_seconds_count{error!="none"}[5m])) > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Sending to {{ $labels.messaging_destination_name }} fails"
+          description: "{{ $labels.job }} fails to send events to {{ $labels.messaging_destination_name }}. The publications stay in the outbox and are resubmitted; check the broker."
+
+  - name: ddk-cache
+    rules:
+      - alert: DdkCacheRedisErrors
+        expr: sum by (job, cache) (rate(ddk_cache_remote_errors_total[5m])) > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Cache {{ $labels.cache }} cannot reach Redis"
+          description: "Redis operations of cache {{ $labels.cache }} in {{ $labels.job }} fail, so reads fall through to the loader and the database takes the load."

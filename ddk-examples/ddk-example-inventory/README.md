@@ -33,6 +33,14 @@ curl -s localhost:8080/low-stock
 curl -s localhost:8080/skus/1/reservations
 ```
 
+## 监控
+
+`/actuator/prometheus` 暴露投影、事件和缓存的指标。仓库根目录 [`monitoring/`](../../monitoring) 下的 Grafana 看板和告警规则读的就是这些指标，`MonitoringMetricsTest` 检查它们用到的指标名都出现在这里。
+
+```bash
+curl -s localhost:8080/actuator/prometheus | grep '^ddk_'
+```
+
 ## 租户 profile
 
 `tenant` profile 把销售渠道当作租户：几个渠道共用一个仓库的库存，渠道放在请求头 `X-Sales-Channel` 里（只为演示，真实的应用从认证结果里取租户）。它打开了 `ddk.concurrency.tenant-scoped`，所以每个渠道的请求号互不冲突，可用量检查各有一份额度；`ddk.cache.tenant-scoped` 也打开了，但 `skus` 缓存按名字关掉，因为库存是所有渠道共用的数据。JVM 上的检查是 `InventoryTenantApiTest`，原生镜像冒烟测试的第二段也跑这一组请求。

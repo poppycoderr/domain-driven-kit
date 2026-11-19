@@ -1,0 +1,94 @@
+# promtool test rules ddk-alerts.test.yml
+rule_files:
+  - ddk-alerts.yml
+evaluation_interval: 1m
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'ddk_projection_failing{job="shop", instance="a", projection="order-search"}'
+        values: '0 1x30'
+      - series: 'ddk_projection_failing{job="shop", instance="b", projection="order-search"}'
+        values: '0 1x30'
+      - series: 'ddk_projection_failing{job="shop", instance="a", projection="catalog"}'
+        values: '0x30'
+      - series: 'ddk_projection_oldest_age_seconds{job="shop", instance="a", projection="order-search"}'
+        values: '0 400x30'
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: DdkProjectionRefreshFailing
+        exp_alerts: []
+      - eval_time: 20m
+        alertname: DdkProjectionRefreshFailing
+        exp_alerts:
+          - exp_labels: {severity: warning, job: shop, projection: order-search}
+            exp_annotations:
+              summary: "Projection order-search keeps failing to refresh"
+              description: "1 marks of order-search in shop failed and are being retried. Find them with Projections.failures, fix the cause, then call Projections.retryFailed."
+      - eval_time: 20m
+        alertname: DdkProjectionLagging
+        exp_alerts:
+          - exp_labels: {severity: warning, job: shop, projection: order-search}
+            exp_annotations:
+              summary: "Projection order-search is falling behind"
+              description: "The oldest due mark of order-search in shop has waited 6m 40s. Check that workers run, and the refresh duration."
+
+  - interval: 1m
+    input_series:
+      - series: 'ddk_event_publications{job="shop", instance="a", status="failed"}'
+        values: '0 2x30'
+      - series: 'ddk_event_publications{job="shop", instance="a", status="published"}'
+        values: '5x30'
+      - series: 'ddk_event_publications_sample_age_seconds{job="shop", instance="a"}'
+        values: '30 700x30'
+      - series: 'ddk_event_consume_failures{job="shop", instance="a", group="inventory"}'
+        values: '0 3 6 9 12x30'
+      - series: 'ddk_event_consume_failures{job="shop", instance="a", group="billing"}'
+        values: '0 1 2 0x30'
+      - series: 'ddk_event_publish_seconds_count{job="shop", instance="a", messaging_destination_name="orders", error="none"}'
+        values: '0+10x30'
+      - series: 'ddk_event_publish_seconds_count{job="shop", instance="a", messaging_destination_name="orders", error="MQClientException"}'
+        values: '0+1x30'
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: DdkEventPublicationsFailed
+        exp_alerts:
+          - exp_labels: {severity: warning, job: shop}
+            exp_annotations:
+              summary: "Event publications failed in shop"
+              description: "2 publications are FAILED and not resubmitted. Turn on ddk.event.maintenance, or resubmit them through Spring Modulith once the cause is fixed."
+      - eval_time: 10m
+        alertname: DdkEventPublicationMetricsStale
+        exp_alerts:
+          - exp_labels: {severity: warning, job: shop, instance: a}
+            exp_annotations:
+              summary: "Publication counts of a are stale"
+              description: "The publication counts were last sampled 11m 40s ago, so DdkEventPublicationsFailed cannot fire. Check the database connection of a."
+      - eval_time: 10m
+        alertname: DdkEventConsumerStuck
+        exp_alerts:
+          - exp_labels: {severity: critical, job: shop, group: inventory}
+            exp_annotations:
+              summary: "Consumer group inventory is stuck on a message"
+              description: "A queue of inventory in shop has failed 12 times in a row and waits until the message succeeds. Fix the cause, or set ddk.event.rocketmq.consumer.max-attempts with an UndeliverableEventHandler."
+      - eval_time: 20m
+        alertname: DdkEventPublishErrors
+        exp_alerts:
+          - exp_labels: {severity: warning, job: shop, messaging_destination_name: orders}
+            exp_annotations:
+              summary: "Sending to orders fails"
+              description: "shop fails to send events to orders. The publications stay in the outbox and are resubmitted; check the broker."
+
+  - interval: 1m
+    input_series:
+      - series: 'ddk_cache_remote_errors_total{job="shop", instance="a", cache="users", operation="get"}'
+        values: '0+3x30'
+      - series: 'ddk_cache_remote_errors_total{job="shop", instance="a", cache="dictionary", operation="get"}'
+        values: '0x30'
+    alert_rule_test:
+      - eval_time: 20m
+        alertname: DdkCacheRedisErrors
+        exp_alerts:
+          - exp_labels: {severity: warning, job: shop, cache: users}
+            exp_annotations:
+              summary: "Cache users cannot reach Redis"
+              description: "Redis operations of cache users in shop fail, so reads fall through to the loader and the database takes the load."

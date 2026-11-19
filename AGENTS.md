@@ -35,6 +35,7 @@ Integration tests for the cache starter use Testcontainers and need a running Do
 | `ddk-dependencies` | BOM; does not inherit the parent pom |
 | `ddk-archetypes/*` | Three- and four-layer project templates (Velocity; Markdown headings use `$h2`) |
 | `ddk-examples/*` | Runnable reference applications |
+| `monitoring/` | Grafana dashboard and Prometheus alert rules for the starters' metrics; `promtool` tests run in CI |
 | `COMPATIBILITY.md` | What stays compatible between releases and what 1.0 freezes |
 | `SECURITY.md` | Reporting vulnerabilities privately |
 | `SUPPORT.md` | Maintenance, versions that get fixes, tested platforms, rolling back |
