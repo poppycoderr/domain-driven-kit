@@ -72,6 +72,6 @@ public class DdkCacheManager implements CacheManager {
     private TwoLevelCache createCache(String name) {
         Cache remote = remoteCacheFactory == null ? null : remoteCacheFactory.apply(name);
         return new TwoLevelCache(properties.resolve(name), properties.isCacheNullValues(),
-                properties.getNullValueTtl(), remote, conversionService, publisher, metrics);
+                properties.getNullValueTtl(), remote, conversionService, publisher, metrics, properties.isTenantScoped(name));
     }
 }

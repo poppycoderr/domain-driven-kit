@@ -47,7 +47,8 @@ public class DdkConcurrencyAutoConfiguration {
         Duration ttl = environment.getProperty(DdkConcurrencyProperties.PREFIX + ".idempotent.ttl", Duration.class, Duration.ofMinutes(10));
         Duration waitTime = environment.getProperty(DdkConcurrencyProperties.PREFIX + ".lock.wait-time", Duration.class, Duration.ofSeconds(3));
         Duration leaseTime = environment.getProperty(DdkConcurrencyProperties.PREFIX + ".lock.lease-time", Duration.class);
-        return new ConcurrencyAdvisingPostProcessor(new ConcurrencyInterceptor(locks, requests, rates, ttl, waitTime, leaseTime));
+        boolean tenantScoped = environment.getProperty(DdkConcurrencyProperties.PREFIX + ".tenant-scoped", Boolean.class, false);
+        return new ConcurrencyAdvisingPostProcessor(new ConcurrencyInterceptor(locks, requests, rates, ttl, waitTime, leaseTime, tenantScoped));
     }
 
     @Configuration(proxyBeanMethods = false)

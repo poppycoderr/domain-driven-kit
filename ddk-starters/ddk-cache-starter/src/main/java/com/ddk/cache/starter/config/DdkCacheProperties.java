@@ -56,6 +56,14 @@ public class DdkCacheProperties {
      */
     private String keyPrefix = "ddk:cache:";
 
+    /**
+     * 是否默认按租户区分缓存条目。打开后 key 变成 {@code <keyPrefix><cacheName>::@<租户>:<key>}，租户取自 {@code OperatorContext}，
+     * 没有租户的读写直接失败。所有租户共用的数据（字典、配置）按名字用 {@code caches.<name>.tenant-scoped=false} 关掉。
+     * <p>
+     * 默认关闭：key 的格式属于兼容性约定，打开它等于换了一批 key，原来的条目不再命中，随各自的 TTL 过期。
+     */
+    private boolean tenantScoped = false;
+
     private final Local local = new Local();
 
     /**
@@ -71,6 +79,14 @@ public class DdkCacheProperties {
                 spec.getLocalEnabled() != null ? spec.getLocalEnabled() : local.isEnabled(),
                 spec.getLocalTtl() != null ? spec.getLocalTtl() : local.getTtl(),
                 spec.getLocalMaximumSize() != null ? spec.getLocalMaximumSize() : local.getMaximumSize());
+    }
+
+    /**
+     * 这个缓存是否按租户区分条目：按名字的设置优先，没有时用 {@code tenant-scoped}。
+     */
+    public boolean isTenantScoped(String name) {
+        Boolean spec = caches.getOrDefault(name, CacheSpec.EMPTY).getTenantScoped();
+        return spec != null ? spec : tenantScoped;
     }
 
     /**
@@ -134,5 +150,10 @@ public class DdkCacheProperties {
          * 该缓存的 L1 最大条目数。
          */
         private @Nullable Long localMaximumSize;
+
+        /**
+         * 该缓存是否按租户区分条目。
+         */
+        private @Nullable Boolean tenantScoped;
     }
 }

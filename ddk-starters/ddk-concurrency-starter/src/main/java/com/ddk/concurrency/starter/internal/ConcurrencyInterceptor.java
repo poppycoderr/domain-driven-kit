@@ -4,6 +4,8 @@ import com.ddk.concurrency.starter.AggregateLock;
 import com.ddk.concurrency.starter.AggregateLocks;
 import com.ddk.concurrency.starter.Idempotent;
 import com.ddk.concurrency.starter.RateLimit;
+import com.ddk.core.context.Operator;
+import com.ddk.core.context.OperatorContext;
 import com.ddk.core.exception.DuplicateRequestException;
 import com.ddk.core.exception.RateLimitedException;
 import org.aopalliance.intercept.MethodInterceptor;
@@ -26,6 +28,9 @@ import java.util.concurrent.atomic.AtomicReference;
  * <p>
  * 重复的请求在加锁之前就被拒绝，不占用锁的等待时间。依赖按需获取：拦截器随 Bean 后置处理器很早就被创建，那时不应连带初始化 Redis 客户端。
  * 没有可用的 {@code RedissonClient} 时调用直接失败，而不是悄悄地不加锁。
+ * <p>
+ * 按租户区分时，防重复和限流的 key 前面加上 {@code @<租户>:}，没有租户的调用用 {@code -:}。没有租户时不失败：这两个注解只拒绝调用，
+ * 不返回数据，共用一份登记和额度不会把一个租户的数据交给另一个租户，而登录这类匿名接口仍然需要限流。聚合锁不区分租户，聚合标识本身就唯一。
  */
 public class ConcurrencyInterceptor implements MethodInterceptor {
 
@@ -43,10 +48,19 @@ public class ConcurrencyInterceptor implements MethodInterceptor {
 
     private final @Nullable Duration defaultLeaseTime;
 
+    private final boolean tenantScoped;
+
     private final KeyExpressions expressions = new KeyExpressions();
 
     public ConcurrencyInterceptor(ObjectProvider<AggregateLocks> locks, ObjectProvider<RequestRegistry> requests,
             ObjectProvider<RateLimiters> rates, Duration defaultTtl, Duration defaultWaitTime, @Nullable Duration defaultLeaseTime) {
+        this(locks, requests, rates, defaultTtl, defaultWaitTime, defaultLeaseTime, false);
+    }
+
+    public ConcurrencyInterceptor(ObjectProvider<AggregateLocks> locks, ObjectProvider<RequestRegistry> requests,
+            ObjectProvider<RateLimiters> rates, Duration defaultTtl, Duration defaultWaitTime, @Nullable Duration defaultLeaseTime,
+            boolean tenantScoped) {
+        this.tenantScoped = tenantScoped;
         this.locks = locks;
         this.requests = requests;
         this.rates = rates;
@@ -72,7 +86,7 @@ public class ConcurrencyInterceptor implements MethodInterceptor {
             throw missingClient("@Idempotent", method);
         });
         String scope = idempotent.scope().isEmpty() ? defaultScope(method) : idempotent.scope();
-        String key = expressions.evaluate(idempotent.key(), method, target, invocation);
+        String key = tenantKey(expressions.evaluate(idempotent.key(), method, target, invocation));
         Duration ttl = idempotent.ttl().isEmpty() ? defaultTtl : DurationStyle.detectAndParse(idempotent.ttl());
         RequestRegistry.Registration registration = registry.register(scope, key, ttl);
         if (registration == null) {
@@ -107,10 +121,30 @@ public class ConcurrencyInterceptor implements MethodInterceptor {
             throw missingClient("@RateLimit", method);
         });
         String scope = rateLimit.scope().isEmpty() ? defaultScope(method) : rateLimit.scope();
-        String key = rateLimit.key().isEmpty() ? "*" : expressions.evaluate(rateLimit.key(), method, target, invocation);
+        String key = tenantKey(rateLimit.key().isEmpty() ? "*" : expressions.evaluate(rateLimit.key(), method, target, invocation));
         if (!limiters.tryAcquire(scope, key, rateLimit.limit(), DurationStyle.detectAndParse(rateLimit.period()))) {
             throw new RateLimitedException();
         }
+    }
+
+    /**
+     * 租户里的冒号会和分隔符混淆（租户 {@code a} 的 key {@code b:c} 与租户 {@code a:b} 的 key {@code c}），所以一律拒绝。
+     */
+    private String tenantKey(String key) {
+        if (!tenantScoped) {
+            return key;
+        }
+        String tenantId = OperatorContext.current().map(Operator::tenantId).orElse(null);
+        if (tenantId == null || tenantId.isBlank()) {
+            return "-:" + key;
+        }
+        for (int i = 0; i < tenantId.length(); i++) {
+            char c = tenantId.charAt(i);
+            if (c == ':' || Character.isISOControl(c)) {
+                throw new IllegalStateException("Tenant id contains a colon or a control character and cannot be used in a key");
+            }
+        }
+        return "@" + tenantId + ":" + key;
     }
 
     /**

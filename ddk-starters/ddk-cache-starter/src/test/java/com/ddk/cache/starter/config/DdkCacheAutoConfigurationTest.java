@@ -57,6 +57,17 @@ class DdkCacheAutoConfigurationTest {
     }
 
     @Test
+    @DisplayName("按租户区分缓存默认关闭；打开后按名字的设置优先")
+    void tenantScopeIsOffByDefaultAndCanBeSetPerCache() {
+        runner.run(context -> assertThat(((TwoLevelCache) context.getBean(DdkCacheManager.class).getCache("users")).isTenantScoped()).isFalse());
+        runner.withPropertyValues("ddk.cache.tenant-scoped=true", "ddk.cache.caches.dictionary.tenant-scoped=false").run(context -> {
+            DdkCacheManager manager = context.getBean(DdkCacheManager.class);
+            assertThat(((TwoLevelCache) manager.getCache("users")).isTenantScoped()).isTrue();
+            assertThat(((TwoLevelCache) manager.getCache("dictionary")).isTenantScoped()).isFalse();
+        });
+    }
+
+    @Test
     void usesRedisAsSecondLevelWhenConnectionFactoryExists() {
         withRedis().run(context -> {
             DdkCacheManager manager = context.getBean(DdkCacheManager.class);
