@@ -136,7 +136,7 @@ A rebuild only marks; the worker does the refreshing. It survives a restart, bec
 
 ## Operations
 
-A mark that keeps failing does not hold up the others. It is retried with a doubling delay, capped at `max-retry-delay`, and keeps its attempt count and last error in the table. To find and recover such marks, use `Projections`:
+A mark that keeps failing does not hold up the others. It is retried with a doubling delay, capped at `max-retry-delay`, and keeps its attempt count and last error in the table. A new mark for the entry makes it due at once but keeps both, so an entry that changes often and keeps failing still counts as failing until one refresh succeeds. To find and recover such marks, use `Projections`:
 
 ```java
 List<FailedRefresh> failing = projections.failures("order-search", 20);   // tenant, id, attempts, last error, next attempt

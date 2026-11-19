@@ -74,8 +74,9 @@ public class PendingRefreshes {
     }
 
     /**
-     * 标记一条数据需要刷新，加入调用方的事务。已经有标记时换一个新代次，并让它立即到期、重新计数；正在处理它的 worker
-     * 保留领取，处理完确认时会发现代次变了。
+     * 标记一条数据需要刷新，加入调用方的事务。已经有标记时换一个新代次，并让它立即到期；正在处理它的 worker
+     * 保留领取，处理完确认时会发现代次变了。失败次数和最近的错误保留：一条一直刷新失败、又不断被标记的数据仍然算作失败，
+     * 出现在 {@link #failing} 和 {@link #failures} 里，直到有一次刷新成功、标记被删除。
      * <p>
      * 插入放在嵌套事务（保存点）里：两个事务同时标记同一条数据时后一个会撞上主键，只回滚到保存点再改成更新，
      * 不会让 PostgreSQL 这类数据库把整个外层事务标记为失败。
@@ -101,7 +102,7 @@ public class PendingRefreshes {
     }
 
     private int touch(String projection, String tenant, String id) {
-        return jdbc.update("UPDATE " + table + " SET version = version + 1, generation = ?, attempts = 0, available_at = ?, last_error = NULL "
+        return jdbc.update("UPDATE " + table + " SET version = version + 1, generation = ?, available_at = ? "
                 + "WHERE projection = ? AND tenant_id = ? AND entity_id = ?", newToken(), dueNow(), projection, tenant, id);
     }
 
