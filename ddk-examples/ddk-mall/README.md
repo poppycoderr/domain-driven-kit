@@ -194,7 +194,7 @@ sum by (cache, result) (ddk_cache_access_total)
 |---|---|
 | `search_orders` | 按商品名称和状态搜顾客的订单 |
 | `get_order` | 查顾客的一个订单 |
-| `cancel_order` | 替顾客取消还没支付的订单 |
+| `cancel_order` | 替顾客取消还没支付的订单；带 agent 生成的 `requestId`，重试同一个请求不会取消两次 |
 | `get_payment` | 查订单的支付情况 |
 | `get_stock` | 查一个 SKU 的库存 |
 | `get_order_reservations` | 查订单占用的库存 |
@@ -205,7 +205,7 @@ sum by (cache, result) (ddk_cache_access_total)
 claude mcp add --transport http ddk-mall http://localhost:8080/mcp
 ```
 
-工具和接口调用同一个应用服务，业务规则只有一份：agent 用别的顾客 ID 查订单同样得到 `ORDER_NOT_FOUND`。只开放了查询和取消；发起支付、补货这类操作没有做成工具。开发模式下 `customerId` 就是参数本身；`secure` profile 下它必须是登录的顾客本人，客服可以代任何顾客，见下一节。
+工具和接口调用同一个应用服务，业务规则只有一份：agent 用别的顾客 ID 查订单同样得到 `ORDER_NOT_FOUND`。只开放了查询和取消；发起支付、补货这类操作没有做成工具。唯一的写工具 `cancel_order` 标了 `@Idempotent`：agent 超时后用同一个 `requestId` 重试，得到 `DUPLICATE_REQUEST`，再用 `get_order` 查结果。请求登记放在 Redis 里，只在 compose profile 下生效；默认 profile 关掉了 concurrency starter，重试已经取消的订单得到 `ORDER_NOT_CANCELLABLE`。每次调用在日志里留一行审计，写明工具、操作者、租户、结果和耗时。开发模式下 `customerId` 就是参数本身；`secure` profile 下它必须是登录的顾客本人，客服可以代任何顾客，见下一节。
 
 ## 认证与授权
 

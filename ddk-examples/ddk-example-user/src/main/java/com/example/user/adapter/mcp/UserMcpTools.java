@@ -16,6 +16,9 @@ import org.springframework.stereotype.Component;
 
 /**
  * 用户用例的 MCP 工具。与 {@code UserController} 同属适配层：校验入参、转成命令交给应用服务，不写业务判断，也不接触仓储。
+ * <p>
+ * 两个写工具不带 {@code requestId}：用户名唯一，重试注册得到 {@code USERNAME_TAKEN}，不会多出一个用户；停用本身可以重复执行。
+ * 没有这种领域规则兜底的写工具，见 ddk-mall 的 {@code cancel_order}：带 {@code requestId} 并标上 {@code @Idempotent}。
  */
 @Component
 @RequiredArgsConstructor
