@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.support.StaticListableBeanFactory;
 import org.springframework.modulith.events.CompletedEventPublications;
 import org.springframework.modulith.events.FailedEventPublications;
+import org.springframework.modulith.events.EventPublication;
 import org.springframework.modulith.events.ResubmissionOptions;
 
 import java.time.Duration;
@@ -37,6 +38,24 @@ class EventMaintenanceTest {
     private final IdempotentConsumer inbox = mock(IdempotentConsumer.class);
 
     private final DdkEventProperties.Maintenance settings = new DdkEventProperties.Maintenance();
+
+    @Test
+    @DisplayName("设置了重投上限时只重投尝试次数还没到上限的发布；不设时全部重投")
+    void resubmitsOnlyBelowTheAttemptLimit() {
+        EventPublication twice = mock(EventPublication.class);
+        when(twice.getCompletionAttempts()).thenReturn(2);
+        EventPublication thrice = mock(EventPublication.class);
+        when(thrice.getCompletionAttempts()).thenReturn(3);
+
+        assertThat(EventMaintenance.resubmissionOptions(settings).getFilter().test(thrice)).isTrue();
+
+        settings.setResubmitMaxAttempts(3);
+        assertThat(EventMaintenance.resubmissionOptions(settings).getFilter().test(twice)).isTrue();
+        assertThat(EventMaintenance.resubmissionOptions(settings).getFilter().test(thrice)).isFalse();
+
+        settings.setResubmitMaxAttempts(-1);
+        assertThatThrownBy(settings::validate).hasMessageContaining("resubmit-max-attempts");
+    }
 
     @Test
     @DisplayName("一轮维护按配置重投、删除已完成的发布、清理已处理消息")

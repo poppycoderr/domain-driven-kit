@@ -1,6 +1,7 @@
 package com.ddk.event.starter.config;
 
 import com.ddk.event.starter.consumer.IntegrationEventDispatcher;
+import com.ddk.event.starter.consumer.UndeliverableEventHandler;
 import com.ddk.event.starter.internal.RocketMqConsumerMetrics;
 import com.ddk.event.starter.internal.RocketMqEventConsumers;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -29,13 +30,15 @@ public class DdkRocketMqEventConsumerAutoConfiguration {
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = DdkEventProperties.PREFIX + ".rocketmq", name = "name-server")
     @ConditionalOnProperty(prefix = DdkEventProperties.PREFIX + ".rocketmq.consumer", name = "enabled", havingValue = "true", matchIfMissing = true)
-    RocketMqEventConsumers ddkRocketMqEventConsumers(IntegrationEventDispatcher dispatcher, DdkEventProperties properties) {
+    RocketMqEventConsumers ddkRocketMqEventConsumers(IntegrationEventDispatcher dispatcher, DdkEventProperties properties,
+                                                     ObjectProvider<UndeliverableEventHandler> undeliverable) {
         DdkEventProperties.RocketMq rocketmq = properties.getRocketmq();
         String nameServer = rocketmq.getNameServer();
         if (nameServer == null) {
             throw new IllegalStateException("ddk.event.rocketmq.name-server must not be empty");
         }
-        return new RocketMqEventConsumers(dispatcher, nameServer, rocketmq.getConsumer().isOrderly());
+        DdkEventProperties.RocketMq.Consumer consumer = rocketmq.getConsumer();
+        return new RocketMqEventConsumers(dispatcher, nameServer, consumer.isOrderly(), consumer.getMaxAttempts(), undeliverable.getIfAvailable());
     }
 
     @Configuration(proxyBeanMethods = false)

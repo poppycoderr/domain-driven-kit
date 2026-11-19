@@ -2,6 +2,8 @@ package com.ddk.event.starter.internal;
 
 import com.ddk.event.starter.consumer.IntegrationEventConsumer;
 import com.ddk.event.starter.consumer.IntegrationEventDispatcher;
+import com.ddk.event.starter.consumer.UndeliverableEvent;
+import com.ddk.event.starter.consumer.UndeliverableEventHandler;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
 import org.apache.rocketmq.client.consumer.listener.ConsumeOrderlyStatus;
@@ -10,6 +12,7 @@ import org.apache.rocketmq.client.consumer.listener.MessageListenerOrderly;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.message.MessageExt;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.SmartLifecycle;
@@ -39,6 +42,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  * 队列在重平衡时会转给别的实例，本实例再也收不到它的消息，也就等不到那次清零的成功。所以失败记录有时效：顺序消费默认每秒重试一次，
  * 超过 {@link #STALE_AFTER} 没有再失败的队列不再计入，否则这个数会停在最后的值上，直到重启。
+ * <p>
+ * 设置了失败上限时，一条消息失败到第 max-attempts 次就交给应用的 {@link UndeliverableEventHandler}：它正常返回，这条消息算消费完成，
+ * 队列继续往下走；它抛出异常，这条消息照常失败。并发消费时把 RocketMQ 的重投上限设成同一个数，消息先到这里，再轮到死信队列。
  */
 public class RocketMqEventConsumers implements SmartLifecycle {
 
@@ -63,16 +69,39 @@ public class RocketMqEventConsumers implements SmartLifecycle {
 
     private final Clock clock;
 
+    private final int maxAttempts;
+
+    private final @Nullable UndeliverableEventHandler undeliverable;
+
     private volatile boolean running;
 
     public RocketMqEventConsumers(IntegrationEventDispatcher dispatcher, String nameServer, boolean orderly) {
-        this(dispatcher, nameServer, orderly, Clock.systemUTC());
+        this(dispatcher, nameServer, orderly, 0, null);
+    }
+
+    public RocketMqEventConsumers(IntegrationEventDispatcher dispatcher, String nameServer, boolean orderly, int maxAttempts,
+                                  @Nullable UndeliverableEventHandler undeliverable) {
+        this(dispatcher, nameServer, orderly, maxAttempts, undeliverable, Clock.systemUTC());
     }
 
     RocketMqEventConsumers(IntegrationEventDispatcher dispatcher, String nameServer, boolean orderly, Clock clock) {
+        this(dispatcher, nameServer, orderly, 0, null, clock);
+    }
+
+    RocketMqEventConsumers(IntegrationEventDispatcher dispatcher, String nameServer, boolean orderly, int maxAttempts,
+                           @Nullable UndeliverableEventHandler undeliverable, Clock clock) {
+        if (maxAttempts < 0) {
+            throw new IllegalStateException("ddk.event.rocketmq.consumer.max-attempts must be 0 (no limit) or positive");
+        }
+        if (maxAttempts > 0 && undeliverable == null) {
+            throw new IllegalStateException("ddk.event.rocketmq.consumer.max-attempts is set but there is no UndeliverableEventHandler bean. "
+                    + "Declare one that records the message, or remove the limit; DDK does not drop messages on its own");
+        }
         this.dispatcher = dispatcher;
         this.nameServer = nameServer;
         this.orderly = orderly;
+        this.maxAttempts = maxAttempts;
+        this.undeliverable = undeliverable;
         this.clock = clock;
     }
 
@@ -108,6 +137,9 @@ public class RocketMqEventConsumers implements SmartLifecycle {
             consumer.registerMessageListener((MessageListenerOrderly) (messages, context) ->
                     consume(group, messages) ? ConsumeOrderlyStatus.SUCCESS : ConsumeOrderlyStatus.SUSPEND_CURRENT_QUEUE_A_MOMENT);
         } else {
+            if (maxAttempts > 0) {
+                consumer.setMaxReconsumeTimes(maxAttempts);
+            }
             consumer.registerMessageListener((MessageListenerConcurrently) (messages, context) ->
                     consume(group, messages) ? ConsumeConcurrentlyStatus.CONSUME_SUCCESS : ConsumeConcurrentlyStatus.RECONSUME_LATER);
         }
@@ -125,15 +157,23 @@ public class RocketMqEventConsumers implements SmartLifecycle {
 
     boolean consume(String group, List<MessageExt> messages) {
         for (MessageExt message : messages) {
+            Map<String, String> headers = message.getProperties() == null ? Map.of() : message.getProperties();
+            String body = new String(message.getBody(), StandardCharsets.UTF_8);
             try {
-                Map<String, String> headers = message.getProperties() == null ? Map.of() : message.getProperties();
-                dispatcher.dispatch(group, message.getTopic(), message.getTags(), headers, new String(message.getBody(), StandardCharsets.UTF_8));
+                dispatcher.dispatch(group, message.getTopic(), message.getTags(), headers, body);
             } catch (RuntimeException e) {
                 int failures = message.getReconsumeTimes() + 1;
+                if (maxAttempts > 0 && failures >= maxAttempts && handOver(group, message, headers, body, failures, e)) {
+                    Map<String, Failure> queues = failing.get(group);
+                    if (queues != null) {
+                        queues.remove(queue(message));
+                    }
+                    continue;
+                }
                 failing.computeIfAbsent(group, ignored -> new ConcurrentHashMap<>()).put(queue(message), new Failure(failures, clock.instant()));
                 if (orderly && failures >= STUCK_AFTER) {
                     log.error("Consuming {}:{} [{}] in group {} has failed {} times in a row; its queue waits until the message succeeds. "
-                            + "Fix the cause, or skip the message in the consumer", message.getTopic(), message.getTags(), message.getMsgId(),
+                            + "Fix the cause, or set ddk.event.rocketmq.consumer.max-attempts with an UndeliverableEventHandler", message.getTopic(), message.getTags(), message.getMsgId(),
                             group, failures, e);
                 } else {
                     log.warn("Consuming {}:{} [{}] in group {} failed and will be retried", message.getTopic(), message.getTags(),
@@ -146,6 +186,24 @@ public class RocketMqEventConsumers implements SmartLifecycle {
         if (queues != null) {
             messages.forEach(message -> queues.remove(queue(message)));
         }
+        return true;
+    }
+
+    private boolean handOver(String group, MessageExt message, Map<String, String> headers, String body, int failures, RuntimeException failure) {
+        UndeliverableEventHandler handler = undeliverable;
+        if (handler == null) {
+            return false;
+        }
+        try {
+            handler.handle(new UndeliverableEvent(group, message.getTopic(), message.getTags(), message.getMsgId(), Map.copyOf(headers), body,
+                    failures, failure));
+        } catch (RuntimeException e) {
+            log.error("UndeliverableEventHandler failed for {}:{} [{}] in group {}; the message stays and is retried", message.getTopic(),
+                    message.getTags(), message.getMsgId(), group, e);
+            return false;
+        }
+        log.warn("Consuming {}:{} [{}] in group {} failed {} times; handed it to the UndeliverableEventHandler and moved on",
+                message.getTopic(), message.getTags(), message.getMsgId(), group, failures, failure);
         return true;
     }
 

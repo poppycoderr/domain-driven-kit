@@ -60,9 +60,7 @@ public class EventMaintenance implements SmartLifecycle {
 
     private void maintain() {
         if (settings.isResubmitFailed() && failed != null) {
-            step("resubmit failed publications", () -> failed.resubmit(ResubmissionOptions.defaults()
-                    .withMinAge(settings.getResubmitMinAge())
-                    .withBatchSize(settings.getResubmitBatchSize())));
+            step("resubmit failed publications", () -> failed.resubmit(resubmissionOptions(settings)));
         }
         if (settings.getDeleteCompletedAfter().isPositive() && completed != null) {
             step("delete completed publications", () -> completed.deletePublicationsOlderThan(settings.getDeleteCompletedAfter()));
@@ -75,6 +73,14 @@ public class EventMaintenance implements SmartLifecycle {
                 }
             });
         }
+    }
+
+    static ResubmissionOptions resubmissionOptions(DdkEventProperties.Maintenance settings) {
+        ResubmissionOptions options = ResubmissionOptions.defaults()
+                .withMinAge(settings.getResubmitMinAge())
+                .withBatchSize(settings.getResubmitBatchSize());
+        int maxAttempts = settings.getResubmitMaxAttempts();
+        return maxAttempts > 0 ? options.withFilter(publication -> publication.getCompletionAttempts() < maxAttempts) : options;
     }
 
     private static void step(String name, Runnable action) {
