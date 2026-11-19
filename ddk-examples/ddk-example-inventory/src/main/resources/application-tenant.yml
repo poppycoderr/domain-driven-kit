@@ -1,0 +1,13 @@
+# 销售渠道作为租户（请求头 X-Sales-Channel）：几个渠道共用一个仓库的库存，
+# 各自的请求号互不冲突，可用量检查各有一份额度
+ddk:
+  cache:
+    # 缓存默认按租户区分，没有租户的读写直接失败；所有渠道共用的数据按名字关掉
+    tenant-scoped: true
+    caches:
+      skus:
+        # 库存是共用的：按渠道分开缓存的话，一个渠道的预留只清掉自己那份，别的渠道会读到旧的可用量
+        tenant-scoped: false
+  concurrency:
+    # 防重复和限流的 key 带上渠道；聚合锁仍按商品，所有渠道互斥
+    tenant-scoped: true

@@ -33,6 +33,21 @@ curl -s localhost:8080/low-stock
 curl -s localhost:8080/skus/1/reservations
 ```
 
+## 租户 profile
+
+`tenant` profile 把销售渠道当作租户：几个渠道共用一个仓库的库存，渠道放在请求头 `X-Sales-Channel` 里（只为演示，真实的应用从认证结果里取租户）。它打开了 `ddk.concurrency.tenant-scoped`，所以每个渠道的请求号互不冲突，可用量检查各有一份额度；`ddk.cache.tenant-scoped` 也打开了，但 `skus` 缓存按名字关掉，因为库存是所有渠道共用的数据。JVM 上的检查是 `InventoryTenantApiTest`，原生镜像冒烟测试的第二段也跑这一组请求。
+
+```bash
+mvn -pl ddk-examples/ddk-example-inventory spring-boot:run -Dspring-boot.run.profiles=tenant
+
+# 两个渠道用同一个请求号各预留一次，都成功；同一个渠道再来一次返回 409
+curl -s -X POST localhost:8080/skus/1/reservations -H 'Content-Type: application/json' -H 'X-Sales-Channel: web' -d '{"requestId":"r-1","quantity":1}'
+curl -s -X POST localhost:8080/skus/1/reservations -H 'Content-Type: application/json' -H 'X-Sales-Channel: app' -d '{"requestId":"r-1","quantity":1}'
+
+# web 渠道第 4 次检查返回 429，app 渠道还有自己的额度
+curl -s localhost:8080/skus/2/availability -H 'X-Sales-Channel: web'
+```
+
 ## 原生镜像
 
 ```bash
