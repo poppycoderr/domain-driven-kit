@@ -13,6 +13,14 @@ mvn spring-boot:run
 
 表结构由 Flyway 管理：每次变化在 `src/main/resources/db/migration` 下新增一个 `V<版本号>__<说明>.sql`，启动时自动执行；已执行过的脚本不要修改。
 
+启动时可能看到三条 WARN：
+
+- `No MyBatis mapper was found`：骨架里还没有 Mapper，加了第一个就会消失。
+- Flyway 提示 H2 的版本比它验证过的新：H2 的版本由 Spring Boot 管理，本地开发可以忽略。
+- `ddk.mybatis.worker-id and ddk.mybatis.datacenter-id are not both set`：单机开发可以忽略。多实例部署时给每个实例设置不同的 `ddk.mybatis.worker-id` 和 `ddk.mybatis.datacenter-id`，否则雪花 ID 可能重复。
+
+接口返回的 JSON 里，`Long` 和 `long` 字段都写成字符串，避免 JavaScript 丢失雪花 ID 的精度；金额、数量这类字段也一样。不需要时设置 `ddk.web.write-long-as-string=false`。项目不带接口文档，需要时加入 `org.springdoc:springdoc-openapi-starter-webmvc-ui`，版本由 DDK 的 BOM 管理，DDK 的 Web starter 会在文档里补上统一的错误响应和错误码。
+
 $h2 分层
 
 ```text

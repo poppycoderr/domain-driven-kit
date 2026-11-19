@@ -19,10 +19,12 @@ $h2 2. 领域层（不得引入 Spring、MyBatis、Jackson）
 | 文件 | 要点 |
 |---|---|
 | `domain/model/OrderId.java` | `final class OrderId extends Identifier<Long>`，私有构造器校验取值，提供 `static of(Long)` |
-| `domain/model/Order.java` | `extends AggregateRoot<OrderId>`；私有无参构造器；`static create(...)` 校验不变量并 `registerEvent(...)`；`static restore(..., Long version)` 调用 `assignId` 与 `assignVersion`，不登记事件；状态变更方法守卫不变量；只暴露读方法，不写 setter |
+| `domain/model/Order.java` | `extends AggregateRoot<OrderId>`；私有无参构造器；`static create(OrderId id, ...)` 调用 `assignId(id)`、校验不变量并 `registerEvent(...)`，事件带上 `id`；`static restore(..., Long version)` 调用 `assignId` 与 `assignVersion`，不登记事件；状态变更方法守卫不变量；只暴露读方法，不写 setter |
 | `domain/model/*.java` | 值对象用 record 实现 `ValueObject`，在紧凑构造器里校验 |
 | `domain/error/OrderError.java` | `enum OrderError implements ErrorCode`，文案用 `{0}` 占位 |
 | `domain/acl/OrderRepository.java` | `interface OrderRepository extends GenericRepository<Order, OrderId>`，用类型化标识；只声明领域真正需要的查询 |
+| `domain/acl/OrderIdGenerator.java` | `interface OrderIdGenerator { OrderId nextId(); }`，应用服务在创建聚合之前取号 |
+| `domain/event/OrderCreatedEvent.java` | record 实现 `DomainEvent`，带 `OrderId` 和 `Instant occurredOn`，另提供一个不带 `occurredOn` 的构造器，内部用 `Instant.now()`；`DomainEvent` 要求实现 `occurredOn()`，缺了编译不过。详见 `ddk-add-domain-event` |
 
 违反不变量时抛 `new BusinessException(OrderError.XXX, 参数)`。
 
@@ -30,11 +32,14 @@ $h2 3. 基础设施层
 
 | 文件 | 要点 |
 |---|---|
-| `infrastructure/orm/po/OrderPO.java` | 表的镜像，Lombok `@Data`；主键 `@TableId(type = IdType.ASSIGN_ID)`；版本列 `@Version private Long version` |
+| `infrastructure/orm/po/OrderPO.java` | 表的镜像，Lombok `@Data`；主键 `@TableId(type = IdType.INPUT)`，ID 由 `OrderIdGenerator` 预先生成；版本列 `@Version private Long version` |
 | `infrastructure/orm/mapper/OrderMapper.java` | `interface OrderMapper extends BaseMapper<OrderPO>`，加 `@Mapper` |
+| `infrastructure/acl/impl/SnowflakeOrderIdGenerator.java` | `@Component` 实现 `OrderIdGenerator`，注入 MyBatis-Plus 的 `IdentifierGenerator`（DDK MyBatis starter 已注册，按 `ddk.mybatis.worker-id` / `datacenter-id` 生成雪花 ID），返回 `OrderId.of(idGenerator.nextId(null).longValue())`。不要直接调用 Hutool 的 `IdUtil`，它不读这两个配置 |
 | `infrastructure/converter/OrderPoConverter.java` | `@Component` + `@EnhancedMapper(source = Order.class, target = OrderPO.class)`，实现 `BeanMapper<Order, OrderPO>`，手写字段映射，带上 `version` |
 | `infrastructure/converter/OrderEntityConverter.java` | 反方向，经由 `Order.restore(...)` 重建 |
 | `infrastructure/acl/impl/OrderRepositoryImpl.java` | `@Repository`，`extends GenericRepositoryImpl<Order, OrderId, OrderPO, OrderMapper> implements OrderRepository`（`OrderId` 由通用仓储拆成主键值）；自定义查询用 `Wrappers.lambdaQuery(OrderPO.class)`，结果经 `toEntity()::map` 转换 |
+
+为什么预先取号，而不是让 MyBatis-Plus 在插入时生成（`IdType.ASSIGN_ID`）：插入时才有 ID 的话，`create` 里登记的事件拿不到聚合的 ID，转换器也要处理 `id()` 为 null 的情况。预先取号让聚合从诞生起就有身份。
 
 两个方向的转换器缺一个，启动或首次使用时就会抛 `MissingMapperException`。
 

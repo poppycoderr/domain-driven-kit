@@ -30,8 +30,8 @@ adapter ──► application ──► domain ◄── infrastructure
 | `application.service` | 应用服务：取聚合、调用领域方法、保存、转响应；`@Transactional` 在这里 | 业务规则、状态判断 |
 | `application.handler` | 领域事件订阅方：必须和业务一起提交的（翻译成集成消息、标记读模型）用 `@EventListener`，可以丢的通知用 `@TransactionalEventListener(phase = AFTER_COMMIT)`，见 `ddk-add-domain-event` | 用 `AFTER_COMMIT` 做必须完成的事 |
 | `domain.model` | 聚合根（继承 `AggregateRoot`）、类型化标识（继承 `Identifier`）、值对象（record 实现 `ValueObject`）、枚举 | Spring、MyBatis、Jackson 的任何类型 |
-| `domain.event` | 领域事件（record 实现 `DomainEvent`，过去式命名） | |
-| `domain.acl` | 仓储契约（继承 `GenericRepository<聚合, 类型化标识>`）与外部能力端口 | 实现类 |
+| `domain.event` | 领域事件（record 实现 `DomainEvent`，过去式命名，带 `Instant occurredOn`） | |
+| `domain.acl` | 仓储契约（继承 `GenericRepository<聚合, 类型化标识>`）、标识生成端口（`*IdGenerator`，聚合创建前取号）与外部能力端口 | 实现类 |
 | `domain.service` | 跨聚合、不属于任何单个聚合的领域逻辑 | 事务、编排 |
 | `domain.error` | 错误码枚举（实现 `ErrorCode`） | |
 | `infrastructure.acl.impl` | 仓储实现（继承 `GenericRepositoryImpl`）与端口实现 | 业务规则 |
