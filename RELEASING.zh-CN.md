@@ -97,7 +97,7 @@ mvn -B -ntp -Prelease,central deploy
 
 打开 [Deployments](https://central.sonatype.com/publishing/deployments)，部署 `com.domaindrivenkit:X.Y.Z` 应该是 `VALIDATED`，没有错误。发布前确认：
 
-- 组件正好是预期的 22 个：父 pom `domain-driven-kit`、`ddk-starters`、`ddk-archetypes`、`ddk-dependencies`、`ddk-core`、`ddk-test`、`ddk-mybatis`、13 个 starter 和两个 archetype，没有示例模块；
+- 组件正好是预期的 21 个：父 pom `domain-driven-kit`、`ddk-starters`、`ddk-archetypes`、`ddk-dependencies`、`ddk-core`、`ddk-test`、`ddk-mybatis`、12 个 starter 和两个 archetype，没有示例模块；
 - 所有坐标都是 `com.domaindrivenkit`，版本都是 `X.Y.Z`；
 - 抽查几个文件，例如 BOM 的 POM 及其 `.asc` 和校验和，与本地的部署包一致。
 
