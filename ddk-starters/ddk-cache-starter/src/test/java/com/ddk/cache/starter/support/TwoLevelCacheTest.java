@@ -1,5 +1,7 @@
 package com.ddk.cache.starter.support;
 
+import com.ddk.core.context.Operator;
+import com.ddk.core.context.OperatorContext;
 import org.junit.jupiter.api.Test;
 import org.springframework.cache.Cache;
 import org.springframework.cache.concurrent.ConcurrentMapCache;
@@ -199,5 +201,63 @@ class TwoLevelCacheTest {
 
         // 没有 L1 又没有 L2，只能每次回源——但业务不受影响
         assertThat(calls).hasValue(2);
+    }
+
+    private TwoLevelCache tenantCache(boolean localEnabled) {
+        CacheSettings settings = new CacheSettings("users", Duration.ofMinutes(30), localEnabled, Duration.ofSeconds(30), 100);
+        return new TwoLevelCache(settings, true, Duration.ofMinutes(1), remote, new DefaultConversionService(), publisher, metrics, true);
+    }
+
+    @Test
+    void tenantScopedCacheKeepsOneEntryPerTenant() {
+        TwoLevelCache cache = tenantCache(true);
+
+        OperatorContext.runAs(Operator.of("1", "t1"), () -> cache.put(42L, "alice of t1"));
+        OperatorContext.runAs(Operator.of("1", "t2"), () -> cache.put(42L, "alice of t2"));
+
+        assertThat(remote.get("@t1:42").get()).isEqualTo("alice of t1");
+        assertThat(remote.get("@t2:42").get()).isEqualTo("alice of t2");
+        assertThat(OperatorContext.callAs(Operator.of("2", "t1"), () -> cache.get(42L).get())).isEqualTo("alice of t1");
+        assertThat(publisher.messages).containsExactly("evict users @t1:42", "evict users @t2:42");
+
+        OperatorContext.runAs(Operator.of("1", "t1"), () -> cache.evict(42L));
+        assertThat(remote.get("@t1:42")).isNull();
+        assertThat(OperatorContext.callAs(Operator.of("1", "t2"), () -> cache.peekLocal(42L))).isEqualTo("alice of t2");
+    }
+
+    @Test
+    void tenantScopedLoaderRunsPerTenant() {
+        TwoLevelCache cache = tenantCache(false);
+        AtomicInteger calls = new AtomicInteger();
+
+        for (String tenant : List.of("t1", "t2", "t1")) {
+            OperatorContext.callAs(Operator.of("1", tenant), () -> cache.get(7L, () -> tenant + "-" + calls.incrementAndGet()));
+        }
+
+        assertThat(calls).hasValue(2);
+        assertThat(remote.get("@t1:7").get()).isEqualTo("t1-1");
+        assertThat(remote.get("@t2:7").get()).isEqualTo("t2-2");
+    }
+
+    @Test
+    void tenantScopedCacheRefusesCallsWithoutTenant() {
+        TwoLevelCache cache = tenantCache(true);
+
+        assertThatThrownBy(() -> cache.get(42L)).isInstanceOf(IllegalStateException.class).hasMessageContaining("users is tenant-scoped");
+        assertThatThrownBy(() -> OperatorContext.runAs(Operator.of("1"), () -> cache.put(42L, "x")))
+                .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> OperatorContext.runAs(Operator.of("1", "a:b"), () -> cache.put(42L, "x")))
+                .hasMessageContaining("colon");
+        assertThat(remote.getNativeCache()).isEmpty();
+    }
+
+    @Test
+    void cacheWithoutTenantScopeKeepsTheKeyFormat() {
+        TwoLevelCache cache = cache(false, remote);
+
+        OperatorContext.runAs(Operator.of("1", "t1"), () -> cache.put(42L, "alice"));
+
+        assertThat(remote.get("42").get()).isEqualTo("alice");
+        assertThat(cache.isTenantScoped()).isFalse();
     }
 }

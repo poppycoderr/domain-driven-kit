@@ -139,6 +139,7 @@ This is a business limit, such as exports per tenant or SMS codes per phone numb
 | `ddk.concurrency.lock.lease-time` | | Default time to hold a lock; unset means the watchdog renews it |
 | `ddk.concurrency.lock.inside-transaction` | `fail` | What to do when a lock is acquired inside a transaction: `fail` throws, `warn` logs, `ignore` does not check |
 | `ddk.concurrency.idempotent.ttl` | `10m` | Default lifetime of a request registration |
+| `ddk.concurrency.tenant-scoped` | `false` | Put the tenant from `OperatorContext` into the keys of `@Idempotent` and `@RateLimit`, see [Tenants](#tenants) |
 
 ## Not covered yet
 
@@ -147,7 +148,21 @@ This is a business limit, such as exports per tenant or SMS codes per phone numb
 
 ## Tenants
 
-The keys of `@Idempotent`, `@RateLimit` and `@AggregateLock` are the prefix, the scope and the value of the key expression; they do not include the tenant. Two tenants whose business keys coincide, such as order numbers that each tenant counts from 1, share a registration, a quota or a lock: the second request is rejected as a duplicate, or both count against one limit. Nothing leaks, but requests fail. Put the tenant into the key expression when keys are only unique within a tenant, for example `key = "T(com.ddk.core.context.OperatorContext).required().tenantId() + ':' + #command.orderNo()"`.
+By default the keys of `@Idempotent`, `@RateLimit` and `@AggregateLock` are the prefix, the scope and the value of the key expression; they do not include the tenant. Two tenants whose business keys coincide, such as request ids or order numbers that each tenant counts from 1, share a registration or a quota: the second request is rejected as a duplicate, or both count against one limit. Nothing leaks, but requests fail.
+
+With `ddk.concurrency.tenant-scoped=true`, `@Idempotent` and `@RateLimit` put the tenant from `OperatorContext` in front of the key:
+
+| Annotation | Key |
+|---|---|
+| `@Idempotent` | `<key-prefix>idempotent:<scope>:@<tenant>:<key>` |
+| `@RateLimit` | `<key-prefix>rate:<scope>:<limit>/<period>ms:@<tenant>:<key>`; without a `key`, each tenant gets its own quota for the use case |
+
+- A call without a tenant uses `-:` in place of `@<tenant>:` and shares one registration space and one quota with every other call without a tenant. It does not fail: these annotations only reject calls and return no data, and endpoints without a signed-in user, such as a login, still need a rate limit.
+- A tenant id with a colon or a control character fails, because `@a:b:c` could be tenant `a` or tenant `a:b`.
+- `@AggregateLock` is not affected. An aggregate id identifies one aggregate, and two tenants that lock the same id only wait for each other. When ids are only unique within a tenant, put the tenant into `id`.
+- Off by default, because key formats are part of the [compatibility contract](../../COMPATIBILITY.md). During the rolling deployment that turns it on, old and new instances use different keys, so a request retried across them can run twice; turn it on when duplicate submits are rare, or drain the old instances first.
+
+`ddk-example-inventory` runs with `--spring.profiles.active=tenant` to show this: sales channels are the tenants, request ids and availability quotas are per channel, and the stock is shared.
 
 ## Common errors
 
@@ -156,6 +171,6 @@ The keys of `@Idempotent`, `@RateLimit` and `@AggregateLock` are the prefix, the
 | `@AggregateLock on X.y needs a RedissonClient: configure spring.data.redis.* or declare a RedissonClient bean` | No Redis connection and no `RedissonClient` bean; the call refuses to run without the lock | Configure `spring.data.redis.*` or declare a `RedissonClient` |
 | Startup fails: `ddk-concurrency-starter creates a RedissonClient for standalone Redis only` | Spring Boot is configured for Sentinel or Cluster | Declare your own `RedissonClient` bean for that topology |
 | `Lock [...] is being acquired inside a transaction and would be released before the commit` | The lock is taken inside a transaction that started earlier, so another caller could read data that is not committed yet | Take the lock first and start the transaction inside it; `ddk.concurrency.lock.inside-transaction=warn` only logs |
-| A request is rejected as a duplicate although this tenant never sent it | Another tenant used the same business key; keys do not include the tenant | Put the tenant into the key expression, see [Tenants](#tenants) |
+| A request is rejected as a duplicate although this tenant never sent it | Another tenant used the same business key; keys do not include the tenant | Set `ddk.concurrency.tenant-scoped=true`, see [Tenants](#tenants) |
 | `Expression "..." on X.y evaluated to an empty key` | The SpEL key resolved to `null` or blank | Fix the expression, or validate the argument before the call |
 | `CancellationException` while waiting for a lock | The thread was interrupted, for example during shutdown; this is not a busy lock | Do not retry it as if the lock were busy |

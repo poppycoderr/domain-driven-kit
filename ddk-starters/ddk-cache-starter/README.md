@@ -72,11 +72,32 @@ ddk:
 | `ddk.cache.cache-null-values` | `true` | Cache `null` results to stop cache penetration |
 | `ddk.cache.null-value-ttl` | `1m` | TTL for cached `null`, applied to both levels |
 | `ddk.cache.key-prefix` | `ddk:cache:` | Redis key is `<prefix><cache>::<key>`; also prefixes the invalidation channel |
+| `ddk.cache.tenant-scoped` | `false` | Keep one entry per tenant: the key becomes `<prefix><cache>::@<tenant>:<key>`, with the tenant from `OperatorContext`. A call without a tenant fails. See [Tenants](#tenants) |
 | `ddk.cache.local.enabled` | `false` | Enable L1 for every cache |
 | `ddk.cache.local.ttl` | `30s` | L1 TTL. It bounds how long another instance can serve an old value after an invalidation that reached Redis; see [Design decisions](#design-decisions) for when it does not |
 | `ddk.cache.local.maximum-size` | `10000` | L1 entries per cache |
 | `ddk.cache.local.broadcast-evict` | `true` | Broadcast L1 invalidation over Redis Pub/Sub |
-| `ddk.cache.caches.<name>.*` | — | Per-cache `ttl`, `local-enabled`, `local-ttl`, `local-maximum-size` |
+| `ddk.cache.caches.<name>.*` | — | Per-cache `ttl`, `local-enabled`, `local-ttl`, `local-maximum-size`, `tenant-scoped` |
+
+## Tenants
+
+A cache hit skips the method and its tenant-filtered SQL, so a key without the tenant hands one tenant's data to another. With `ddk.cache.tenant-scoped=true`, every cache keeps one entry per tenant:
+
+```yaml
+ddk:
+  cache:
+    tenant-scoped: true
+    caches:
+      dictionary:
+        tenant-scoped: false   # data that every tenant shares
+```
+
+- The tenant comes from `OperatorContext`, which the web starter fills from your `OperatorResolver`. The converted key gets `@<tenant>:` in front, in L1, in Redis and in the invalidation broadcast: `ddk:cache:orders::@t1:42`.
+- A call to a tenant-scoped cache without a tenant fails with `IllegalStateException`, the same rule as the MyBatis tenant line. Run jobs and listeners inside `OperatorContext.runAs(...)`, or turn the scope off for the caches they use.
+- A tenant id with a colon or a control character fails, because `@a:b:c` could be tenant `a` or tenant `a:b`.
+- `clear()` clears the entries of every tenant.
+- Keep shared data unscoped. Scoping it gives every tenant its own copy, and an eviction made while serving one tenant leaves the other copies stale until their TTL.
+- Off by default, because key formats are part of the [compatibility contract](../../COMPATIBILITY.md). Turning it on starts with empty caches: the old entries are no longer read and expire with their TTL.
 
 ## Design decisions
 
@@ -85,7 +106,7 @@ ddk:
 - **Another transport for the broadcast.** Declare your own `CacheInvalidationPublisher` bean. DDK then neither publishes nor subscribes on its Redis channel; your receiving side clears the local level with `cacheManager.findCache(name).ifPresent(cache -> cache.evictLocal(key))`, or `clearLocal()` for a clear.
 - **Redis failures never reach business code.** L2 errors are treated as misses and counted. Caches with L1 keep serving from L1; caches without L1 call the method every time.
 - **A failed write to L2 is not retried.** When `@CacheEvict` or `@CachePut` runs while Redis is unreachable, the local level is updated but the old value stays in Redis. Once Redis is back, every instance reads that old value again, until the L2 TTL ends it. So the staleness bound is the L1 TTL only when the invalidation reached Redis; when it failed, it is the L2 TTL. For caches where that matters, keep the L2 TTL short and alert on `ddk.cache.remote.errors{operation="evict"}`.
-- **Keys do not include the tenant.** A cache hit returns the value without running the method, so the SQL with its tenant condition never runs. With multi-tenancy, put the tenant into the key yourself, for example `@Cacheable(cacheNames = "skus", key = "T(com.ddk.core.context.OperatorContext).required().tenantId() + ':' + #skuId")`, or use a cache only for data that all tenants share.
+- **Keys include the tenant only when asked.** A cache hit returns the value without running the method, so the SQL with its tenant condition never runs. With multi-tenancy, turn on `ddk.cache.tenant-scoped`, see [Tenants](#tenants).
 - **Without a `RedisConnectionFactory` bean, every cache runs on L1 only** and the application still starts.
 - **Values in L2 use the Redis starter's serializer**, including its deserialization type allow-list (`ddk.redis.trusted-packages`). When that serializer is missing, for example because the application excluded the Redis starter's auto-configuration, the cache builds one the same way that trusts the application's own packages, and logs a warning; it never falls back to JDK serialization.
 - **`clear()` uses `SCAN`**, not `KEYS`.
@@ -110,6 +131,7 @@ Keys are never used as tags.
 | Logs `L2 cache [...] get failed, falling back` | Redis failed during an operation; the cache falls back instead of failing the call | Check Redis; the warning repeats while it is down |
 | Another instance serves an old value for a while | L1 is on and the invalidation broadcast was missed or turned off | Keep `ddk.cache.local.broadcast-evict=true`; `local-ttl` bounds how long a missed invalidation can last |
 | After a Redis outage, all instances serve an old value until it expires in Redis | An eviction ran while Redis was unreachable; it cleared the local level but not Redis | Evict the key again, or wait for the L2 TTL; keep the L2 TTL short for caches that must not stay stale |
-| One tenant sees another tenant's cached data | The cache key does not include the tenant, and a hit skips the method and its tenant-filtered SQL | Put the tenant into the key, or do not cache tenant data |
+| One tenant sees another tenant's cached data | The cache key does not include the tenant, and a hit skips the method and its tenant-filtered SQL | Set `ddk.cache.tenant-scoped=true`, see [Tenants](#tenants) |
+| `Cache x is tenant-scoped but OperatorContext has no tenant` | A tenant-scoped cache was used outside a request, for example in a job or listener, or the request has no operator | Run the call inside `OperatorContext.runAs(...)`, or set `ddk.cache.caches.x.tenant-scoped=false` if the data is shared |
 | Startup fails: `ttl jitter must be within [0, 1]` | `ddk.cache.ttl-jitter` is out of range | Use a ratio such as `0.1` |
 | A value cached with `@Cacheable` cannot be read through `RedisTemplate` | The cache uses its own serialization | Read cached values through the cache |

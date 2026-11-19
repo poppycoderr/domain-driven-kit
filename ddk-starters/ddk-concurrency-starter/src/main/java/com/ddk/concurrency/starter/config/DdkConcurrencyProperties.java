@@ -27,6 +27,14 @@ public class DdkConcurrencyProperties {
      */
     private String keyPrefix = "ddk:";
 
+    /**
+     * {@code @Idempotent} 与 {@code @RateLimit} 的 key 是否带上 {@code OperatorContext} 里的租户：每个租户各有一份请求登记和限流额度，
+     * 例如 {@code ddk:idempotent:<scope>:@<租户>:<key>}；没有租户的调用共用 {@code -:} 这一份。聚合锁不受影响。
+     * <p>
+     * 默认关闭：key 的格式属于兼容性约定。滚动发布期间新旧实例的 key 不同，打开它的那次发布里同一个请求可能在新旧实例上各执行一次。
+     */
+    private boolean tenantScoped = false;
+
     private Lock lock = new Lock();
 
     private IdempotentRequests idempotent = new IdempotentRequests();

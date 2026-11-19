@@ -38,6 +38,8 @@ import java.util.concurrent.locks.ReentrantLock;
  * <h2>key</h2>
  * L1 和 L2 统一使用转换后的字符串 key。失效广播只能传字符串，
  * 如果 L1 用原始对象做 key，收到 {@code "42"} 时清不掉以 {@code 42L} 存进去的条目。
+ * 按租户区分的缓存在转换后的 key 前加 {@code @<租户>:}，L1、L2 和失效广播用的都是加了租户的 key；
+ * {@link #clear()} 清的是所有租户的条目。
  *
  * @author Elijah Du
  */
@@ -55,6 +57,8 @@ public class TwoLevelCache extends AbstractValueAdaptingCache {
     private final CacheInvalidationPublisher publisher;
     private final CacheMetrics metrics;
 
+    private final boolean tenantScoped;
+
     /**
      * 没有 L1 时用于 {@code @Cacheable(sync = true)} 的进程内互斥，与 Spring 的 RedisCache 行为一致。
      */
@@ -67,8 +71,23 @@ public class TwoLevelCache extends AbstractValueAdaptingCache {
                          ConversionService conversionService,
                          CacheInvalidationPublisher publisher,
                          CacheMetrics metrics) {
+        this(settings, allowNullValues, nullValueTtl, remote, conversionService, publisher, metrics, false);
+    }
+
+    /**
+     * @param tenantScoped 是否按 {@code OperatorContext} 里的租户区分条目；为 true 时没有租户的调用直接失败
+     */
+    public TwoLevelCache(CacheSettings settings,
+                         boolean allowNullValues,
+                         Duration nullValueTtl,
+                         @Nullable Cache remote,
+                         ConversionService conversionService,
+                         CacheInvalidationPublisher publisher,
+                         CacheMetrics metrics,
+                         boolean tenantScoped) {
         super(allowNullValues);
         this.settings = settings;
+        this.tenantScoped = tenantScoped;
         this.remote = remote;
         this.conversionService = conversionService;
         this.publisher = publisher;
@@ -95,10 +114,18 @@ public class TwoLevelCache extends AbstractValueAdaptingCache {
         return remote != null;
     }
 
+    public boolean isTenantScoped() {
+        return tenantScoped;
+    }
+
     @Override
     @Nullable
     protected Object lookup(Object key) {
-        String cacheKey = toCacheKey(key);
+        return lookupKey(toCacheKey(key));
+    }
+
+    @Nullable
+    private Object lookupKey(String cacheKey) {
         if (local != null) {
             Object value = local.getIfPresent(cacheKey);
             if (value != null) {
@@ -122,7 +149,7 @@ public class TwoLevelCache extends AbstractValueAdaptingCache {
     @SuppressWarnings("unchecked")
     public <T> @Nullable T get(Object key, Callable<T> valueLoader) {
         String cacheKey = toCacheKey(key);
-        Object stored = lookup(cacheKey);
+        Object stored = lookupKey(cacheKey);
         if (stored != null) {
             return (T) fromStoreValue(stored);
         }
@@ -221,6 +248,11 @@ public class TwoLevelCache extends AbstractValueAdaptingCache {
     }
 
     String toCacheKey(Object key) {
+        String converted = convert(key);
+        return tenantScoped ? TenantKeys.prefix(getName()) + converted : converted;
+    }
+
+    private String convert(Object key) {
         if (key instanceof String s) {
             return s;
         }
