@@ -40,7 +40,7 @@ Integration tests for the cache starter use Testcontainers and need a running Do
 | `SECURITY.md` | Reporting vulnerabilities privately |
 | `SUPPORT.md` | Maintenance, versions that get fixes, tested platforms, rolling back |
 | `RELEASING.md` | How a release is tagged, signed and published to Maven Central (maintainer only) |
-| `scripts/` | `ddk.sh` installer and its test (`test-ddk.sh`), the API baseline installer, the BOM and test report checks, the native image smoke test, and the diagram translation script |
+| `scripts/` | `ddk.sh` installer and its test (`test-ddk.sh`), the API baseline installer, the BOM and test report checks, the release version setter and the release checksum check, the native image smoke test, and the diagram translation script |
 
 ## Conventions
 

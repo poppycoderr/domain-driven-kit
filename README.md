@@ -138,7 +138,7 @@ gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys 02F5D443996C2388C8039D6C
 gpg --verify ddk-core-1.0.1.jar.asc ddk-core-1.0.1.jar
 ```
 
-The jars on [GitHub Releases](https://github.com/poppycoderr/domain-driven-kit/releases) are built by the release workflow and carry a build provenance attestation: `gh attestation verify <jar> --repo poppycoderr/domain-driven-kit`. The two are separate builds of the same tag, so take the jar and the `.asc` from the same place: a GitHub Release jar does not match a Maven Central signature.
+The jars on [GitHub Releases](https://github.com/poppycoderr/domain-driven-kit/releases) are built by the release workflow and carry a build provenance attestation: `gh attestation verify <jar> --repo poppycoderr/domain-driven-kit`. The two are separate builds of the same tag. From 1.1.0 the build is reproducible and the release checks that both places hold the same files, so a Maven Central jar has the same SHA-256 as the GitHub Release jar and the attestation and the signature cover both. Up to 1.0.x the jars differ: take the jar and the `.asc` from the same place.
 
 ### Snapshots and older releases
 

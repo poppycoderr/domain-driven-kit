@@ -2,7 +2,7 @@
 
 [English](./RELEASING.md)
 
-同一个 tag 发布到两个地方：**GitHub Release** 由 CI 构建，附带构建来源证明；**Maven 中央仓库**以 `com.domaindrivenkit` 发布，由维护者构建并签名。什么时候发布由维护者决定，本页只写流程。私钥、口令和 token 永远不进本仓库、提交历史、CI 日志或证据文件。
+同一个 tag 发布到两个地方：**GitHub Release** 由 CI 构建，附带构建来源证明；**Maven 中央仓库**以 `com.domaindrivenkit` 发布，由维护者构建并签名。构建是可复现的：两边构建出的文件逐字节相同，发布后有一项检查来证明这一点。什么时候发布由维护者决定，本页只写流程。私钥、口令和 token 永远不进本仓库、提交历史、CI 日志或证据文件。
 
 ## 一、准备
 
@@ -18,7 +18,7 @@ git tag vX.Y.Z
 git push origin vX.Y.Z
 ```
 
-`.github/workflows/release.yml` 按 tag 设置版本号，执行 `mvn -B -ntp install -Parchetype-it,release`，为每个文件生成构建来源证明，再以 CHANGELOG 的那一节为说明创建 GitHub Release。只有版本号最高的发布会成为 Latest：旧版本线上的补丁（例如 1.0.1 之后的 0.12.2）以 `--latest=false` 创建。确认流程运行和 Release 都正常后再继续。
+`.github/workflows/release.yml` 用 `scripts/set-release-version.sh` 按 tag 设置版本号，执行 `mvn -B -ntp install -Parchetype-it,release`，为每个文件生成构建来源证明，再以 CHANGELOG 的那一节为说明创建 GitHub Release。只有版本号最高的发布会成为 Latest：旧版本线上的补丁（例如 1.0.1 之后的 0.12.2）以 `--latest=false` 创建。确认流程运行和 Release 都正常后再继续。
 
 ## 三、Maven 中央仓库
 
@@ -76,13 +76,12 @@ git push origin vX.Y.Z
 ```bash
 git clone --depth 1 --branch vX.Y.Z https://github.com/poppycoderr/domain-driven-kit.git ddk-release
 cd ddk-release
-VERSION=X.Y.Z
-mvn -B -ntp versions:set -DnewVersion="$VERSION" -DprocessAllModules=true -DgenerateBackupPoms=false
-sed -i.bak "s|<ddk.version>.*</ddk.version>|<ddk.version>$VERSION</ddk.version>|" ddk-dependencies/pom.xml
-rm ddk-dependencies/pom.xml.bak
+scripts/set-release-version.sh X.Y.Z
 python3 scripts/check-bom.py
 mvn -B -ntp install -Parchetype-it,release
 ```
+
+`set-release-version.sh` 和发布流程用的是同一个脚本。除了版本号，它还把 `project.build.outputTimestamp` 设成这个 tag 所在提交的时间，jar 里每个条目都用这个时间，所以这次构建和 GitHub Release 背后的那次构建产出相同的文件。和流程一样用 JDK 21 构建；CI 对每次改动都会重新构建一遍并比对文件，某个插件不再可复现时会先在那里失败。
 
 然后签名并上传。`central` profile 用 BouncyCastle 签名，不需要安装 `gpg`；开启了 `bestPractices`，私钥和口令只从下面两个环境变量读取：
 
@@ -109,6 +108,14 @@ curl -fsSO https://repo.maven.apache.org/maven2/com/domaindrivenkit/ddk-core/X.Y
 curl -fsSO https://repo.maven.apache.org/maven2/com/domaindrivenkit/ddk-core/X.Y.Z/ddk-core-X.Y.Z.jar.asc
 gpg --verify ddk-core-X.Y.Z.jar.asc ddk-core-X.Y.Z.jar
 ```
+
+再把 GitHub Release 里的每个文件和中央仓库上的同名文件逐一比对：
+
+```bash
+python3 scripts/check-release-checksums.py X.Y.Z
+```
+
+脚本下载两边的文件并比较 SHA-256，每一行都应该是 `ok`，最后一行给出一致的文件数。有文件不一致，说明两次构建的源码或设置不同：先查清原因，再对外宣布这次发布。1.1.0 之前的版本不是可复现构建，大部分文件都会不一致。
 
 ### 上传失败时
 

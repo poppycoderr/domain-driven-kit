@@ -138,7 +138,7 @@ gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys 02F5D443996C2388C8039D6C
 gpg --verify ddk-core-1.0.1.jar.asc ddk-core-1.0.1.jar
 ```
 
-[GitHub Release](https://github.com/poppycoderr/domain-driven-kit/releases) 上的 jar 由发布工作流构建，附有构建来源证明：`gh attestation verify <jar> --repo poppycoderr/domain-driven-kit`。两处的构件是同一个 tag 的两次构建，jar 和 `.asc` 要取自同一处：GitHub Release 的 jar 配不上中央仓库的签名。
+[GitHub Release](https://github.com/poppycoderr/domain-driven-kit/releases) 上的 jar 由发布工作流构建，附有构建来源证明：`gh attestation verify <jar> --repo poppycoderr/domain-driven-kit`。两处的构件是同一个 tag 的两次构建。从 1.1.0 起构建可复现，发布时会核对两处的文件是否相同，所以中央仓库的 jar 和 GitHub Release 的 jar SHA-256 相同，来源证明和签名对两处都有效。1.0.x 及更早版本的 jar 互不相同：jar 和 `.asc` 要取自同一处。
 
 ### 快照与旧版本
 
