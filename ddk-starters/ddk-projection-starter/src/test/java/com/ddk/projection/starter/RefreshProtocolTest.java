@@ -597,6 +597,35 @@ class RefreshProtocolTest {
     }
 
     @Test
+    @DisplayName("新的标记让失败的数据立即到期，但不清零失败次数和原因：一直失败的数据不会因为不断变化而从失败列表里消失")
+    void aNewMarkKeepsTheFailureCount() {
+        jdbc.update("INSERT INTO t_source (id, state) VALUES ('1', 'v1')");
+        pending.mark("catalog", "", "1");
+        RefreshWorker worker = worker(id -> {
+            throw new IllegalStateException("index unavailable");
+        });
+        worker.drain();
+        assertThat(pending.due(10)).as("backing off").isEmpty();
+
+        pending.mark("catalog", "", "1");
+        assertThat(pending.due(10)).as("due at once after the new mark").hasSize(1);
+        assertThat(pending.failing("catalog")).isEqualTo(1);
+        assertThat(pending.failures("catalog", 10)).singleElement().satisfies(failure -> {
+            assertThat(failure.attempts()).isEqualTo(1);
+            assertThat(failure.lastError()).contains("index unavailable");
+        });
+
+        worker.drain();
+        assertThat(pending.failures("catalog", 10)).singleElement().satisfies(failure -> assertThat(failure.attempts()).isEqualTo(2));
+
+        RefreshWorker fixed = worker(this::copy);
+        pending.mark("catalog", "", "1");
+        drainUntilEmpty(fixed);
+        assertThat(view).containsEntry("1", "v1");
+        assertThat(pending.failing("catalog")).isZero();
+    }
+
+    @Test
     @DisplayName("租户标识超过 64 个字符时拒绝标记")
     void rejectsOverlongTenants() {
         assertThatThrownBy(() -> pending.mark("catalog", "t".repeat(65), "1")).isInstanceOf(IllegalArgumentException.class);
