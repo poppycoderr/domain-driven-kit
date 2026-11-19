@@ -32,16 +32,29 @@ start() {
     echo "the application did not start" >&2
     exit 1
 }
-# stop: fails the test on any ERROR the run logged, then stops the binary
+# stop: stops the binary, then fails the test if it did not stop within 30 seconds or logged an ERROR
 stop() {
+    kill "$APP" 2>/dev/null || true
+    for _ in $(seq 1 60); do
+        kill -0 "$APP" 2>/dev/null || break
+        sleep 0.5
+    done
+    local errors=0
+    if kill -0 "$APP" 2>/dev/null; then
+        echo "FAIL the application did not stop within 30 seconds of SIGTERM" >&2
+        kill -9 "$APP" 2>/dev/null || true
+        errors=1
+    fi
+    wait "$APP" 2>/dev/null || true
     if grep -E ' ERROR ' "$LOG" >&2; then
         echo "FAIL errors in the application log" >&2
+        errors=1
+    fi
+    if [[ "$errors" != 0 ]]; then
         echo "--- application log" >&2
         cat "$LOG" >&2
         failed=1
     fi
-    kill "$APP" 2>/dev/null || true
-    wait "$APP" 2>/dev/null || true
 }
 
 failed=0
@@ -50,7 +63,7 @@ expect() {
     local name="$1" status="$2" text="$3"
     shift 3
     local body code
-    body="$(curl -s -w '\n%{http_code}' "$@")"
+    body="$(curl -s -m 10 -w '\n%{http_code}' "$@")"
     code="${body##*$'\n'}"
     body="${body%$'\n'*}"
     if [[ "$code" == "$status" && "$body" == *"$text"* ]]; then
@@ -64,7 +77,7 @@ expect() {
 eventually() {
     local name="$1" text="$2" url="$3"
     for _ in $(seq 1 40); do
-        [[ "$(curl -s "$url")" == *"$text"* ]] && { printf 'ok   %s\n' "$name"; return; }
+        [[ "$(curl -s -m 10 "$url")" == *"$text"* ]] && { printf 'ok   %s\n' "$name"; return; }
         sleep 0.5
     done
     printf 'FAIL %s: no %s from %s within 20 seconds\n' "$name" "$text" "$url" >&2
