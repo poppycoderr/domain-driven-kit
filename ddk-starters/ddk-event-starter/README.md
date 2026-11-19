@@ -388,7 +388,7 @@ With Micrometer present, `ddk.event.publications{status}` reports how many publi
 
 So the counts are not taken when the metrics are scraped. A background thread samples them every `ddk.event.metrics.publications.interval` (1 minute by default), four counts per sample, and the gauges report the last sample: the database load no longer grows with the scrape rate, and a value can be up to one interval old. When a sample fails, the gauges keep the previous one; after three failed samples in a row they report NaN until a sample succeeds, so watch `sample.age` as well. Every instance samples on its own, and all of them count the same shared table.
 
-To make each count cheaper, keep completed publications short-lived with `ddk.event.maintenance` (`delete-completed-after`), or add an index on `status` to the table in your own migrations. Alert when `failed` stays above zero, or `published` keeps growing.
+To make each count cheaper, keep completed publications short-lived with `ddk.event.maintenance` (`delete-completed-after`), or add an index on `status` to the table in your own migrations. Alert when `failed` stays above zero, or `published` keeps growing. A Grafana dashboard and alert rules for these metrics are in [`monitoring/`](../../monitoring).
 
 ## Configuration
 

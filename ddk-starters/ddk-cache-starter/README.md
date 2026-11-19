@@ -123,6 +123,8 @@ With Micrometer on the classpath:
 
 Keys are never used as tags.
 
+A Grafana dashboard and alert rules for these metrics are in [`monitoring/`](../../monitoring).
+
 ## Common errors
 
 | Symptom | Cause | Fix |

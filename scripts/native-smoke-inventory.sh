@@ -2,9 +2,10 @@
 #
 # Starts the native image of ddk-example-inventory against a running Redis and checks one request per capability that
 # runs through DDK: the two-level cache with eviction, an aggregate lock with duplicate-submit protection, a rate limit,
-# a projection refreshed after commit, and a listener run through Spring Modulith's publication registry with an
-# idempotent consumer. A second run with the tenant profile checks that request ids and rate limit quotas are kept per
-# sales channel (the tenant) while the stock stays shared. Exits non-zero after reporting every difference.
+# a projection refreshed after commit, a listener run through Spring Modulith's publication registry with an idempotent
+# consumer, and the Prometheus scrape that monitoring/ reads. A second run with the tenant profile checks that request
+# ids and rate limit quotas are kept per sales channel (the tenant) while the stock stays shared. Exits non-zero after
+# reporting every difference.
 #
 #   scripts/native-smoke-inventory.sh ddk-examples/ddk-example-inventory/target/ddk-example-inventory
 #
@@ -103,6 +104,7 @@ done
 expect "rate limit: the fourth check" 429 '"code":"RATE_LIMITED"' "$BASE/skus/2/availability"
 eventually "projection: refreshed after commit" '"skuId":"1"' "$BASE/low-stock"
 eventually "publication registry and idempotent consumer: listener ran" '"r-1"' "$BASE/skus/1/reservations"
+expect "metrics: Prometheus scrape" 200 'ddk_projection_pending{projection="low-stock"}' "$BASE/actuator/prometheus"
 
 stop
 

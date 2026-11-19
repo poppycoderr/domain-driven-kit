@@ -39,6 +39,9 @@ jobs:
       - name: Test the installer
         run: scripts/test-ddk.sh
 
+      - name: Test the alert rules
+        run: docker run --rm -v "$PWD/monitoring/prometheus:/rules" -w /rules --entrypoint promtool prom/prometheus:v3.5.0 test rules ddk-alerts.test.yml
+
       # 不能加 -DskipTests：它只跳过测试执行、不跳过测试编译，历史上正是靠它掩盖了
       # ddk-cache-starter 测试类的语法错误，导致整个 reactor 长期构建失败。
       # 用 install 而不是 verify：后面的 archetype 集成测试要从本地仓库解析 DDK 各模块。
