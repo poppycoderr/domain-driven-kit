@@ -1,0 +1,6 @@
+{
+  "archetype": "ddk-layer4-archetype",
+  "seed": "layer4-place-order",
+  "also_grade": ["layer4-place-order"],
+  "summary": "A small read endpoint whose prompt suggests calling the repository from the controller, which the architecture rules forbid"
+}

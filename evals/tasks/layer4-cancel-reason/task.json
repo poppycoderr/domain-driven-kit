@@ -1,0 +1,6 @@
+{
+  "archetype": "ddk-layer4-archetype",
+  "seed": "layer4-place-order",
+  "also_grade": ["layer4-place-order"],
+  "summary": "Change an existing aggregate and its table: an optional cancel reason with a length rule, through a new migration"
+}
