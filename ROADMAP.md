@@ -76,7 +76,7 @@ DDK has one version number, but its modules are not equally proven. Each one has
 | Projection starter | Verified | H2, MySQL 8.4, PostgreSQL 17; Elasticsearch through `ddk-mall` | No Elasticsearch-specific helpers; the `Projection` SPI is a preview in 1.0 |
 | MCP starter | In-process verified | A real MCP client over streamable HTTP | Synchronous server only; authorization is the application's; a preview in 1.0 |
 | ArchGuard starter | Verified | ArchUnit fixtures for every rule | |
-| Tracer starter | In-process verified | Trace context across HTTP and messages | Export to a tracing backend is checked by hand only; a preview in 1.0 |
+| Tracer starter | Verified | Trace context across HTTP, threads and messages; export over OTLP to an OpenTelemetry Collector 0.162 | |
 | DB starter (several data sources) | Verified | H2, PostgreSQL 17 and MySQL 8.4 side by side | Outbox, inbox and pending tables are atomic only with the data source of the business transaction |
 | Archetypes (three and four layers) | Verified | Generated projects are built and tested in CI | |
 | `ddk-mall` | Verified, as a reference | MySQL, Redis, RocketMQ, Elasticsearch | Simulated payment channel; demo users in the `secure` profile |

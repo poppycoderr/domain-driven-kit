@@ -1,0 +1,16 @@
+# OtlpExportTest 用的 collector：通过 OTLP/HTTP 接收链路，把每个 span 的细节打印到日志里，测试读日志核对
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+
+exporters:
+  debug:
+    verbosity: detailed
+
+service:
+  pipelines:
+    traces:
+      receivers: [ otlp ]
+      exporters: [ debug ]

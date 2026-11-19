@@ -32,6 +32,7 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ### Changed
 
+- The tracer starter is no longer a preview, as COMPATIBILITY.md set out: export is tested in CI against an OpenTelemetry Collector container, which receives a request and its `@Async` work as one trace. Its properties and behavior now follow the same compatibility rules as the other starters
 - Preview change, MCP starter: the audit log names the operator and tenant of each tool call, `MCP tool [cancel_order] by [support] in tenant [-] -> SUCCESS in 12 ms`, with `-` when there is none. The tool interception now wraps `@Idempotent`, `@AggregateLock` and `@RateLimit` on the same method, so arguments are checked first and a repeated request, a busy aggregate or a rate limit comes back to the agent with its error code and is audited. `ddk-mall`'s `cancel_order` takes a `requestId` and is `@Idempotent`, so an agent that retries after a timeout does not cancel twice
 - Redisson 4.8.0 (was 4.7.0) and ShedLock 7.11.0 (was 7.10.1). Both are minor updates with no change to the API that DDK or applications use; ShedLock retries extending a kept-alive lock after a transient failure.
 

@@ -78,6 +78,7 @@ An application that declares its own `TaskDecorator` keeps it; DDK then register
 - The filter is registered only in servlet web applications that have a `Tracer` bean.
 - The header is set before the rest of the filter chain runs, because headers added after the response is committed are silently dropped.
 - Requests without an active span, for example when the observation filter is disabled, get no header.
+- Export is tested in CI: `OtlpExportTest` sends a request to a web application that exports over OTLP/HTTP to an OpenTelemetry Collector container (`otel/opentelemetry-collector-contrib:0.162.0`), and checks that the collector receives the request span and the span of its `@Async` work under the trace ID from `X-Trace-Id`, with the application name as `service.name`.
 
 ## Common errors
 
