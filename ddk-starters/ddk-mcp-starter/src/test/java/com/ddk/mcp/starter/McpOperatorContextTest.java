@@ -11,10 +11,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.ai.mcp.annotation.McpTool;
 import org.springframework.boot.SpringBootConfiguration;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -28,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 过滤器设置的操作者（多租户应用里连同租户）在工具里可见，请求结束后清除。换成异步 server 时不成立，这个测试会失败。
  */
 @DisplayName("MCP 工具里的操作者上下文")
+@ExtendWith(OutputCaptureExtension.class)
 @SpringBootTest(classes = McpOperatorContextTest.TestApplication.class, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class McpOperatorContextTest {
 
@@ -40,6 +44,16 @@ class McpOperatorContextTest {
         assertThat(whoami("alice")).isEqualTo("alice/tenant-1");
         assertThat(whoami(null)).isEqualTo("none");
         assertThat(whoami("bob")).isEqualTo("bob/tenant-1");
+    }
+
+    @Test
+    @DisplayName("审计日志记下调用者和租户；没有操作者时记为 -")
+    void theAuditLogNamesTheOperatorAndTenant(CapturedOutput output) {
+        whoami("carol");
+        whoami(null);
+
+        assertThat(output).contains("MCP tool [whoami] by [carol] in tenant [tenant-1] -> SUCCESS")
+                .contains("MCP tool [whoami] by [-] in tenant [-] -> SUCCESS");
     }
 
     private String whoami(@Nullable String operator) {

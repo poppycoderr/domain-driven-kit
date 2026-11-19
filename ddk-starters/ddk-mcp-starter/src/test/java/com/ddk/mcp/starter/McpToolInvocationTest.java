@@ -87,14 +87,14 @@ class McpToolInvocationTest {
 
         assertThat(result.isError()).isTrue();
         assertThat(text(result)).contains("REQUEST_CANCELLED").doesNotContain("ddk:lock");
-        assertThat(output).contains("MCP tool [reserve_stock] -> REQUEST_CANCELLED in");
+        assertThat(output).contains("MCP tool [reserve_stock] by [-] in tenant [-] -> REQUEST_CANCELLED in");
     }
 
     @Test
     void everyCallIsAudited(CapturedOutput output) {
         call("get_order", Map.of("id", 404));
 
-        assertThat(output).contains("MCP tool [get_order] -> ORDER_NOT_FOUND in");
+        assertThat(output).contains("MCP tool [get_order] by [-] in tenant [-] -> ORDER_NOT_FOUND in");
     }
 
     @Test
