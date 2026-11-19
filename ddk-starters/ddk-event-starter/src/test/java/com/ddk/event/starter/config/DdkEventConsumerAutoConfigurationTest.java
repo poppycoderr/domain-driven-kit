@@ -75,6 +75,15 @@ class DdkEventConsumerAutoConfigurationTest {
     }
 
     @Test
+    @DisplayName("设置了消费失败上限却没有 UndeliverableEventHandler 时启动失败")
+    void aConsumeLimitNeedsAHandler() {
+        runner.withUserConfiguration(Consumers.class)
+                .withPropertyValues("ddk.event.rocketmq.name-server=127.0.0.1:9876", "ddk.event.rocketmq.consumer.max-attempts=5")
+                .run(context -> assertThat(context).hasFailed()
+                        .getFailure().rootCause().hasMessageContaining("no UndeliverableEventHandler bean"));
+    }
+
+    @Test
     @DisplayName("要求去重的消费方在没有开启去重表时让启动失败")
     void idempotentConsumerNeedsTheInbox() {
         runner.withUserConfiguration(IdempotentConsumers.class).run(context -> assertThat(context).hasFailed()

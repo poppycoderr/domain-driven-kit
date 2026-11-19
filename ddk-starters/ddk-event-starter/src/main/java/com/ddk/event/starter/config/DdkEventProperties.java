@@ -94,6 +94,12 @@ public class DdkEventProperties {
         private int resubmitBatchSize = 100;
 
         /**
+         * 一条发布最多尝试几次，第一次发布也算在内；达到后不再重投，保持 FAILED，留给运维处理。0 表示不限次数。
+         * 次数取自 Spring Modulith 记录的 {@code COMPLETION_ATTEMPTS}，旧的表结构（{@code use-legacy-structure}）不记录它，这时上限不起作用。
+         */
+        private int resubmitMaxAttempts;
+
+        /**
          * 已完成的发布保留多久，之后删除；为零时不删除。只在 {@code spring.modulith.events.completion-mode=update}（默认）时有记录可删。
          */
         private Duration deleteCompletedAfter = Duration.ofDays(7);
@@ -105,13 +111,13 @@ public class DdkEventProperties {
         private Duration inboxRetention = Duration.ofDays(7);
 
         /**
-         * @throws IllegalStateException 间隔或最小年龄不为正、批量小于 1、保留期为负
+         * @throws IllegalStateException 间隔或最小年龄不为正、批量小于 1、重投上限或保留期为负
          */
         public void validate() {
-            if (!interval.isPositive() || !resubmitMinAge.isPositive() || resubmitBatchSize < 1
+            if (!interval.isPositive() || !resubmitMinAge.isPositive() || resubmitBatchSize < 1 || resubmitMaxAttempts < 0
                     || deleteCompletedAfter.isNegative() || inboxRetention.isNegative()) {
                 throw new IllegalStateException("Invalid ddk.event.maintenance settings: interval and resubmit-min-age must be positive, "
-                        + "resubmit-batch-size at least 1, and the retention periods zero or positive");
+                        + "resubmit-batch-size at least 1, and resubmit-max-attempts and the retention periods zero or positive");
             }
         }
     }
@@ -208,6 +214,12 @@ public class DdkEventProperties {
              * 是否顺序消费。顺序消费按队列保持事件的先后，一条消息处理失败会暂停它所在的队列；关闭后并发消费，失败的消息单独重投。
              */
             private boolean orderly = true;
+
+            /**
+             * 一条消息在一个消费组里最多失败几次。达到这个次数时交给应用的 {@code UndeliverableEventHandler}，由它决定怎么处理；
+             * 0 表示不限次数：顺序消费时失败的消息一直挡住它的队列，并发消费时按 RocketMQ 的重投上限进死信队列。
+             */
+            private int maxAttempts;
         }
     }
 }

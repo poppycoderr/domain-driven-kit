@@ -2,6 +2,7 @@ package com.ddk.event.starter.internal;
 
 import com.ddk.event.starter.consumer.IntegrationEventConsumer;
 import com.ddk.event.starter.consumer.IntegrationEventDispatcher;
+import com.ddk.event.starter.consumer.UndeliverableEvent;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.apache.rocketmq.common.message.MessageExt;
@@ -17,10 +18,12 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -96,6 +99,62 @@ class RocketMqConsumerFailuresTest {
 
         consumers.consume("inventory", List.of(message(1, 7)));
         assertThat(consumers.consecutiveFailures("inventory")).as("failing here again counts again").isEqualTo(8);
+    }
+
+    @Test
+    @DisplayName("失败到上限时交给 UndeliverableEventHandler，它正常返回后这条消息算消费完成，队列继续往下走")
+    void handsOverAtTheLimitAndMovesOn(CapturedOutput output) {
+        List<UndeliverableEvent> handed = new ArrayList<>();
+        RocketMqEventConsumers consumers = new RocketMqEventConsumers(dispatcher, "localhost:9876", true, 3, handed::add);
+
+        assertThat(consumers.consume("inventory", List.of(message(1, 0)))).isFalse();
+        assertThat(consumers.consume("inventory", List.of(message(1, 1)))).isFalse();
+        assertThat(handed).as("not before the limit").isEmpty();
+
+        MessageExt third = message(1, 2);
+        third.putUserProperty("ddk-event-id", "e-1");
+        assertThat(consumers.consume("inventory", List.of(third))).isTrue();
+
+        assertThat(handed).singleElement().satisfies(event -> {
+            assertThat(event.group()).isEqualTo("inventory");
+            assertThat(event.topic()).isEqualTo("orders");
+            assertThat(event.tag()).isEqualTo("placed");
+            assertThat(event.headers()).containsEntry("ddk-event-id", "e-1");
+            assertThat(event.body()).isEqualTo("{}");
+            assertThat(event.attempts()).isEqualTo(3);
+            assertThat(event.lastFailure()).hasMessage("payload does not match");
+        });
+        assertThat(consumers.consecutiveFailures("inventory")).isZero();
+        assertThat(output).contains("handed it to the UndeliverableEventHandler and moved on");
+    }
+
+    @Test
+    @DisplayName("UndeliverableEventHandler 抛出异常时这条消息照常失败，下次失败再交给它")
+    void aFailingHandlerKeepsTheMessage(CapturedOutput output) {
+        List<Integer> calls = new ArrayList<>();
+        RocketMqEventConsumers consumers = new RocketMqEventConsumers(dispatcher, "localhost:9876", true, 2, event -> {
+            calls.add(event.attempts());
+            throw new IllegalStateException("parking table unavailable");
+        });
+
+        assertThat(consumers.consume("inventory", List.of(message(1, 1)))).isFalse();
+        assertThat(consumers.consume("inventory", List.of(message(1, 2)))).isFalse();
+
+        assertThat(calls).containsExactly(2, 3);
+        assertThat(consumers.consecutiveFailures("inventory")).isEqualTo(3);
+        assertThat(output).contains("UndeliverableEventHandler failed");
+    }
+
+    @Test
+    @DisplayName("设置了上限却没有 UndeliverableEventHandler，或者上限为负，都不能创建")
+    void aLimitNeedsAHandler() {
+        assertThatThrownBy(() -> new RocketMqEventConsumers(dispatcher, "localhost:9876", true, 3, null))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("no UndeliverableEventHandler bean");
+        assertThatThrownBy(() -> new RocketMqEventConsumers(dispatcher, "localhost:9876", true, -1, event -> { }))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("max-attempts must be 0");
+        assertThat(new RocketMqEventConsumers(dispatcher, "localhost:9876", true, 0, null).consecutiveFailures("inventory")).isZero();
     }
 
     @Test

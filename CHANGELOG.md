@@ -13,6 +13,11 @@ DDK follows [Semantic Versioning](https://semver.org/) with the usual 0.x caveat
 
 ## [Unreleased]
 
+### Added
+
+- A way out for a RocketMQ message that always fails. With `ddk.event.rocketmq.consumer.max-attempts`, a message that fails that many times in a consumer group goes to the application's `UndeliverableEventHandler`, with its headers, its body as received and the last exception. If the handler returns, the message counts as consumed and an orderly queue moves on; if it throws, the message is retried as before. Setting a limit without a handler fails at startup, because DDK never drops a message on its own. The default, 0, keeps the old behavior: an orderly queue waits until the message succeeds
+- `ddk.event.maintenance.resubmit-max-attempts`: a failed publication that has been tried that many times, the first publication included, is no longer resubmitted and stays `FAILED`. The default, 0, resubmits without limit as before
+
 ### Fixed
 
 - `scripts/ddk.sh` failed on JDK 21 updates before 21.0.8, deep in the Error Prone compiler, because it built every version from source. It now downloads a release from 0.10.0 on from Maven Central, which needs only Java 21, and checks for JDK 21.0.8 before it builds a snapshot from source. Releases before 0.10.0 still build on any JDK 21

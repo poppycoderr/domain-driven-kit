@@ -207,7 +207,28 @@ With orderly consumption, the default, a failed message is retried on its queue 
 - the contract is `rejectOtherVersions()` and the version is unknown;
 - the handler has a bug that fails on this payload every time.
 
-Every retry logs a warning; from the tenth failure in a row it logs an error instead. With Micrometer present, `ddk.event.consume.failures{group}` reports how many times the longest failing queue of the group has failed in a row, and drops to 0 once it moves on. A queue that has not failed on this instance for five minutes no longer counts, for example after a rebalance gives it to another instance, which then reports it. Alert when it keeps growing. To move on, fix the cause and redeploy, or catch the failure in the consumer and handle the message another way, for example by recording it for later. With concurrent consumption, RocketMQ's retry limit applies instead and the message ends in the dead-letter queue.
+Every retry logs a warning; from the tenth failure in a row it logs an error instead. With Micrometer present, `ddk.event.consume.failures{group}` reports how many times the longest failing queue of the group has failed in a row, and drops to 0 once it moves on. A queue that has not failed on this instance for five minutes no longer counts, for example after a rebalance gives it to another instance, which then reports it. Alert when it keeps growing. To move on, fix the cause and redeploy, or give the message a way out:
+
+```java
+@Bean
+UndeliverableEventHandler parkUndeliverable(JdbcClient jdbc) {
+    return event -> jdbc.sql("INSERT INTO parked_event (consumer_group, topic, tag, message_id, body, attempts) VALUES (?, ?, ?, ?, ?, ?)")
+            .params(event.group(), event.topic(), event.tag(), event.messageId(), event.body(), event.attempts())
+            .update();
+}
+```
+
+```yaml
+ddk:
+  event:
+    rocketmq:
+      consumer:
+        max-attempts: 10
+```
+
+When a message fails for the `max-attempts`-th time in a group, DDK hands it to the `UndeliverableEventHandler` with its headers, its body as received and the last exception. If the handler returns, the message counts as consumed and the queue moves on; if it throws, the message fails as before and is offered again on its next failure. Where the message goes is the application's choice: its own table, a log, a ticket. DDK never drops a message on its own, so setting `max-attempts` without a handler fails at startup. The default, 0, keeps today's behavior.
+
+With concurrent consumption, RocketMQ's retry limit sends a message to the dead-letter queue after 16 retries. With `max-attempts` set, DDK raises that limit to `max-attempts`, so the handler sees the message first.
 
 ## Tracing and metrics
 
@@ -350,13 +371,15 @@ A failed delivery stays in Spring Modulith's `event_publication` table, and comp
 
 ```text
 every ddk.event.maintenance.interval (1m)
-  FailedEventPublications.resubmit(minAge = resubmit-min-age, batchSize = resubmit-batch-size)
+  FailedEventPublications.resubmit(minAge = resubmit-min-age, batchSize = resubmit-batch-size,
+                                   only publications with fewer than resubmit-max-attempts attempts)   0 = no limit
   CompletedEventPublications.deletePublicationsOlderThan(delete-completed-after)     0 keeps them
   IdempotentConsumer.purgeOlderThan(inbox-retention)                               0 keeps them
 ```
 
 - **Several instances.** With Modulith's default JDBC structure, resubmitting claims each publication with a conditional update to `RESUBMITTED`, and an instance that loses the claim skips it, so two instances do not resubmit the same failed publication. The legacy structure (`spring.modulith.events.jdbc.use-legacy-structure=true`) does not claim, and two instances can send it twice. When the application has a ShedLock `LockProvider`, a round runs under the lock `ddk-event-maintenance`, so one instance at a time maintains with either structure. `ddk-job-starter` provides one. Without a `LockProvider`, startup logs a warning. Delivery stays at least once in every case, so consumers that must not repeat work are idempotent.
 - **Stuck publications.** Only publications that Modulith marks `FAILED` are resubmitted. To have publications that hang in `PUBLISHED` or `PROCESSING` (for example after the process died mid-send) marked as failed, turn on Modulith's staleness check, for example `spring.modulith.events.staleness.processing=5m` and `spring.modulith.events.staleness.published=5m`.
+- **Publications that never succeed.** By default a failed publication is resubmitted every round, forever. With `resubmit-max-attempts`, a publication that has been tried that many times, the first publication included, stays `FAILED` and is left for an operator; the `failed` count below shows it. The count comes from Spring Modulith's `COMPLETION_ATTEMPTS` column, which the legacy structure does not record, so the limit has no effect there.
 - **Replay window.** Resubmission and broker redelivery can bring a message back. `inbox-retention` must be longer than the longest time in which that can happen. Otherwise an idempotent consumer handles the message again after its record was purged. The default is 7 days.
 - Each step fails on its own. A broken step is logged, and the others and the next round still run.
 
@@ -379,6 +402,7 @@ To make each count cheaper, keep completed publications short-lived with `ddk.ev
 | `ddk.event.rocketmq.send-timeout` | `3s` | Timeout of one send |
 | `ddk.event.rocketmq.consumer.enabled` | `true` | Consume from RocketMQ when the application declares consumers |
 | `ddk.event.rocketmq.consumer.orderly` | `true` | Orderly consumption; `false` consumes concurrently and redelivers failed messages individually |
+| `ddk.event.rocketmq.consumer.max-attempts` | `0` | Failures of a message in a group before it goes to the application's `UndeliverableEventHandler`; 0 means no limit |
 | `ddk.event.outside-transaction` | `fail` | What to do when an integration event is published outside a transaction: `fail` throws where it is published, `warn` logs, `ignore` stays silent |
 | `ddk.event.local-delivery.enabled` | `false` | Deliver integration events in-process to the consumers of the same application; development and tests only |
 | `ddk.event.metrics.publications.enabled` | `true` | Register `ddk.event.publications` and sample the counts in the background |
@@ -388,6 +412,7 @@ To make each count cheaper, keep completed publications short-lived with `ddk.ev
 | `ddk.event.maintenance.resubmit-failed` | `true` | Resubmit failed publications |
 | `ddk.event.maintenance.resubmit-min-age` | `1m` | Only resubmit publications that failed at least this long ago |
 | `ddk.event.maintenance.resubmit-batch-size` | `100` | Publications resubmitted per round at most |
+| `ddk.event.maintenance.resubmit-max-attempts` | `0` | Attempts of a publication, the first one included, after which it is no longer resubmitted; 0 means no limit |
 | `ddk.event.maintenance.delete-completed-after` | `7d` | Delete completed publications older than this; `0` keeps them |
 | `ddk.event.maintenance.inbox-retention` | `7d` | Delete processed message records older than this; `0` keeps them. Longer than any redelivery or resubmission window |
 | `spring.modulith.events.*` | Spring Modulith | Registry schema, republishing on restart, completion mode, staleness |
