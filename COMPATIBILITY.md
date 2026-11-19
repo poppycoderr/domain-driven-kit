@@ -82,7 +82,7 @@ An existing rule in `CommonArchRules` does not become stricter in a minor releas
 ## What is not stable
 
 - **`*.internal` packages.** Implementation classes that only auto-configuration creates. Generated projects check this with `DDK_INTERNALS_MUST_NOT_BE_USED`.
-- **Experimental parts:** the ones listed under [Experimental in 1.0](#experimental-in-10); the MCP and tracer starters and the projection SPI among them are called previews. They may change in a 1.x minor release, as [Versioning](#versioning) describes. No module is tested at the wiring level only today; a new one that is would be listed there until it is verified against the real system, as `ddk-db-starter` was in 0.12. `ddk-seata-starter` was deprecated in 0.12 and removed in 1.0.
+- **Experimental parts:** the ones listed under [Experimental in 1.0](#experimental-in-10); the MCP starter and the projection SPI among them are called previews; the tracer starter left the list in 1.1, once export was tested in CI. They may change in a 1.x minor release, as [Versioning](#versioning) describes. No module is tested at the wiring level only today; a new one that is would be listed there until it is verified against the real system, as `ddk-db-starter` was in 0.12. `ddk-seata-starter` was deprecated in 0.12 and removed in 1.0.
 - **Examples** (`ddk-examples/*`): reference code, not a library.
 - **Log messages, metric tag sets beyond the documented ones, and exception messages.** Write code against exception types and error codes, not message text.
 - **Generated project templates.** A new release of an archetype generates a different skeleton; projects generated earlier are not changed.
@@ -115,7 +115,6 @@ The behavior that 1.0 freezes is the documented one, not more:
 |---|---|---|
 | GraalVM native images beyond the modules [SUPPORT.md](./SUPPORT.md#graalvm-native-images) lists as verified | CI runs `ddk-example-user` and `ddk-example-inventory` as native images, which cover the modules SUPPORT.md lists | CI exercises the module natively |
 | `ddk-mcp-starter` (preview) | The MCP specification had an incompatible revision on 2026-07-28 (stateless protocol, no protocol-level sessions), and Spring AI follows it. The starter's behavior can change with them in a 1.x minor release | A specification version is settled and the starter is tested against it |
-| `ddk-tracer-starter` (preview) | It follows Spring Boot's OpenTelemetry support, whose properties moved in 4.1, and export to a tracing backend is checked by hand only | Export is tested in CI |
 | The projection SPI (preview): `Projection` and `FailedRefresh` | Few implementations so far, all in this repository. `Projections`, which applications call to mark changes, and the pending table stay frozen | Projects outside this repository have implemented it |
 | How the documented metrics are computed | The metric names and documented tags are stable. Event publications are counted in the background at an interval, and each count still scans `event_publication`, a known cost on large tables | |
 | Everything under [What is not stable](#what-is-not-stable) | | |

@@ -26,7 +26,7 @@ DDK 由一个人维护：[@poppycoderr](https://github.com/poppycoderr)，AI 编
 | Elasticsearch | 9.4（在 `ddk-mall` 里） |
 | DDK 依赖的库 | MyBatis-Plus 3.5.18.1、Redisson 4.8.0、ShedLock 7.11.0、Spring Modulith 2.1.2、Spring AI 2.0.2、springdoc 3.2.0 |
 
-各模块验证到什么程度、有哪些已知限制，见[支持状态](./ROADMAP.zh-CN.md#支持状态)。1.0 中仍是实验性的部分，例如 MCP starter、tracer starter 和投影 SPI，见 [COMPATIBILITY.zh-CN.md](./COMPATIBILITY.zh-CN.md#10-中保持实验性)。虚拟线程下的语义见[虚拟线程](https://domaindrivenkit.com/ddk/core/virtual-threads)一页。
+各模块验证到什么程度、有哪些已知限制，见[支持状态](./ROADMAP.zh-CN.md#支持状态)。1.0 中仍是实验性的部分，例如 MCP starter 和投影 SPI，见 [COMPATIBILITY.zh-CN.md](./COMPATIBILITY.zh-CN.md#10-中保持实验性)。虚拟线程下的语义见[虚拟线程](https://domaindrivenkit.com/ddk/core/virtual-threads)一页。
 
 ## GraalVM 原生镜像
 

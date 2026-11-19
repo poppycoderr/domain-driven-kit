@@ -26,7 +26,7 @@ Every change runs the full test suite in CI on these versions. Other versions ma
 | Elasticsearch | 9.4 (in `ddk-mall`) |
 | Libraries DDK builds on | MyBatis-Plus 3.5.18.1, Redisson 4.8.0, ShedLock 7.11.0, Spring Modulith 2.1.2, Spring AI 2.0.2, springdoc 3.2.0 |
 
-How thoroughly each module is verified, and its known limits, is in the [support matrix](./ROADMAP.md#support-status). The parts that stay experimental in 1.0, such as the MCP and tracer starters and the projection SPI, are listed in [COMPATIBILITY.md](./COMPATIBILITY.md#experimental-in-10). The semantics on virtual threads are on the [virtual threads page](https://domaindrivenkit.com/ddk/core/virtual-threads).
+How thoroughly each module is verified, and its known limits, is in the [support matrix](./ROADMAP.md#support-status). The parts that stay experimental in 1.0, such as the MCP starter and the projection SPI, are listed in [COMPATIBILITY.md](./COMPATIBILITY.md#experimental-in-10). The semantics on virtual threads are on the [virtual threads page](https://domaindrivenkit.com/ddk/core/virtual-threads).
 
 ## GraalVM native images
 
