@@ -12,10 +12,12 @@ $h2 1. 业务模型（business.model / error / acl）
 
 | 文件 | 要点 |
 |---|---|
-| `business/model/Coupon.java` | 可继承 `AggregateRoot<CouponId>`；私有构造器；创建工厂方法校验规则并登记事件，重建工厂方法不登记；状态变更方法守卫规则；不写公开 setter |
+| `business/model/Coupon.java` | 可继承 `AggregateRoot<CouponId>`；私有构造器；创建工厂方法接收预先生成的 `CouponId` 并 `assignId`，校验规则并登记事件（事件带上 ID），重建工厂方法不登记；状态变更方法守卫规则；不写公开 setter |
 | `business/model/CouponId.java` | `final class CouponId extends Identifier<Long>`，提供 `static of(Long)` |
 | `business/error/CouponError.java` | `enum CouponError implements ErrorCode` |
 | `business/acl/CouponRepository.java` | `interface CouponRepository extends GenericRepository<Coupon, CouponId>` |
+| `business/acl/CouponIdGenerator.java` | `interface CouponIdGenerator { CouponId nextId(); }`，业务服务在创建实体之前取号 |
+| `business/event/CouponIssuedEvent.java` | 需要事件时：record 实现 `DomainEvent`，带 `Instant occurredOn`，另提供一个不带它、内部用 `Instant.now()` 的构造器；`DomainEvent` 要求实现 `occurredOn()` |
 
 $h2 2. 业务服务（business.command / response / service）
 
@@ -27,10 +29,13 @@ $h2 3. 基础设施（infrastructure）
 
 | 文件 | 要点 |
 |---|---|
-| `infrastructure/orm/po/CouponPO.java` | `@Data`，`@TableId(type = IdType.ASSIGN_ID)`，`@Version private Long version` |
+| `infrastructure/orm/po/CouponPO.java` | `@Data`，`@TableId(type = IdType.INPUT)`（ID 由 `CouponIdGenerator` 预先生成），`@Version private Long version` |
+| `infrastructure/acl/impl/SnowflakeCouponIdGenerator.java` | `@Component` 实现 `CouponIdGenerator`，注入 MyBatis-Plus 的 `IdentifierGenerator`（DDK MyBatis starter 已注册，按 `ddk.mybatis.worker-id` / `datacenter-id` 生成雪花 ID），返回 `CouponId.of(idGenerator.nextId(null).longValue())`；不要直接调用 Hutool 的 `IdUtil`，它不读这两个配置 |
 | `infrastructure/orm/mapper/CouponMapper.java` | `@Mapper interface CouponMapper extends BaseMapper<CouponPO>` |
 | `infrastructure/converter/*Converter.java` | 两个方向各一个：`@Component` + `@EnhancedMapper(source = ..., target = ...)` 实现 `BeanMapper` |
 | `infrastructure/acl/impl/CouponRepositoryImpl.java` | `@Repository`，`extends GenericRepositoryImpl<Coupon, CouponId, CouponPO, CouponMapper> implements CouponRepository` |
+
+预先取号而不是插入时生成（`IdType.ASSIGN_ID`），是为了让实体从创建起就有 ID：创建时登记的事件能带上它，转换器也不用处理 ID 为 null 的情况。
 
 在 `src/main/resources/db/migration` 新增一个 Flyway 迁移脚本建表，文件名取下一个版本号，例如 `V2__create_order.sql`：主键 `BIGINT`、`version BIGINT NOT NULL DEFAULT 0`、`create_time`、`update_time`。已经存在的迁移脚本不要修改，改表结构时再加一个新版本。
 
