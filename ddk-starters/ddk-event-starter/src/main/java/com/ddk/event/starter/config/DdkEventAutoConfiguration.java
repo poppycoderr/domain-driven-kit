@@ -118,9 +118,7 @@ public class DdkEventAutoConfiguration {
         IdempotentConsumer idempotentConsumer(JdbcTemplate jdbc, PlatformTransactionManager transactionManager, DdkEventProperties properties) {
             DdkEventProperties.Inbox inbox = properties.getInbox();
             IdempotentConsumer consumer = new IdempotentConsumer(jdbc, transactionManager, inbox.getTable(), Clock.systemUTC());
-            if (inbox.isInitializeSchema()) {
-                jdbc.execute(consumer.schema());
-            }
+            consumer.prepare(inbox.isInitializeSchema());
             return consumer;
         }
     }

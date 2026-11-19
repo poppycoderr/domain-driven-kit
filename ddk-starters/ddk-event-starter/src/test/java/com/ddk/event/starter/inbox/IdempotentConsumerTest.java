@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Duration;
@@ -28,6 +29,9 @@ class IdempotentConsumerTest {
 
     @Autowired
     private TransactionTemplate transaction;
+
+    @Autowired
+    private PlatformTransactionManager transactionManager;
 
     private final AtomicInteger handled = new AtomicInteger();
 
@@ -80,6 +84,16 @@ class IdempotentConsumerTest {
 
         assertThat(consumer.purgeOlderThan(Duration.ofDays(1))).isZero();
         assertThat(consumer.purgeOlderThan(Duration.ofSeconds(-1))).isEqualTo(1);
+    }
+
+    @Test
+    void purgesInBatchesAndKeepsRecentRecords() {
+        InboxCleanupChecks.purgesInBatchesAndKeepsRecentRecords(jdbc, transactionManager);
+    }
+
+    @Test
+    void addsTheExpiryIndexOnlyWhenAllowed() {
+        InboxCleanupChecks.addsTheExpiryIndexOnlyWhenAllowed(jdbc, transactionManager);
     }
 
     @Test

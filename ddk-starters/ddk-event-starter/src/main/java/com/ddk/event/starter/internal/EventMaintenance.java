@@ -67,7 +67,7 @@ public class EventMaintenance implements SmartLifecycle {
         }
         if (settings.getInboxRetention().isPositive() && inbox != null) {
             step("purge processed messages", () -> {
-                int purged = inbox.purgeOlderThan(settings.getInboxRetention());
+                int purged = inbox.purgeOlderThan(settings.getInboxRetention(), settings.getInboxPurgeBatchSize());
                 if (purged > 0) {
                     log.debug("Purged {} processed message records older than {}", purged, settings.getInboxRetention());
                 }

@@ -141,7 +141,7 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- 在真实的 PostgreSQL 上验证：重复登记只回滚到保存点，不会让外层事务失效 -->
+        <!-- 在真实的 PostgreSQL 和 MySQL 上验证：重复登记只回滚到保存点，到期索引和分批清理的语句能执行 -->
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers-postgresql</artifactId>
@@ -160,6 +160,16 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-mysql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

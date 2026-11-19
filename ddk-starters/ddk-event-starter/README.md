@@ -352,9 +352,9 @@ handle(consumer, messageId, handler)            joins the caller's transaction, 
 
 - The insert and the handler's own writes share one transaction. A failed handler leaves the message unprocessed, so a redelivery runs it again.
 - The savepoint matters on PostgreSQL, which aborts the whole transaction after a failed statement. A duplicate rolls back only to the savepoint, and the caller's other writes still commit. A Testcontainers test verifies this.
-- `purgeOlderThan(Duration)` removes old records. Keep them longer than the broker's longest redelivery window. [Maintenance](#operations) can do this on a schedule.
+- `purgeOlderThan(Duration)` removes old records in batches of 1,000, `purgeOlderThan(Duration, int)` with a batch size of your choice. Each batch looks up expired keys through the `processed_at` index and deletes them in one statement, so a large backlog never locks many rows at once. Keep records longer than the broker's longest redelivery window. [Maintenance](#operations) can do this on a schedule.
 
-Enable it with `ddk.event.inbox.enabled=true`. It needs a `JdbcTemplate` and a transaction manager, and creates `ddk_processed_message` with `CREATE TABLE IF NOT EXISTS`, which works on MySQL, PostgreSQL and H2. On other databases, or when a migration tool owns the schema, create the table yourself and set `initialize-schema=false`:
+Enable it with `ddk.event.inbox.enabled=true`. It needs a `JdbcTemplate` and a transaction manager, and creates `ddk_processed_message` with `CREATE TABLE IF NOT EXISTS`, which works on MySQL, PostgreSQL and H2, plus an expiry index on `processed_at`. A table created by an earlier version gets the index on the next start. On other databases, or when a migration tool owns the schema, create both yourself and set `initialize-schema=false`; startup then logs a warning if the index is missing:
 
 ```sql
 CREATE TABLE ddk_processed_message (
@@ -363,6 +363,7 @@ CREATE TABLE ddk_processed_message (
     processed_at TIMESTAMP    NOT NULL,
     PRIMARY KEY (consumer, message_id)
 );
+CREATE INDEX ddk_processed_message_expiry ON ddk_processed_message (processed_at);
 ```
 
 ## Operations
@@ -374,7 +375,7 @@ every ddk.event.maintenance.interval (1m)
   FailedEventPublications.resubmit(minAge = resubmit-min-age, batchSize = resubmit-batch-size,
                                    only publications with fewer than resubmit-max-attempts attempts)   0 = no limit
   CompletedEventPublications.deletePublicationsOlderThan(delete-completed-after)     0 keeps them
-  IdempotentConsumer.purgeOlderThan(inbox-retention)                               0 keeps them
+  IdempotentConsumer.purgeOlderThan(inbox-retention, inbox-purge-batch-size)       0 keeps them
 ```
 
 - **Several instances.** With Modulith's default JDBC structure, resubmitting claims each publication with a conditional update to `RESUBMITTED`, and an instance that loses the claim skips it, so two instances do not resubmit the same failed publication. The legacy structure (`spring.modulith.events.jdbc.use-legacy-structure=true`) does not claim, and two instances can send it twice. When the application has a ShedLock `LockProvider`, a round runs under the lock `ddk-event-maintenance`, so one instance at a time maintains with either structure. `ddk-job-starter` provides one. Without a `LockProvider`, startup logs a warning. Delivery stays at least once in every case, so consumers that must not repeat work are idempotent.
@@ -396,7 +397,7 @@ To make each count cheaper, keep completed publications short-lived with `ddk.ev
 | `ddk.event.enabled` | `true` | Register the Spring-backed `DomainEventPublisher` |
 | `ddk.event.inbox.enabled` | `false` | Register `IdempotentConsumer` |
 | `ddk.event.inbox.table` | `ddk_processed_message` | Processed message table |
-| `ddk.event.inbox.initialize-schema` | `true` | Create the table on startup |
+| `ddk.event.inbox.initialize-schema` | `true` | Create the table and its expiry index on startup |
 | `ddk.event.rocketmq.name-server` | | NameServer addresses, separated by `;`. Setting it makes DDK create the producer |
 | `ddk.event.rocketmq.producer-group` | `ddk-event-producer` | Producer group of that producer |
 | `ddk.event.rocketmq.send-timeout` | `3s` | Timeout of one send |
@@ -415,6 +416,7 @@ To make each count cheaper, keep completed publications short-lived with `ddk.ev
 | `ddk.event.maintenance.resubmit-max-attempts` | `0` | Attempts of a publication, the first one included, after which it is no longer resubmitted; 0 means no limit |
 | `ddk.event.maintenance.delete-completed-after` | `7d` | Delete completed publications older than this; `0` keeps them |
 | `ddk.event.maintenance.inbox-retention` | `7d` | Delete processed message records older than this; `0` keeps them. Longer than any redelivery or resubmission window |
+| `ddk.event.maintenance.inbox-purge-batch-size` | `1000` | Processed message records deleted per statement; each batch commits on its own |
 | `spring.modulith.events.*` | Spring Modulith | Registry schema, republishing on restart, completion mode, staleness |
 
 ## Common errors

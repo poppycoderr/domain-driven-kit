@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -68,7 +69,7 @@ class EventMaintenanceTest {
         verify(failed).resubmit(argThat((ResubmissionOptions options) ->
                 options.getMinAge().equals(Duration.ofMinutes(2)) && options.getBatchSize() == 50));
         verify(completed).deletePublicationsOlderThan(Duration.ofDays(7));
-        verify(inbox).purgeOlderThan(Duration.ofDays(7));
+        verify(inbox).purgeOlderThan(Duration.ofDays(7), 1000);
     }
 
     @Test
@@ -82,7 +83,7 @@ class EventMaintenanceTest {
 
         verify(failed, never()).resubmit(any());
         verify(completed, never()).deletePublicationsOlderThan(any());
-        verify(inbox, never()).purgeOlderThan(any());
+        verify(inbox, never()).purgeOlderThan(any(), anyInt());
     }
 
     @Test
@@ -94,7 +95,7 @@ class EventMaintenanceTest {
         new EventMaintenance(null, null, null, settings, MaintenanceLock.NONE).runOnce();
 
         verify(completed).deletePublicationsOlderThan(Duration.ofDays(7));
-        verify(inbox).purgeOlderThan(Duration.ofDays(7));
+        verify(inbox).purgeOlderThan(Duration.ofDays(7), 1000);
     }
 
     @Test

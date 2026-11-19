@@ -31,10 +31,12 @@ class IdempotentConsumerPostgresTest {
 
     private static IdempotentConsumer consumer;
 
+    private static DataSourceTransactionManager transactionManager;
+
     @BeforeAll
     static void setUp() {
         DriverManagerDataSource dataSource = new DriverManagerDataSource(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword());
-        DataSourceTransactionManager transactionManager = new DataSourceTransactionManager(dataSource);
+        transactionManager = new DataSourceTransactionManager(dataSource);
         jdbc = new JdbcTemplate(dataSource);
         transaction = new TransactionTemplate(transactionManager);
         consumer = new IdempotentConsumer(jdbc, transactionManager, "ddk_processed_message", Clock.systemUTC());
@@ -54,5 +56,15 @@ class IdempotentConsumerPostgresTest {
 
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM mail_log", Integer.class)).isEqualTo(1);
         assertThat(handled).hasValue(1);
+    }
+
+    @Test
+    void purgesInBatchesAndKeepsRecentRecords() {
+        InboxCleanupChecks.purgesInBatchesAndKeepsRecentRecords(jdbc, transactionManager);
+    }
+
+    @Test
+    void addsTheExpiryIndexOnlyWhenAllowed() {
+        InboxCleanupChecks.addsTheExpiryIndexOnlyWhenAllowed(jdbc, transactionManager);
     }
 }
