@@ -20,6 +20,9 @@ ddk:
     rocketmq:
       name-server: localhost:9876
       producer-group: mall-producer
+      consumer:
+        # 一条消息在一个消费组里失败 10 次后停进 t_parked_event（见 platform.ParkedEvents），队列继续往下走
+        max-attempts: 10
   job:
     lock:
       store: redis

@@ -9,7 +9,7 @@
 | `ddk-core`、`ddk-mybatis` | 聚合、值对象、领域事件；带子表的聚合仓储；乐观锁 |
 | `ddk-web-starter` | 统一响应与错误码、从请求头解析顾客身份、接口文档里的错误约定 |
 | `ddk-mybatis-starter` | 审计字段自动填充 |
-| `ddk-event-starter` | 集成事件：和业务数据一起提交，经 RocketMQ 投递，声明式消费，幂等消费，链路随消息传递 |
+| `ddk-event-starter` | 集成事件：和业务数据一起提交，经 RocketMQ 投递，声明式消费，幂等消费，链路随消息传递；一直失败的消息停进 `t_parked_event`，队列继续往下走 |
 | `ddk-concurrency-starter` | 库存按 SKU 加锁，一次锁多个聚合 |
 | `ddk-job-starter` | 超时关单的定时任务，多实例下同一轮只执行一次 |
 | `ddk-cache-starter` | 商品与库存的缓存 |
