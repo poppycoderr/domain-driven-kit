@@ -47,6 +47,8 @@ CI 还会在一个 Redis 服务上编译 `ddk-example-inventory`，运行 `scrip
 
 `ddk-mybatis-starter` 自动登记 MyBatis-Plus 和默认 ID 生成器在原生镜像里需要的反射，`ddk-cache-starter` 登记一级缓存用到的 Caffeine 类，`ddk-concurrency-starter` 登记 key 表达式读取的参数，应用不用为此做任何事。CI 覆盖到某个模块之后，它才会在上表里升级。
 
+经 Lettuce 访问 Redis 的应用（依赖 Redis 的几个 starter）在 JDK 25 上构建原生镜像时，要加构建参数 `-H:+SharedArenaSupport`。Netty 4.2 在 JDK 25 上通过 `Arena.ofShared` 释放直接内存，不加这个参数，应用关闭时 Lettuce 的事件循环线程会出错，收到 SIGTERM 之后一直不退出。`ddk-example-inventory` 在 `native-maven-plugin` 的配置里加了它，冒烟测试在应用 30 秒内没有停下时失败。
+
 ## 升级后回退
 
 升级没有改动持久数据时，回退就是把构建文件里的版本改回去。[升级指南](https://domaindrivenkit.com/ddk/upgrade)的每一节都写明这次升级有没有改动持久数据，有的话怎么回退。DDK 存储或发送的数据见[数据与传输格式](./COMPATIBILITY.zh-CN.md#数据与传输格式)。

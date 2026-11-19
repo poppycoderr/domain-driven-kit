@@ -47,6 +47,8 @@ CI also builds `ddk-example-inventory` against a Redis service and runs `scripts
 
 `ddk-mybatis-starter` registers the reflection that MyBatis-Plus and the default ID generator need on a native image, `ddk-cache-starter` the Caffeine classes of its local level, and `ddk-concurrency-starter` the parameters its key expressions read, so applications add nothing for them. A module moves up this table when CI exercises it.
 
+An application that reaches Redis through Lettuce (the Redis-backed starters) and builds its native image on JDK 25 needs the build argument `-H:+SharedArenaSupport`. Netty 4.2 frees direct buffers through `Arena.ofShared` there; without the argument Lettuce's event loop threads fail when the application shuts down, and it never exits after SIGTERM. `ddk-example-inventory` sets it in the `native-maven-plugin` configuration, and the smoke test fails when the application does not stop within 30 seconds.
+
 ## Rolling back an upgrade
 
 Going back to the previous version is a matter of reverting the version in your build when the upgrade did not change stored data. Each section of the [upgrade guide](https://domaindrivenkit.com/ddk/upgrade) says whether it does and, if so, how to roll back. The data that DDK stores or sends is listed under [Data and wire formats](./COMPATIBILITY.md#data-and-wire-formats).
