@@ -25,7 +25,7 @@ Web-layer defaults for Spring MVC: global exception handling into `ApiResponse`,
 | `RateLimitedException` | 429 | `RATE_LIMITED` |
 | `CancellationException`, for example a thread interrupted while it waits for an aggregate lock during shutdown | 503 | `REQUEST_CANCELLED`; the request itself was fine and can be retried |
 | `SystemException` | 500 | the system error code |
-| `BindException` (including `@Valid` bodies), `ConstraintViolationException`, `TypeMismatchException` | 400 | `VALIDATION_ERROR`, naming each field |
+| `BindException` (including `@Valid` bodies), `HandlerMethodValidationException` (constraints on `@RequestParam`, `@PathVariable` and `@RequestHeader`, under the name used in the request), `ConstraintViolationException`, `TypeMismatchException` | 400 | `VALIDATION_ERROR`, naming each field or parameter |
 | `HttpMessageNotReadableException` (broken JSON) | 400 | `MALFORMED_REQUEST` |
 | Spring MVC's own `ErrorResponse` (404, 405, 415…) | its own status | the status name, for example `METHOD_NOT_ALLOWED` |
 | anything else | 500 | `SYSTEM_ERROR`, with a generic message; the stack trace goes to the log |

@@ -12,6 +12,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.core.MethodParameter;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
@@ -21,7 +22,11 @@ import org.springframework.validation.BindException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.concurrent.CancellationException;
@@ -128,6 +133,22 @@ public class BaseExceptionHandler {
     }
 
     /**
+     * 控制器方法参数上的约束不满足，例如 {@code @RequestParam("q") @Size(max = 5)} 或 {@code @PathVariable("id") @Positive}。
+     * Spring 6.1 起由 MVC 自己校验并抛出这个异常；它实现 {@link ErrorResponse}，不单独处理会在兜底里变成不带字段明细的 {@code BAD_REQUEST}。
+     * 名字取请求里的参数名，而不是 Java 参数名；参数是对象时列出它的字段。
+     */
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMethodValidation(HandlerMethodValidationException e) {
+        String message = e.getParameterValidationResults().stream()
+                .flatMap(result -> result.getResolvableErrors().stream()
+                        .map(error -> error instanceof FieldError fieldError ? describe(fieldError)
+                                : requestName(result.getMethodParameter()) + ": " + error.getDefaultMessage()))
+                .collect(Collectors.joining("; "));
+        log.warn("Validation failed: {}", message);
+        return ResponseEntity.badRequest().body(ApiResponse.ofError(CommonError.VALIDATION_ERROR, message));
+    }
+
+    /**
      * 路径变量或查询参数无法转换成目标类型，例如 {@code /users/abc} 匹配到了 {@code /users/{id}}。
      * 它不实现 {@link ErrorResponse}，不单独处理会落到兜底变成 500。
      */
@@ -172,6 +193,23 @@ public class BaseExceptionHandler {
         log.error("Unhandled exception: {}", e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.ofFail(CommonError.SYSTEM_ERROR));
+    }
+
+    private static String requestName(MethodParameter parameter) {
+        RequestParam requestParam = parameter.getParameterAnnotation(RequestParam.class);
+        if (requestParam != null && !requestParam.name().isEmpty()) {
+            return requestParam.name();
+        }
+        PathVariable pathVariable = parameter.getParameterAnnotation(PathVariable.class);
+        if (pathVariable != null && !pathVariable.name().isEmpty()) {
+            return pathVariable.name();
+        }
+        RequestHeader requestHeader = parameter.getParameterAnnotation(RequestHeader.class);
+        if (requestHeader != null && !requestHeader.name().isEmpty()) {
+            return requestHeader.name();
+        }
+        String name = parameter.getParameterName();
+        return name != null ? name : "arg" + parameter.getParameterIndex();
     }
 
     private static String describe(FieldError error) {

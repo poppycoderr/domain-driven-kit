@@ -11,6 +11,8 @@ import com.ddk.core.exception.SystemException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
@@ -112,6 +114,16 @@ class BaseExceptionHandlerTest {
             return "item";
         }
 
+        @GetMapping("/search")
+        String search(@RequestParam(value = "q") @Size(max = 5) String keyword, @RequestParam(value = "page", defaultValue = "1") @Min(1) int page) {
+            return "found";
+        }
+
+        @GetMapping("/orders/{id}")
+        String order(@PathVariable("id") @Positive long id) {
+            return "order";
+        }
+
         @GetMapping("/ok")
         String ok() {
             return "ok";
@@ -201,6 +213,27 @@ class BaseExceptionHandlerTest {
                 .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
                 .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("name")))
                 .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("quantity")));
+    }
+
+    @Test
+    @DisplayName("查询参数上的约束不满足 -> 400 VALIDATION_ERROR，消息里用请求里的参数名")
+    void requestParameterConstraintsBecomeValidationErrors() throws Exception {
+        mvc.perform(get("/t/search").param("q", "too long").param("page", "0"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("q: ")))
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("page: ")));
+        mvc.perform(get("/t/search").param("q", "ok"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("路径变量上的约束不满足 -> 400 VALIDATION_ERROR")
+    void pathVariableConstraintsBecomeValidationErrors() throws Exception {
+        mvc.perform(get("/t/orders/0"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("VALIDATION_ERROR"))
+                .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.startsWith("id: ")));
     }
 
     @Test
