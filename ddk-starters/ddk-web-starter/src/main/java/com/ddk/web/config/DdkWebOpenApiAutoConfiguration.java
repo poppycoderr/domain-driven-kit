@@ -41,6 +41,7 @@ public class DdkWebOpenApiAutoConfiguration {
         ClassLoader classLoader = ClassUtils.getDefaultClassLoader();
         return new ErrorContractOpenApiCustomizer(
                 SingletonSupplier.of(() -> ErrorCodeCatalog.scan(packages, classLoader == null ? getClass().getClassLoader() : classLoader)),
-                properties.isJackson() && properties.isWriteLongAsString());
+                properties.isJackson() && properties.isWriteLongAsString(),
+                properties.isExceptionHandler() && properties.isNotFoundAs404());
     }
 }

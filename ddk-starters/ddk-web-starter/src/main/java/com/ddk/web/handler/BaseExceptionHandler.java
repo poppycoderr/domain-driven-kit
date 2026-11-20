@@ -55,15 +55,39 @@ import java.util.stream.Collectors;
 @Order(Ordered.LOWEST_PRECEDENCE - 10)
 public class BaseExceptionHandler {
 
+    private static final String NOT_FOUND_SUFFIX = "_NOT_FOUND";
+
+    private final boolean notFoundAs404;
+
     /**
-     * 业务异常：可预期的规则拒绝，用 400。
+     * 所有业务异常都用 400，与之前的版本相同。
+     */
+    public BaseExceptionHandler() {
+        this(false);
+    }
+
+    /**
+     * @param notFoundAs404 为 true 时，错误码为 {@code NOT_FOUND} 或以 {@code _NOT_FOUND} 结尾的业务异常用 404，对应 {@code ddk.web.not-found-as-404}
+     */
+    public BaseExceptionHandler(boolean notFoundAs404) {
+        this.notFoundAs404 = notFoundAs404;
+    }
+
+    /**
+     * 业务异常：可预期的规则拒绝，用 400；开启 {@code ddk.web.not-found-as-404} 时，找不到资源的错误码用 404。
      * <p>
      * 这类异常不打 error 日志——它们是正常的业务流程分支，不是故障。
      */
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ApiResponse<Void>> handleBusinessException(BusinessException e) {
-        log.warn("BusinessException [{}]: {}", e.getErrorCode().getCode(), e.getMessage());
-        return ResponseEntity.badRequest().body(ApiResponse.ofFail(e.getErrorCode(), e.getArgs()));
+        String code = e.getErrorCode().getCode();
+        log.warn("BusinessException [{}]: {}", code, e.getMessage());
+        HttpStatus status = notFoundAs404 && isNotFound(code) ? HttpStatus.NOT_FOUND : HttpStatus.BAD_REQUEST;
+        return ResponseEntity.status(status).body(ApiResponse.ofFail(e.getErrorCode(), e.getArgs()));
+    }
+
+    private static boolean isNotFound(String code) {
+        return code.equals("NOT_FOUND") || code.endsWith(NOT_FOUND_SUFFIX);
     }
 
     /**

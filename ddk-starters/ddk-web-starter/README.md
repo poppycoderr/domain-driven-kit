@@ -20,7 +20,7 @@ Web-layer defaults for Spring MVC: global exception handling into `ApiResponse`,
 
 | Exception | Status | `code` |
 |---|---|---|
-| `BusinessException` | 400 | the business error code, message filled from its arguments |
+| `BusinessException` | 400, or 404 for a code `NOT_FOUND` or ending in `_NOT_FOUND` when `ddk.web.not-found-as-404=true` | the business error code, message filled from its arguments |
 | `ConcurrentUpdateException`, `AggregateBusyException`, `DuplicateRequestException` | 409 | `CONCURRENT_UPDATE`, `AGGREGATE_BUSY`, `DUPLICATE_REQUEST` |
 | `RateLimitedException` | 429 | `RATE_LIMITED` |
 | `CancellationException`, for example a thread interrupted while it waits for an aggregate lock during shutdown | 503 | `REQUEST_CANCELLED`; the request itself was fine and can be retried |
@@ -31,7 +31,7 @@ Web-layer defaults for Spring MVC: global exception handling into `ApiResponse`,
 | anything else | 500 | `SYSTEM_ERROR`, with a generic message; the stack trace goes to the log |
 
 - **Jackson.** A `JsonMapperBuilderCustomizer`, so `spring.jackson.*` still applies. Dates are ISO-8601 strings, unknown request fields are ignored, and `Long` / `long` are written as JSON strings, because snowflake IDs above 2^53 lose precision in JavaScript.
-- **Error contract in the API docs.** With springdoc on the classpath, every operation gets `400`, `409`, `429`, `500` and `503` responses with the `ApiErrorResponse` schema, and `components.schemas.ErrorCode` lists every error code: `CommonError` plus the `ErrorCode` enums in your application's packages.
+- **Error contract in the API docs.** With springdoc on the classpath, every operation gets `400`, `409`, `429`, `500` and `503` responses, and `404` with `ddk.web.not-found-as-404`, with the `ApiErrorResponse` schema, and `components.schemas.ErrorCode` lists every error code: `CommonError` plus the `ErrorCode` enums in your application's packages.
 - **Operator of the request.** Declare an `OperatorResolver` bean and the starter sets `OperatorContext` for each request and clears it afterwards. The MyBatis starter's audit fields and multi-tenancy read it from there.
 - **CORS** is off until `ddk.web.cors.enabled=true`.
 
@@ -42,6 +42,7 @@ The starter brings in `spring-boot-starter-webmvc`, `spring-boot-starter-validat
 | Property | Default | Meaning |
 |---|---|---|
 | `ddk.web.exception-handler` | `true` | Register `BaseExceptionHandler` |
+| `ddk.web.not-found-as-404` | `false` | Answer a `BusinessException` whose code is `NOT_FOUND` or ends in `_NOT_FOUND`, such as `ORDER_NOT_FOUND`, with 404 instead of 400. The body and the code stay the same. Off by default, because it changes the status existing clients see |
 | `ddk.web.jackson` | `true` | Apply the Jackson defaults |
 | `ddk.web.write-long-as-string` | `true` | Write `Long` / `long` as strings; needs `ddk.web.jackson`. It keeps snowflake IDs exact in JavaScript, and it applies to every `Long`, so counts such as `total` become strings too. A client that is not a browser can turn it off |
 | `ddk.web.openapi` | `true` | With springdoc present, add the error responses and the error code list to the docs |
