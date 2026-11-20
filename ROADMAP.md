@@ -93,7 +93,7 @@ Already on `main`: page sorts limited to the columns of the PO, the consume fail
 - [ ] **MCP write tools.** In the examples, write tools take a `requestId` and are `@Idempotent`, and audit logs carry the operator and tenant. The MCP starter is a preview, so this is not bound by the freeze
 - [ ] **Reproducible builds.** `project.build.outputTimestamp`, and a release check that compares the SHA-256 of the files on Maven Central and on the GitHub Release
 - [ ] **The tracer starter leaves preview.** A test that exports to an OTLP collector container in CI, the condition that COMPATIBILITY.md sets. The MCP starter stays a preview until the Spring AI support for the 2026-07-28 MCP revision settles; SUPPORT.md will name the MCP version CI uses
-- [ ] **Outside use.** Before 1.1 is released, at least one project outside this repository has run on 1.0.x and left a trial report. The maintainer starts one from the archetype; two design articles (the generation and token protocol of projections, and the defaults that fail where the mistake is made); Discussions opened
+- [ ] **Outside use.** Before 1.1 is released, at least one project outside this repository has run on 1.0.x and left a trial report. The maintainer starts one from the archetype; two design articles (the generation and token protocol of projections, and the defaults that fail where the mistake is made)
 
 Guardrails (context isolation rules, aggregate-level rules, a domain catalog) are planned for 1.2. An evaluation set for coding agents can run alongside 1.1, since it changes no library code.
 
@@ -118,7 +118,7 @@ No order and no dates. An item moves into a release when there is a concrete nee
 | S3-compatible object storage | File references as value objects; the domain never touches the SDK |
 | Elasticsearch helpers for projections | Index management and alias switching on rebuild |
 | One-command project creation and an online generator | `jbang ddk@poppycoderr new my-app`, a Spring Initializr-like page; after the installer's version selection has settled |
-| Community | A design article per release after the two planned for 1.1; templates and `good first issue` landed in 0.12, Discussions open in 1.1 |
+| Community | A design article per release after the two planned for 1.1; templates and `good first issue` landed in 0.12. Discussions open when questions outgrow issues; the maintainer decided not to open them for 1.1 |
 
 ## History
 

@@ -93,7 +93,7 @@ DDK 只有一个版本号，但各模块经受的验证并不一样。每个模�
 - [ ] **MCP 写工具。** 示例里的写工具带 `requestId` 并标 `@Idempotent`，审计日志带上操作者和租户。MCP starter 是预览，不受冻结约束
 - [ ] **可重现构建。** `project.build.outputTimestamp`，以及一项发布检查：比对中央仓库和 GitHub Release 上文件的 SHA-256
 - [ ] **tracer starter 转正。** CI 里加一个导出到 OTLP 收集器容器的测试，这是 COMPATIBILITY.zh-CN.md 定的条件。MCP starter 继续是预览，等 Spring AI 对 2026-07-28 那次 MCP 修订的支持稳定；SUPPORT.zh-CN.md 会写明 CI 用的 MCP 版本
-- [ ] **仓库外的使用。** 1.1 发布之前，至少有一个本仓库之外的项目在 1.0.x 上跑过，并留下一份试用报告。维护者先用 archetype 起一个项目；两篇设计文章（投影的代次与令牌协议、「用错就当场报错」的默认值）；开启 Discussions
+- [ ] **仓库外的使用。** 1.1 发布之前，至少有一个本仓库之外的项目在 1.0.x 上跑过，并留下一份试用报告。维护者先用 archetype 起一个项目；两篇设计文章（投影的代次与令牌协议、「用错就当场报错」的默认值）
 
 护栏方向（上下文隔离规则、聚合级规则、领域目录）计划放在 1.2。代理评测集不改库代码，可以和 1.1 并行做。
 
@@ -118,7 +118,7 @@ DDK 只有一个版本号，但各模块经受的验证并不一样。每个模�
 | S3 兼容的对象存储 | 文件引用作为值对象，领域层不接触 SDK |
 | 投影的 Elasticsearch 辅助功能 | 索引管理、重建时切换别名 |
 | 一行命令创建项目、在线项目生成器 | `jbang ddk@poppycoderr new my-app`，类似 Spring Initializr 的页面；等安装脚本的版本选择稳定之后 |
-| 社区 | 1.1 的两篇之后，每次发布配一篇设计文章；模板和 `good first issue` 已在 0.12 完成，Discussions 在 1.1 开启 |
+| 社区 | 1.1 的两篇之后，每次发布配一篇设计文章；模板和 `good first issue` 已在 0.12 完成。提问多到 issue 装不下时再开 Discussions，维护者决定 1.1 不开 |
 
 ## 历史
 
