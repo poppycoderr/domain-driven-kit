@@ -113,8 +113,11 @@ class TwoLevelCacheRedisIntegrationTest {
         runner.run(a -> runner.run(b -> {
             awaitListening(a, b);
             a.getBean(ProductService.class).find(1L);
-            b.getBean(ProductService.class).find(1L);
-            assertThat(products(b).peekLocal(1L)).isNotNull();
+            // A 写缓存时会广播失效，这条消息可能晚于 B 的回填到达并把它清掉；B 重读到本地缓存稳定下来，才开始验证 evict
+            await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+                b.getBean(ProductService.class).find(1L);
+                assertThat(products(b).peekLocal(1L)).isNotNull();
+            });
 
             products(a).evict(1L);
 
