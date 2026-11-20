@@ -22,7 +22,7 @@ import java.util.function.Supplier;
  * 把 DDK 的错误约定写进 OpenAPI 文档。
  * <p>
  * 全局异常处理器返回的是 {@code ResponseEntity}，springdoc 从它身上推断不出错误响应，文档里的接口因此只有 200。这里补上三类响应
- * （400 业务拒绝与参数校验、409 冲突、500 系统故障），响应体是失败时的 {@code ApiResponse}，其中 {@code code} 的取值是汇总出来的错误码清单。
+ * （400 业务拒绝与参数校验、409 冲突、500 系统故障，开启 {@code ddk.web.not-found-as-404} 时还有 404），响应体是失败时的 {@code ApiResponse}，其中 {@code code} 的取值是汇总出来的错误码清单。
  * 接口自己已经声明的响应不覆盖。
  */
 public final class ErrorContractOpenApiCustomizer implements GlobalOpenApiCustomizer {
@@ -37,9 +37,12 @@ public final class ErrorContractOpenApiCustomizer implements GlobalOpenApiCustom
 
     private final boolean longAsString;
 
-    public ErrorContractOpenApiCustomizer(Supplier<Map<String, String>> errorCodes, boolean longAsString) {
+    private final boolean notFoundAs404;
+
+    public ErrorContractOpenApiCustomizer(Supplier<Map<String, String>> errorCodes, boolean longAsString, boolean notFoundAs404) {
         this.errorCodes = errorCodes;
         this.longAsString = longAsString;
+        this.notFoundAs404 = notFoundAs404;
     }
 
     @Override
@@ -64,6 +67,9 @@ public final class ErrorContractOpenApiCustomizer implements GlobalOpenApiCustom
             operation.setResponses(responses);
         }
         addIfAbsent(responses, "400", "业务规则拒绝或请求不合法。`code` 是具体的业务错误码，参数校验失败时为 `VALIDATION_ERROR`，请求体无法解析时为 `MALFORMED_REQUEST`");
+        if (notFoundAs404) {
+            addIfAbsent(responses, "404", "资源不存在：`code` 是 `NOT_FOUND` 或以 `_NOT_FOUND` 结尾的业务错误码");
+        }
         addIfAbsent(responses, "409", "冲突：`CONCURRENT_UPDATE` 数据已被其他操作修改，`AGGREGATE_BUSY` 聚合正被其他操作处理，`DUPLICATE_REQUEST` 重复提交");
         addIfAbsent(responses, "429", "调用超过了限流阈值：`RATE_LIMITED`。降低频率后重试");
         addIfAbsent(responses, "500", "系统故障。`code` 为 `SYSTEM_ERROR` 或应用定义的系统错误码，不包含内部细节");

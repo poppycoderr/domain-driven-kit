@@ -27,6 +27,14 @@ public class DdkWebProperties {
     private boolean exceptionHandler = true;
 
     /**
+     * 是否让找不到资源的业务异常返回 404，仅在 {@code ddk.web.exception-handler} 启用时生效。
+     * <p>
+     * 错误码为 {@code NOT_FOUND} 或以 {@code _NOT_FOUND} 结尾（如 {@code ORDER_NOT_FOUND}）的 {@code BusinessException} 返回 404，
+     * 响应体与错误码不变。默认关闭：之前的版本对所有业务异常都返回 400，打开它会改变已有客户端看到的状态码。
+     */
+    private boolean notFoundAs404 = false;
+
+    /**
      * 是否让 DDK 调整 Jackson 的默认行为。
      * <p>
      * 启用时以 {@code Jackson2ObjectMapperBuilderCustomizer} 的形式参与构建，

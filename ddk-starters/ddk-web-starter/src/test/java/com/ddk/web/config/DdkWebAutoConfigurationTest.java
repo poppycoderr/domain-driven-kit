@@ -1,6 +1,8 @@
 package com.ddk.web.config;
 
 import com.ddk.core.domain.Identifier;
+import com.ddk.core.exception.BusinessException;
+import com.ddk.core.exception.ErrorCode;
 import com.ddk.web.handler.BaseExceptionHandler;
 import com.ddk.web.properties.DdkWebProperties;
 import org.junit.jupiter.api.DisplayName;
@@ -170,6 +172,26 @@ class DdkWebAutoConfigurationTest {
                 .run(context -> assertThat(context)
                         .doesNotHaveBean(BaseExceptionHandler.class)
                         .doesNotHaveBean(JsonMapperBuilderCustomizer.class));
+    }
+
+    @Test
+    @DisplayName("ddk.web.not-found-as-404 传给异常处理器")
+    void notFoundAs404ReachesTheHandler() {
+        runner.withPropertyValues("ddk.web.not-found-as-404=true").run(context -> assertThat(context.getBean(BaseExceptionHandler.class)
+                .handleBusinessException(new BusinessException(NotFound.ITEM_NOT_FOUND)).getStatusCode().value())
+                .isEqualTo(404));
+        runner.run(context -> assertThat(context.getBean(BaseExceptionHandler.class)
+                .handleBusinessException(new BusinessException(NotFound.ITEM_NOT_FOUND)).getStatusCode().value())
+                .isEqualTo(400));
+    }
+
+    enum NotFound implements ErrorCode {
+        ITEM_NOT_FOUND;
+
+        @Override
+        public String getMessage() {
+            return "not found";
+        }
     }
 
     @Test

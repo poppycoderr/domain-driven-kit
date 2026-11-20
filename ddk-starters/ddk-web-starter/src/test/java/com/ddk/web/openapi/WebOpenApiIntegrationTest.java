@@ -6,6 +6,9 @@ import com.ddk.core.response.ApiResponse;
 import com.ddk.web.config.DdkWebOpenApiAutoConfiguration;
 import com.ddk.web.internal.ErrorContractOpenApiCustomizer;
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.Paths;
 import io.swagger.v3.oas.models.media.Schema;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -92,11 +95,22 @@ class WebOpenApiIntegrationTest {
     @DisplayName("关闭 Long 转字符串后，时间戳在文档里是 int64")
     void timestampFollowsTheJacksonSetting() {
         OpenAPI openApi = new OpenAPI();
-        new ErrorContractOpenApiCustomizer(() -> Map.of("A", "a | b"), false).customise(openApi);
+        new ErrorContractOpenApiCustomizer(() -> Map.of("A", "a | b"), false, false).customise(openApi);
 
         Schema<?> error = openApi.getComponents().getSchemas().get("ApiErrorResponse");
         assertThat(((Schema<?>) error.getProperties().get("timestamp")).getFormat()).isEqualTo("int64");
         assertThat(openApi.getComponents().getSchemas().get("ErrorCode").getDescription()).contains("| `A` | a \\| b |");
+    }
+
+    @Test
+    @DisplayName("默认不写 404；开启 not-found-as-404 后每个接口补上 404")
+    void notFoundResponseFollowsTheProperty() throws Exception {
+        mvc.perform(get("/v3/api-docs")).andExpect(jsonPath("$.paths['/orders/{id}'].get.responses['404']").doesNotExist());
+
+        OpenAPI openApi = new OpenAPI().paths(new Paths().addPathItem("/orders/{id}",
+                new PathItem().get(new Operation())));
+        new ErrorContractOpenApiCustomizer(Map::of, true, true).customise(openApi);
+        assertThat(openApi.getPaths().get("/orders/{id}").getGet().getResponses().get("404").getDescription()).contains("_NOT_FOUND");
     }
 
     @Test

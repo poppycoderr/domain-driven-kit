@@ -42,6 +42,7 @@ class BaseExceptionHandlerTest {
     enum TestError implements ErrorCode {
         USER_NOT_FOUND("用户不存在：{0}"),
         UPSTREAM_UNAVAILABLE("上游服务不可用"),
+        NOT_FOUND_YET("错误码以 NOT_FOUND 开头，但不是找不到资源"),
         ;
 
         private final String message;
@@ -68,6 +69,11 @@ class BaseExceptionHandlerTest {
         @GetMapping("/business-no-args")
         void businessNoArgs() {
             throw new BusinessException(TestError.UPSTREAM_UNAVAILABLE);
+        }
+
+        @GetMapping("/not-found-prefix")
+        void notFoundPrefix() {
+            throw new BusinessException(TestError.NOT_FOUND_YET);
         }
 
         @GetMapping("/conflict")
@@ -134,6 +140,26 @@ class BaseExceptionHandlerTest {
             .standaloneSetup(new TestController())
             .setControllerAdvice(new BaseExceptionHandler())
             .build();
+
+    @Test
+    @DisplayName("开启 not-found-as-404 后，以 _NOT_FOUND 结尾的业务错误码 -> 404，其余业务异常仍是 400")
+    void notFoundCodesBecome404WhenEnabled() throws Exception {
+        MockMvc notFoundMvc = MockMvcBuilders
+                .standaloneSetup(new TestController())
+                .setControllerAdvice(new BaseExceptionHandler(true))
+                .build();
+
+        notFoundMvc.perform(get("/t/business"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code").value("USER_NOT_FOUND"))
+                .andExpect(jsonPath("$.message").value("用户不存在：42"));
+        notFoundMvc.perform(get("/t/business-no-args"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("UPSTREAM_UNAVAILABLE"));
+        notFoundMvc.perform(get("/t/not-found-prefix"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("NOT_FOUND_YET"));
+    }
 
     @Test
     @DisplayName("业务异常 -> 400，带上错误码与填充后的消息")

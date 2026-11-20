@@ -37,8 +37,8 @@ public class DdkWebAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(prefix = DdkWebProperties.PREFIX, name = "exception-handler", matchIfMissing = true)
-    BaseExceptionHandler baseExceptionHandler() {
-        return new BaseExceptionHandler();
+    BaseExceptionHandler baseExceptionHandler(DdkWebProperties properties) {
+        return new BaseExceptionHandler(properties.isNotFoundAs404());
     }
 
     /**
