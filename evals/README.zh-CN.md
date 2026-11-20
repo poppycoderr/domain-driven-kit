@@ -24,7 +24,7 @@ DDK 生成的项目既写给人看，也写给编码代理看：`AGENTS.md`、`.
 
 ## 评分过程
 
-见英文版的伪代码。生成项目后，`ArchitectureTest.java` 和已有的迁移脚本被记为受保护文件，代理改动了其中任何一个就判为失败（阶段 `protected`）；之后复制评分测试并执行 `mvn verify`，失败时阶段为 `compile` 或 `verify`。结果把 surefire 报告分成架构测试、评分测试和项目自己的测试三组，从而看得出失败是破坏了分层规则，还是没有满足契约。
+见英文版的伪代码。生成项目后，`ArchitectureTest.java` 和已有的迁移脚本被记为受保护文件，代理以非零状态退出或超时判为失败（阶段 `agent`），代理改动了受保护文件也判为失败（阶段 `protected`）；之后复制评分测试并执行 `mvn verify`，失败时阶段为 `compile` 或 `verify`。结果把 surefire 报告分成架构测试、评分测试和项目自己的测试三组，从而看得出失败是破坏了分层规则，还是没有满足契约。
 
 ## 运行
 
@@ -40,10 +40,10 @@ mvn -B -ntp install -DskipTests
 scripts/run-agent-eval.py --check
 ```
 
-运行代理。命令从标准输入读取需求，工作目录是生成的项目：
+运行代理。命令从标准输入读取需求，工作目录是生成的项目。Claude Code 在 print 模式下不会弹出授权，要列出允许它运行的命令，尤其是 `mvn`，否则它没法自己验证：
 
 ```bash
-scripts/run-agent-eval.py --agent 'claude -p --permission-mode acceptEdits'
+scripts/run-agent-eval.py --agent "claude -p --permission-mode acceptEdits --allowedTools 'Bash(mvn *)' 'Bash(ls *)' 'Bash(cat *)' 'Bash(find *)' 'Bash(grep *)' 'Bash(git status*)' 'Bash(git diff*)'"
 ```
 
 ```bash
