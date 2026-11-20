@@ -29,6 +29,7 @@ generate the project from the archetype at this checkout's version
 lay the seed task's reference over it, git init, commit
 record the protected files: ArchitectureTest.java and every migration that already exists
 run the agent (prompt on stdin, the project as working directory), or lay the reference over it
+agent exits non-zero or times out -> fail at "agent"
 protected file changed          -> fail at "protected"
 copy the graders, mvn verify    -> fail at "compile" or "verify", otherwise pass
 ```
@@ -49,10 +50,10 @@ Check the graders, as CI does. Every task must fail on the bare project and pass
 scripts/run-agent-eval.py --check
 ```
 
-Run an agent. The command gets the prompt on stdin and runs in the generated project:
+Run an agent. The command gets the prompt on stdin and runs in the generated project. In print mode Claude Code asks for no permissions, so name the commands it may run, `mvn` above all, or it cannot check its own work:
 
 ```bash
-scripts/run-agent-eval.py --agent 'claude -p --permission-mode acceptEdits'
+scripts/run-agent-eval.py --agent "claude -p --permission-mode acceptEdits --allowedTools 'Bash(mvn *)' 'Bash(ls *)' 'Bash(cat *)' 'Bash(find *)' 'Bash(grep *)' 'Bash(git status*)' 'Bash(git diff*)'"
 ```
 
 ```bash

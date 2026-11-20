@@ -3,7 +3,8 @@
 
 Each task generates a project from a DDK archetype, lets a coding agent (or the task's reference solution) work in it,
 then copies in hidden grader tests and runs mvn verify. A task passes when the files the agent must not touch are
-unchanged, the build passes, and the grader tests ran. See evals/README.md.
+unchanged, the build passes, and the grader tests ran. An agent that exits with an error or times out fails at the
+"agent" stage, so a run that never started is not mistaken for code that does not compile. See evals/README.md.
 
   scripts/run-agent-eval.py --agent 'claude -p --permission-mode acceptEdits'   # prompt on stdin, cwd is the project
   scripts/run-agent-eval.py --reference --task layer4-place-order
@@ -128,6 +129,7 @@ def run_task(task, mode, args, work, results_dir):
     apply_seed(task, project)
     git = ["git", "-c", "user.name=ddk-eval", "-c", "user.email=ddk-eval@example.com"]
     run(["git", "init", "-q"], project, log)
+    (project / ".git/info/exclude").write_text("target/\n", encoding="utf-8")
     run(["git", "add", "-A"], project, log)
     run(git + ["commit", "-q", "-m", "seed"], project, log)
     protected = protected_files(task, project)
@@ -136,6 +138,8 @@ def run_task(task, mode, args, work, results_dir):
         prompt = (task["dir"] / "prompt.md").read_bytes()
         code = run(args.agent, project, out / "agent.log", timeout=args.timeout, stdin=prompt, shell=True)
         result["agent_exit"] = code
+        if code != 0:
+            return finish("agent")
     elif mode == "reference":
         overlay(task["dir"] / "reference", project)
 
@@ -196,6 +200,8 @@ def main():
     task_ids = args.task or sorted(p.name for p in TASKS.iterdir() if (p / "task.json").is_file())
     tasks = [load_task(t) for t in task_ids]
     work = args.work or Path(tempfile.mkdtemp(prefix="ddk-agent-eval-"))
+    if args.work and args.work.exists() and any(args.work.iterdir()):
+        sys.exit("--work must be a new or empty directory: " + str(args.work))
     results_dir = ROOT / "target" / "agent-eval" / datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     results_dir.mkdir(parents=True)
     print("projects in %s, results in %s" % (work, results_dir), flush=True)
