@@ -8,4 +8,8 @@ def compiler = project.build.plugins.plugin.find { it.artifactId.text() == 'mave
 def lombok = compiler.configuration.annotationProcessorPaths.path.find { it.artifactId.text() == 'lombok' }
 assert lombok.size() == 1 : 'maven-compiler-plugin does not list lombok in annotationProcessorPaths'
 assert lombok.version.text() == '${lombok.version}' : "lombok processor version is ${lombok.version.text()}, expected the Spring Boot managed property"
+// .gitignore 默认会被 maven-resources-plugin 排除，要确认它进了生成的项目
+def gitignore = new File(pom.parentFile, '.gitignore')
+assert gitignore.isFile() : "generated project has no .gitignore"
+assert gitignore.text.readLines().contains('target/') : '.gitignore does not ignore target/'
 return true
