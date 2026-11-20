@@ -89,6 +89,8 @@ class OrderMysqlIntegrationTest {
     @Test
     void aStaleOrderCannotOverwriteANewerOne() {
         OrderResponse placed = orderService.place(new PlaceOrderCommand(7L, List.of(new PlaceOrderCommand.Line("SKU-KEYBOARD", 1))));
+        // 预占库存的回执会异步更新这张订单；等它做完再加载两份，否则 first 本身就已经过期
+        awaitFollowUpWork();
         Order first = orderRepository.find(OrderId.of(placed.id())).orElseThrow();
         Order second = orderRepository.find(OrderId.of(placed.id())).orElseThrow();
 
